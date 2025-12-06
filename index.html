@@ -35,6 +35,7 @@
     }
 
     .app-shell {
+      position: relative;
       width: 100%;
       max-width: 1200px;
       background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.98));
@@ -52,6 +53,7 @@
       justify-content: space-between;
       align-items: center;
       background: radial-gradient(circle at top right, #eef2ff, #ffffff);
+      gap: 12px;
     }
 
     .brand {
@@ -93,10 +95,18 @@
       color: var(--text-soft);
     }
 
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     .tabs {
       display: flex;
       gap: 6px;
-      background: rgba(15,23,42,0.04);
+      background: rgba(15,23,42,0.05);
       padding: 3px;
       border-radius: 999px;
     }
@@ -122,6 +132,49 @@
       background: #0f172a;
       color: #e5e7eb;
       box-shadow: 0 0 0 1px rgba(148,163,184,0.5);
+    }
+
+    .auth-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #020617;
+      color: #e5e7eb;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      flex-wrap: wrap;
+    }
+
+    .auth-box input {
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #111827;
+      color: #e5e7eb;
+      padding: 3px 8px;
+      font-size: 11px;
+      outline: none;
+      min-width: 120px;
+    }
+
+    .auth-box input::placeholder {
+      color: #6b7280;
+    }
+
+    .btn-mini {
+      border: none;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #0f172a;
+      white-space: nowrap;
+    }
+
+    .auth-status {
+      font-size: 10px;
+      color: #cbd5f5;
     }
 
     main { padding: 16px 20px 20px; }
@@ -175,7 +228,7 @@
       color: var(--text-soft);
     }
 
-    /* FORM */
+    /* Form */
     form {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -223,6 +276,7 @@
     .actions {
       grid-column: 1 / -1;
       display: flex;
+      flex-wrap: wrap;
       justify-content: flex-end;
       gap: 8px;
       margin-top: 4px;
@@ -262,6 +316,13 @@
       color: #4b5563;
     }
 
+    .btn[disabled],
+    .btn-mini[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
     .pill {
       font-size: 11px;
       padding: 3px 8px;
@@ -279,7 +340,7 @@
     .message.success { color: var(--success); }
     .message.error   { color: var(--error); }
 
-    /* DASHBOARD */
+    /* Dashboard */
     .toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -335,7 +396,7 @@
       color: #4f46e5;
     }
 
-    /* INVOICE */
+    /* Invoice */
     .invoice-wrap {
       display: flex;
       gap: 16px;
@@ -353,8 +414,8 @@
       box-shadow: 0 10px 30px rgba(15,23,42,0.25);
       position: relative;
       overflow: hidden;
-      width: 200px;
-      height: 400px;
+      width: 500px;
+      height: 300px;
       margin: 0 auto;
       display: flex;
       align-items: stretch;
@@ -461,7 +522,7 @@
       font-size: 10px;
     }
 
-    /* SETTINGS */
+    /* Settings */
     .settings-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -486,6 +547,47 @@
       border-radius: 10px;
     }
 
+    .pricing-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 90px 90px;
+      gap: 4px 8px;
+      align-items: center;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .pricing-row span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pricing-row input {
+      font-size: 12px;
+      padding: 4px 6px;
+      border-radius: 7px;
+    }
+
+    .auth-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15,23,42,0.82);
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      z-index: 40;
+      font-size: 14px;
+      /* overlay only visual – clicks ရင်အောက်က Login box ကို လှမ်းသွားစေမယ် */
+      pointer-events: none;
+    }
+
+    .auth-overlay.hidden {
+      display: none;
+    }
+
     @media (max-width: 640px) {
       header {
         flex-direction: column;
@@ -505,6 +607,13 @@
 </head>
 <body>
   <div class="app-shell">
+    <div id="authOverlay" class="auth-overlay">
+      🔒 System Locked – Please login with your Thailand Guide account<br/><br/>
+      <span style="font-size:12px;opacity:0.8;">
+        (Admin / Staff Email &amp; Password သည် Firebase Console မှာ သတ်မှတ်ထားသည့် Account ဖြစ်ရပါမည်)
+      </span>
+    </div>
+
     <header>
       <div class="brand">
         <div class="brand-mark">
@@ -515,19 +624,30 @@
           <div class="brand-text-sub">Data Entry • Invoice • Dashboard • Telegram Alert</div>
         </div>
       </div>
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="entry">
-          <span class="icon">📝</span> Entry
-        </button>
-        <button class="tab-btn" data-tab="dashboard">
-          <span class="icon">📊</span> Dashboard
-        </button>
-        <button class="tab-btn" data-tab="invoice">
-          <span class="icon">🧾</span> Invoice
-        </button>
-        <button class="tab-btn" data-tab="settings">
-          <span class="icon">⚙️</span> Settings
-        </button>
+
+      <div class="header-right">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="entry">
+            <span class="icon">📝</span> Entry
+          </button>
+          <button class="tab-btn" data-tab="dashboard">
+            <span class="icon">📊</span> Dashboard
+          </button>
+          <button class="tab-btn" data-tab="invoice">
+            <span class="icon">🧾</span> Invoice
+          </button>
+          <button class="tab-btn admin-only" data-tab="settings" id="settingsTabBtn">
+            <span class="icon">⚙️</span> Settings
+          </button>
+        </div>
+
+        <div class="auth-box">
+          <input id="loginEmail" type="email" placeholder="email@example.com">
+          <input id="loginPassword" type="password" placeholder="password">
+          <button class="btn-mini" id="loginBtn">Login</button>
+          <button class="btn-mini" id="logoutBtn" style="display:none;">Logout</button>
+          <div class="auth-status" id="authStatus">Not signed in</div>
+        </div>
       </div>
     </header>
 
@@ -611,8 +731,11 @@
                 Preview Invoice
               </button>
               <button type="reset" class="btn btn-secondary">Clear</button>
-              <button type="submit" class="btn btn-primary">
-                <span>Save to Firebase</span> 🚀
+              <button type="button" class="btn btn-secondary admin-only" id="btnCancelEdit" style="display:none;">
+                Cancel Edit
+              </button>
+              <button type="submit" class="btn btn-primary" id="saveBtn">
+                <span id="saveBtnText">Save to Firebase</span> 🚀
               </button>
             </div>
 
@@ -628,13 +751,17 @@
             <div>
               <div class="panel-title">
                 <span>📊 Admin Dashboard</span>
-                <span class="badge">View &amp; Filter</span>
+                <span class="badge">View • Edit • Export</span>
               </div>
               <div class="panel-desc">
-                Appointments အားလုံးကိုကြည့်ရှုနိုင်သလို Name / Service Type / Date / Location Filter တွေနဲ့ ရှာဖွေနိုင်ပါတယ်။
+                Appointments အားလုံးကိုကြည့်ရှုနိုင်သလို Name / Service Type / Date / Location Filter တွေနဲ့ ရှာဖွေ၊
+                Admin Mode မှာ Edit / Export CSV (Excel) လည်းလုပ်နိုင်ပါတယ်။
               </div>
             </div>
-            <button class="btn btn-secondary" id="reloadAppointments">Reload Data</button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn btn-secondary" id="reloadAppointments">Reload Data</button>
+              <button class="btn btn-secondary admin-only" id="exportCsv" style="display:none;">Export CSV (Excel)</button>
+            </div>
           </div>
 
           <div class="toolbar">
@@ -669,12 +796,13 @@
                   <th>Location</th>
                   <th>Payment</th>
                   <th>Amount</th>
+                  <th>Profit</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody id="appointmentsTableBody">
                 <tr>
-                  <td colspan="9" style="text-align:center; padding:10px;">
+                  <td colspan="10" style="text-align:center; padding:10px;">
                     Data မရှိသေးပါ… "Reload Data" ကိုနှိပ်ပါ
                   </td>
                 </tr>
@@ -724,7 +852,6 @@
               <div class="invoice-inner">
                 <div class="invoice-header-main">
                   <div class="invoice-logo">
-                    <!-- logo.png ကို index.html နဲ့တူတဲ့ folder ထဲထည့်ထားရပါမယ် -->
                     <img src="logo.png" alt="Thailand Guide Logo">
                   </div>
                   <div class="invoice-header-text">
@@ -755,17 +882,18 @@
         </div>
       </section>
 
-      <!-- SETTINGS TAB -->
-      <section id="tab-settings" class="tab-panel">
+      <!-- SETTINGS TAB (Admin only) -->
+      <section id="tab-settings" class="tab-panel admin-only" style="display:none;">
         <div class="panel-card">
           <div class="panel-header">
             <div>
               <div class="panel-title">
                 <span>⚙️ Global Settings</span>
-                <span class="badge">Dropdown + Telegram</span>
+                <span class="badge">Dropdown + Pricing + Telegram</span>
               </div>
               <div class="panel-desc">
-                Dropdown Option Name တွေကို ဒီနေရာကနေ ကိုယ်တိုင် ပြင်နိုင်သလို Telegram Bot Auto Notify Setting ကိုလည်း ထည့်သွင်းနိုင်ပါတယ်။
+                Dropdown Option Name တွေ၊ Service Pricing (Cost / Profit) တွေကို ဒီနေရာကနေ ပြင်နိုင်သလို
+                Telegram Bot Auto Notify Setting ကိုလည်း ထည့်သွင်းနိုင်ပါတယ်။
               </div>
             </div>
             <button class="btn btn-secondary" id="saveSettings">Save Settings</button>
@@ -797,6 +925,12 @@
             </div>
 
             <div class="settings-block">
+              <h4>Service Pricing (Cost / Profit per Service)</h4>
+              <small>Service တစ်မျိုးစီအတွက် စရိတ် / အမြတ် ထည့်ပေးပါ – Save Settings နောက်မှ အလုပ်လုပ်မယ်</small>
+              <div id="servicePricingContainer"></div>
+            </div>
+
+            <div class="settings-block">
               <h4>Telegram Bot Notify</h4>
               <small>Save အသစ်တင်တိုင်း Telegram Alert ပို့ချင်ရင် ဖြည့်ပါ (optional)</small>
               <div class="field">
@@ -819,10 +953,10 @@
     </main>
   </div>
 
-  <!-- html2canvas for HTML → JPEG -->
+  <!-- html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-  <!-- Firebase / Firestore -->
+  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
@@ -834,6 +968,12 @@
       getDoc,
       setDoc
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBrXn36vL3_Ls4o4mTqaR_HGELJpQEpAw0",
@@ -847,6 +987,10 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentUser = null;     // firebase user
+    let currentRole = "guest";  // guest | staff | admin
 
     let dropdownSettings = {
       customerChannels: [
@@ -880,28 +1024,185 @@
       ]
     };
 
-    let telegramSettings = {
-      botToken: "",
-      chatId: ""
-    };
+    let servicePricing = {}; // { serviceName: { cost, profit } }
+    let telegramSettings = { botToken: "", chatId: "" };
 
     let cachedAppointments = [];
+    let lastFilteredAppointments = [];
     let lastSavedDocId = null;
     let lastSavedData = null;
+    let editingDocId = null;
 
     function $(id) { return document.getElementById(id); }
 
-    // Tabs
+    // ---------- AUTH ----------
+    $("loginBtn").addEventListener("click", async () => {
+      const email = $("loginEmail").value.trim();
+      const pwd = $("loginPassword").value;
+
+      if (!email || !pwd) {
+        alert("Email / Password ဖြည့်ပေးပါ");
+        return;
+      }
+
+      $("loginBtn").disabled = true;
+      $("loginBtn").textContent = "Logging in...";
+
+      try {
+        await signInWithEmailAndPassword(auth, email, pwd);
+      } catch (e) {
+        console.error(e);
+        alert("Login Error: " + e.message);
+        $("loginBtn").disabled = false;
+        $("loginBtn").textContent = "Login";
+      }
+    });
+
+    $("logoutBtn").addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
+    onAuthStateChanged(auth, async user => {
+      currentUser = user;
+
+      if (user) {
+        // look up role from Firestore users collection (doc id = email)
+        let role = "staff";
+        try {
+          const uDoc = await getDoc(doc(db, "users", user.email));
+          if (uDoc.exists()) {
+            const d = uDoc.data();
+            if (d.role === "admin" || d.role === "staff") role = d.role;
+          }
+        } catch (e) {
+          console.error("Error loading user role:", e);
+        }
+        currentRole = role;
+
+        $("authStatus").textContent = `Logged in as ${user.email} (${currentRole})`;
+        $("loginBtn").disabled = true;
+        $("loginEmail").disabled = true;
+        $("loginPassword").disabled = true;
+        $("logoutBtn").style.display = "inline-flex";
+      } else {
+        currentRole = "guest";
+        $("authStatus").textContent = "Not signed in";
+        $("loginBtn").disabled = false;
+        $("loginEmail").disabled = false;
+        $("loginPassword").disabled = false;
+        $("logoutBtn").style.display = "none";
+      }
+
+      updateRoleUI();
+      updateAuthUI();
+
+      if (user) {
+        // load data after auth
+        loadSettingsFromFirestore();
+        loadAppointments();
+      }
+    });
+
+    function updateAuthUI() {
+      const overlay = $("authOverlay");
+      const disabled = currentRole === "guest";
+      overlay.classList.toggle("hidden", !disabled);
+
+      // button / form disabled state
+      const protectedButtons = [
+        "saveBtn", "btnCancelEdit", "gotoInvoiceFromEntry",
+        "reloadAppointments", "exportCsv", "applyFilter",
+        "loadInvoice", "downloadInvoiceJpeg", "saveSettings"
+      ];
+
+      protectedButtons.forEach(id => {
+        const el = $(id);
+        if (!el) return;
+        el.disabled = disabled;
+      });
+
+      // inputs / selects
+      const inputs = document.querySelectorAll(
+        "#appointmentForm input, #appointmentForm select, #appointmentForm textarea," +
+        "#tab-dashboard input, #tab-dashboard select," +
+        "#tab-invoice input"
+      );
+      inputs.forEach(el => {
+        if (currentRole === "guest") {
+          el.setAttribute("disabled", "disabled");
+        } else {
+          el.removeAttribute("disabled");
+        }
+      });
+
+      // login inputs ကို အမြဲ enable
+      $("loginEmail").disabled = currentUser ? true : false;
+      $("loginPassword").disabled = currentUser ? true : false;
+    }
+
+    function updateRoleUI() {
+      // settings tab visibility
+      const settingsTabBtn = $("settingsTabBtn");
+      const settingsPanel = $("tab-settings");
+      if (currentRole === "admin") {
+        if (settingsTabBtn) settingsTabBtn.style.display = "";
+        if (settingsPanel) settingsPanel.style.display = "";
+      } else {
+        if (settingsTabBtn) settingsTabBtn.style.display = "none";
+        if (settingsPanel) settingsPanel.style.display = "none";
+      }
+
+      // admin-only buttons / elements
+      document.querySelectorAll(".admin-only").forEach(el => {
+        if (el.id === "tab-settings") {
+          // handled above
+          return;
+        }
+        el.style.display = currentRole === "admin" ? "" : "none";
+      });
+
+      // Profit masking
+      document.querySelectorAll(".profit-cell").forEach(td => {
+        const real = td.dataset.profit || "";
+        if (!real) {
+          td.textContent = "";
+        } else {
+          td.textContent = currentRole === "admin" ? real : "****";
+        }
+      });
+
+      updateAuthUI();
+    }
+
+    // ---------- TABS ----------
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
+        const tab = btn.dataset.tab;
+        if (tab === "settings" && currentRole !== "admin") return;
+
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
         document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
         btn.classList.add("active");
-        $("tab-" + btn.dataset.tab).classList.add("active");
+        $("tab-" + tab).classList.add("active");
       });
     });
 
-    // Render dropdowns
+    // ---------- DROPDOWNS / SETTINGS ----------
+    function ensureOption(select, value) {
+      if (!value) return;
+      const exists = Array.from(select.options).some(o => o.value === value);
+      if (!exists) {
+        const opt = document.createElement("option");
+        opt.value = opt.textContent = value;
+        select.appendChild(opt);
+      }
+      select.value = value;
+    }
+
     function renderDropdowns() {
       const channelSelect = $("channel");
       const serviceSelect = $("serviceType");
@@ -939,9 +1240,32 @@
         o.value = o.textContent = v;
         filterServiceSelect.appendChild(o);
       });
+
+      renderServicePricingEditor();
     }
 
-    // Load settings
+    function renderServicePricingEditor() {
+      const container = $("servicePricingContainer");
+      if (!container) return;
+
+      container.innerHTML = "";
+      dropdownSettings.serviceTypes.forEach(name => {
+        const row = document.createElement("div");
+        row.className = "pricing-row";
+
+        const sp = servicePricing[name] || { cost: "", profit: "" };
+
+        row.innerHTML = `
+          <span title="${name}">${name}</span>
+          <input type="number" min="0" step="0.01" placeholder="Cost"
+            data-sp-cost="${name}" value="${sp.cost !== undefined ? sp.cost : ""}">
+          <input type="number" min="0" step="0.01" placeholder="Profit"
+            data-sp-profit="${name}" value="${sp.profit !== undefined ? sp.profit : ""}">
+        `;
+        container.appendChild(row);
+      });
+    }
+
     async function loadSettingsFromFirestore() {
       try {
         const ddSnap = await getDoc(doc(db, "settings", "dropdowns"));
@@ -958,6 +1282,12 @@
           const t = tgSnap.data();
           telegramSettings.botToken = t.botToken || "";
           telegramSettings.chatId = t.chatId || "";
+        }
+
+        const spSnap = await getDoc(doc(db, "settings", "servicePricing"));
+        if (spSnap.exists()) {
+          const sp = spSnap.data();
+          servicePricing = sp.services || {};
         }
       } catch (e) {
         console.error("Load settings error:", e);
@@ -980,14 +1310,42 @@
       dropdownSettings.serviceTypes = $("servicesSetting").value.split("\n").map(s => s.trim()).filter(Boolean);
       dropdownSettings.paymentTypes = $("paymentsSetting").value.split("\n").map(s => s.trim()).filter(Boolean);
       dropdownSettings.locations = $("locationsSetting").value.split("\n").map(s => s.trim()).filter(Boolean);
+
+      // pricing
+      const newPricing = {};
+      dropdownSettings.serviceTypes.forEach(name => {
+        newPricing[name] = { cost: 0, profit: 0 };
+      });
+
+      document.querySelectorAll("[data-sp-cost]").forEach(input => {
+        const name = input.dataset.spCost;
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) {
+          if (!newPricing[name]) newPricing[name] = {};
+          newPricing[name].cost = val;
+        }
+      });
+
+      document.querySelectorAll("[data-sp-profit]").forEach(input => {
+        const name = input.dataset.spProfit;
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) {
+          if (!newPricing[name]) newPricing[name] = {};
+          newPricing[name].profit = val;
+        }
+      });
+
+      servicePricing = newPricing;
       telegramSettings.botToken = $("tgToken").value.trim();
       telegramSettings.chatId = $("tgChatId").value.trim();
 
       try {
         await setDoc(doc(db, "settings", "dropdowns"), dropdownSettings, { merge: true });
         await setDoc(doc(db, "settings", "telegram"), telegramSettings, { merge: true });
+        await setDoc(doc(db, "settings", "servicePricing"), { services: servicePricing }, { merge: true });
+
         renderDropdowns();
-        msg.textContent = "✅ Settings saved & dropdowns updated.";
+        msg.textContent = "✅ Settings & Pricing saved.";
         msg.className = "message success";
       } catch (e) {
         console.error(e);
@@ -996,12 +1354,23 @@
       }
     });
 
-    // ENTRY SAVE
+    // ---------- ENTRY SAVE / EDIT ----------
     const form = $("appointmentForm");
     const messageDiv = $("message");
 
+    $("btnCancelEdit").addEventListener("click", () => {
+      editingDocId = null;
+      $("invoiceId").disabled = false;
+      $("saveBtnText").textContent = "Save to Firebase";
+      $("btnCancelEdit").style.display = "none";
+      messageDiv.textContent = "";
+      form.reset();
+    });
+
     form.addEventListener("submit", async e => {
       e.preventDefault();
+      if (currentRole === "guest") return;
+
       messageDiv.textContent = "";
       messageDiv.className = "message";
 
@@ -1020,7 +1389,8 @@
         paymentType: $("paymentType").value,
         price: Number($("price").value || 0),
         remark: $("remark").value.trim() || null,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        createdBy: currentUser ? currentUser.email : null
       };
 
       if (!invoiceId) {
@@ -1035,23 +1405,49 @@
         return;
       }
 
+      const sp = servicePricing[data.serviceType] || {};
+      const cost = typeof sp.cost === "number" ? sp.cost : 0;
+      let profit = typeof sp.profit === "number" ? sp.profit : undefined;
+      if (profit === undefined || isNaN(profit)) {
+        profit = data.price - cost;
+      }
+      data.serviceCost = cost;
+      data.serviceProfit = profit;
+
       try {
-        const existing = await getDoc(doc(db, "appointments", invoiceId));
-        if (existing.exists()) {
-          messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသားဖြစ်နေပါသည် – အသစ်တစ်ခုကွဲပြားတဲ့ ID ပေးပါ။";
-          messageDiv.className = "message error";
-          return;
+        if (editingDocId && editingDocId === invoiceId) {
+          await setDoc(doc(db, "appointments", editingDocId), data, { merge: true });
+          lastSavedDocId = editingDocId;
+          lastSavedData = { ...data, id: editingDocId };
+
+          messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId;
+          messageDiv.className = "message success";
+
+          editingDocId = null;
+          $("invoiceId").disabled = false;
+          $("saveBtnText").textContent = "Save to Firebase";
+          $("btnCancelEdit").style.display = "none";
+          form.reset();
+          loadAppointments();
+        } else {
+          const existing = await getDoc(doc(db, "appointments", invoiceId));
+          if (existing.exists()) {
+            messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသားဖြစ်နေပါသည် – အသစ်တစ်ခုကွဲပြားတဲ့ ID ပေးပါ။";
+            messageDiv.className = "message error";
+            return;
+          }
+
+          await setDoc(doc(db, "appointments", invoiceId), data);
+          lastSavedDocId = invoiceId;
+          lastSavedData = { ...data, id: invoiceId };
+
+          messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId;
+          messageDiv.className = "message success";
+
+          sendTelegramNotification(lastSavedData);
+          form.reset();
+          loadAppointments();
         }
-
-        await setDoc(doc(db, "appointments", invoiceId), data);
-        lastSavedDocId = invoiceId;
-        lastSavedData = { ...data, id: invoiceId };
-
-        messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId;
-        messageDiv.className = "message success";
-
-        sendTelegramNotification(lastSavedData);
-        form.reset();
       } catch (err) {
         console.error("Error saving:", err);
         messageDiv.textContent = "❌ Error saving data: " + err.message;
@@ -1059,7 +1455,7 @@
       }
     });
 
-    // TELEGRAM
+    // ---------- TELEGRAM ----------
     async function sendTelegramNotification(a) {
       if (!telegramSettings.botToken || !telegramSettings.chatId) return;
 
@@ -1096,10 +1492,12 @@
       }
     }
 
-    // DASHBOARD
+    // ---------- DASHBOARD ----------
     async function loadAppointments() {
+      if (currentRole === "guest") return;
+
       const body = $("appointmentsTableBody");
-      body.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:8px;">Loading...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:8px;">Loading...</td></tr>`;
       $("dashboardMessage").textContent = "";
 
       try {
@@ -1120,7 +1518,7 @@
         renderAppointmentsTable();
       } catch (e) {
         console.error(e);
-        body.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:8px;color:#b91c1c;">Error loading data</td></tr>`;
+        body.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:8px;color:#b91c1c;">Error loading data</td></tr>`;
       }
     }
 
@@ -1148,12 +1546,24 @@
         return ok;
       });
 
+      lastFilteredAppointments = filtered;
+
       if (!filtered.length) {
-        body.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
+        body.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
         return;
       }
 
       filtered.forEach(a => {
+        const profit = (a.serviceProfit != null)
+          ? a.serviceProfit
+          : (a.price != null && a.serviceCost != null)
+            ? (a.price - a.serviceCost)
+            : null;
+        const profitText = profit != null ? profit.toFixed(2) : "";
+        const displayProfit = currentRole === "admin"
+          ? profitText
+          : (profitText ? "****" : "");
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${a.invoiceId || a.id}</td>
@@ -1164,25 +1574,131 @@
           <td>${a.location || ""}</td>
           <td>${a.paymentType || ""}</td>
           <td>${a.price != null ? a.price.toFixed(2) : ""}</td>
-          <td><button class="btn btn-outline btn-sm" data-docid="${a.invoiceId || a.id}">Invoice</button></td>
+          <td class="profit-cell" data-profit="${profitText}">${displayProfit}</td>
+          <td>
+            <button class="btn btn-outline btn-sm" data-docid="${a.invoiceId || a.id}">Invoice</button>
+            <button class="btn btn-secondary btn-sm admin-only" data-editid="${a.invoiceId || a.id}" style="${currentRole === "admin" ? "" : "display:none;"}">Edit</button>
+          </td>
         `;
         body.appendChild(tr);
-      });
 
-      body.querySelectorAll("button[data-docid]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          $("invoiceDocId").value = btn.dataset.docid;
+        const invoiceBtn = tr.querySelector("[data-docid]");
+        invoiceBtn.addEventListener("click", () => {
+          $("invoiceDocId").value = invoiceBtn.dataset.docid;
           document.querySelector('.tab-btn[data-tab="invoice"]').click();
           loadInvoice();
         });
+
+        const editBtn = tr.querySelector("[data-editid]");
+        if (editBtn) {
+          editBtn.addEventListener("click", () => {
+            if (currentRole !== "admin") return;
+            startEditAppointment(a);
+          });
+        }
       });
+
+      updateRoleUI();
+    }
+
+    function startEditAppointment(a) {
+      editingDocId = a.invoiceId || a.id;
+
+      $("invoiceId").value = editingDocId;
+      $("invoiceId").disabled = true;
+
+      $("date").value = a.date || "";
+      $("appointmentDate").value = a.appointmentDate || "";
+      $("name").value = a.name || "";
+      $("phone").value = a.phone || "";
+
+      ensureOption($("channel"), a.channel);
+      ensureOption($("location"), a.location);
+      ensureOption($("serviceType"), a.serviceType);
+      ensureOption($("paymentType"), a.paymentType);
+
+      $("channel").value = a.channel || "";
+      $("location").value = a.location || "";
+      $("serviceType").value = a.serviceType || "";
+      $("paymentType").value = a.paymentType || "";
+      $("price").value = a.price != null ? a.price : "";
+      $("remark").value = a.remark || "";
+
+      $("saveBtnText").textContent = "Update Appointment";
+      $("btnCancelEdit").style.display = currentRole === "admin" ? "inline-flex" : "none";
+
+      const msg = $("message");
+      msg.textContent = "Edit Mode: Invoice " + editingDocId + " ကို ပြင်ဆိုင်နေပါသည်.";
+      msg.className = "message";
+
+      document.querySelector('.tab-btn[data-tab="entry"]').click();
+      $("tab-entry").classList.add("active");
     }
 
     $("reloadAppointments").addEventListener("click", loadAppointments);
     $("applyFilter").addEventListener("click", renderAppointmentsTable);
 
-    // INVOICE
+    $("exportCsv").addEventListener("click", () => {
+      if (currentRole !== "admin") return;
+      if (!lastFilteredAppointments.length) {
+        alert("Export လုပ်မယ့် data မရှိပါ။ Reload / Filter ပြန်လုပ်ပါ။");
+        return;
+      }
+
+      const rows = [];
+      rows.push([
+        "Invoice ID",
+        "Date",
+        "Appointment Date",
+        "Name",
+        "Phone",
+        "Channel",
+        "Location",
+        "Service Type",
+        "Payment Type",
+        "Price",
+        "Service Cost",
+        "Service Profit",
+        "Remark"
+      ]);
+
+      lastFilteredAppointments.forEach(a => {
+        rows.push([
+          a.invoiceId || a.id || "",
+          a.date || "",
+          a.appointmentDate || "",
+          a.name || "",
+          a.phone || "",
+          a.channel || "",
+          a.location || "",
+          a.serviceType || "",
+          a.paymentType || "",
+          a.price != null ? a.price : "",
+          a.serviceCost != null ? a.serviceCost : "",
+          a.serviceProfit != null ? a.serviceProfit : "",
+          a.remark || ""
+        ]);
+      });
+
+      const csv = rows
+        .map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(","))
+        .join("\r\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "appointments_export.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    });
+
+    // ---------- INVOICE ----------
     async function loadInvoice() {
+      if (currentRole === "guest") return;
+
       const id = $("invoiceDocId").value.trim() || lastSavedDocId;
       const msg = $("invoiceMessage");
       msg.textContent = "";
@@ -1245,6 +1761,8 @@
     });
 
     $("downloadInvoiceJpeg").addEventListener("click", async () => {
+      if (currentRole === "guest") return;
+
       const card = $("invoiceCard");
       const msg = $("invoiceMessage");
       msg.textContent = "Rendering JPEG...";
@@ -1266,8 +1784,8 @@
       }
     });
 
-    // Initial
-    loadSettingsFromFirestore();
+    // initial (guest state)
+    updateAuthUI();
   </script>
 </body>
 </html>
