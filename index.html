@@ -147,6 +147,7 @@
     .btn-primary{background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;box-shadow:0 12px 22px rgba(79,70,229,.35)}
     .btn-secondary{background:#e5e7eb;color:#111827;box-shadow:0 6px 14px rgba(15,23,42,.18)}
     .btn-outline{background:transparent;border:1px dashed rgba(148,163,184,.9);color:#4b5563}
+    .btn-danger{background:#dc2626;color:#fff;box-shadow:0 10px 18px rgba(220,38,38,.25)}
     .btn[disabled], .btn-mini[disabled]{opacity:.5;cursor:not-allowed;box-shadow:none}
     .message{margin-top:8px;font-size:12px;grid-column:1/-1}
     .message.success{color:var(--success)}
@@ -182,7 +183,7 @@
       background:#fff;border-radius:14px;border:1px solid #e5e7eb;
       padding:12px;
       box-shadow:0 10px 30px rgba(15,23,42,.25);
-      width:500px;height:600px;margin:0 auto;
+      width:500px;height:1000px;margin:0 auto;
       display:flex;align-items:stretch;justify-content:center;
       position:relative;overflow:hidden;
     }
@@ -202,7 +203,7 @@
       gap:6px 12px;font-size:13px;
     }
     .invoice-label{color:#6b7280;font-weight:800}
-    .invoice-value{font-weight:800;color:#111827; font-size:15px;} /* slightly bigger */
+    .invoice-value{font-weight:800;color:#111827; font-size:15px;}
     .invoice-total{
       margin-top:auto;padding-top:10px;border-top:1px dashed #d4d4d8;
       display:flex;justify-content:space-between;align-items:flex-start;font-size:14px;
@@ -237,6 +238,15 @@
       pointer-events:none;
     }
     .auth-overlay.hidden{display:none}
+
+    .inline-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .toggle{
+      display:flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;
+      background:#eef2ff;border:1px solid rgba(129,140,248,.6);
+      font-size:12px;color:#3730a3;font-weight:700;
+    }
+    .toggle input{width:16px;height:16px}
 
     @media (max-width: 640px){
       .invoice-grid{grid-template-columns:1fr}
@@ -290,14 +300,26 @@
               <div class="panel-title"><span>📝 Customer Appointment Data</span> <span class="badge">Live Firestore Save</span></div>
               <div class="panel-desc">Invoice ထုတ်မည့် အချက်အလက်များကို ဒီနေရာမှာ စနစ်တကျ လက်ခံသိမ်းဆည်းပါတယ်။</div>
             </div>
-            <span class="chip">Staff can save • Admin can edit/export</span>
+            <span class="chip">Staff can save • Admin can edit/export/delete</span>
           </div>
 
           <form id="appointmentForm">
+            <!-- Invoice ID + Auto toggle -->
             <div class="field">
               <label for="invoiceId">Invoice ID</label>
-              <input type="text" id="invoiceId" placeholder="TG-2025-0001" required />
-              <small>ထပ်မပေါ်မယ့် ID ပေးပါ (ဥပမာ TG-2025-0001)</small>
+
+              <div class="inline-row">
+                <input type="text" id="invoiceId" placeholder="TG-2025-0001" required />
+                <label class="toggle" title="Auto ID On/Off">
+                  <input type="checkbox" id="autoInvoiceId" checked />
+                  Auto ID
+                </label>
+                <button type="button" class="btn btn-outline" id="regenInvoiceId" style="padding:6px 12px;font-size:12px;">
+                  🔁 New ID
+                </button>
+              </div>
+
+              <small>Auto ID (default) သို့ Manual ID နှစ်မျိုးလုံး သုံးနိုင်ပါတယ်</small>
             </div>
 
             <div class="field">
@@ -310,7 +332,6 @@
               <input type="date" id="appointmentDate" required />
             </div>
 
-            <!-- ✅ NEW: Time (optional) -->
             <div class="field">
               <label for="appointmentTime">ဝန်ဆောင်မှုယူရန်လာရမည့်အချိန်</label>
               <input type="time" id="appointmentTime" step="300" />
@@ -334,7 +355,6 @@
                 <option value="Pending">Pending</option>
                 <option value="Confirm">Confirm</option>
               </select>
-              <small>Dashboard မှာသာ အသုံးပြုမယ်</small>
             </div>
 
             <div class="field">
@@ -355,7 +375,6 @@
             <div class="field">
               <label for="paymentType">ငွေပေးချေမှုအမျိုးအစား</label>
               <select id="paymentType" required></select>
-              <small>Deposit ရှိရင် Deposit Amount ထည့်ပါ</small>
             </div>
 
             <div class="field">
@@ -399,9 +418,9 @@
         <div class="panel-card">
           <div class="panel-header">
             <div>
-              <div class="panel-title"><span>📊 Admin Dashboard</span> <span class="badge">Filter • Search • Export • Edit</span></div>
+              <div class="panel-title"><span>📊 Admin Dashboard</span> <span class="badge">Filter • Search • Export • Edit • Delete</span></div>
               <div class="panel-desc">
-                Save ထားတဲ့ Appointments အကုန်လုံး ဒီမှာပြမယ်။ Staff က Profit ကို **** ပဲမြင်မယ်။ Admin က Edit/Export လုပ်နိုင်မယ်။
+                ✅ Appointment Date အလိုက် Filter လုပ်နိုင်ပါတယ်။ Admin က Delete လည်းလုပ်နိုင်ပါတယ်။
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -415,12 +434,14 @@
               <span>🔍 Search</span>
               <input type="text" id="searchText" placeholder="Name / Phone / Invoice ID" />
             </div>
+
             <div class="toolbar-group">
               <span>Service</span>
               <select id="filterServiceType">
                 <option value="">All</option>
               </select>
             </div>
+
             <div class="toolbar-group">
               <span>Status</span>
               <select id="filterStatus">
@@ -429,12 +450,15 @@
                 <option value="Confirm">Confirm</option>
               </select>
             </div>
+
+            <!-- ✅ NEW: Appointment Date Filter -->
             <div class="toolbar-group">
-              <span>Date</span>
-              <input type="date" id="filterDateFrom" />
+              <span>Appointment Date</span>
+              <input type="date" id="filterApptFrom" />
               <span>→</span>
-              <input type="date" id="filterDateTo" />
+              <input type="date" id="filterApptTo" />
             </div>
+
             <button class="btn btn-secondary" id="applyFilter">Apply Filter</button>
           </div>
 
@@ -443,7 +467,7 @@
               <thead>
                 <tr>
                   <th>Invoice ID</th>
-                  <th>Date</th>
+                  <th>Service Date</th>
                   <th>Appt (D/T)</th>
                   <th>Status</th>
                   <th>Customer</th>
@@ -478,7 +502,7 @@
           <div class="panel-header">
             <div>
               <div class="panel-title"><span>🧾 Invoice Generator</span> <span class="badge">HTML → JPEG (500×1000)</span></div>
-              <div class="panel-desc">သတ်မှတ်ထားသော Invoice ID ဖြင့် အချိန်မရွေး Invoice ကို ပြန်ရှာဖွေထုတ်နိုင်ပါတယ်။</div>
+              <div class="panel-desc">Invoice ID ဖြင့် ပြန်ရှာပြီး Invoice ထုတ်နိုင်ပါတယ်။</div>
             </div>
             <span class="chip">Header: THAILAND GUIDE – ထိုင်းလမ်းညွှန်</span>
           </div>
@@ -487,7 +511,7 @@
             <div class="invoice-controls">
               <div class="field full-width">
                 <label for="invoiceDocId">Invoice ID</label>
-                <input type="text" id="invoiceDocId" placeholder="TG-2025-0001" />
+                <input type="text" id="invoiceDocId" placeholder="TG-YYYYMMDD-XXXX" />
                 <small>Entry/Dashboard မှာ သုံးခဲ့တဲ့ Invoice ID ကို ထည့်ပါ</small>
               </div>
               <div class="actions" style="justify-content:flex-start; margin-top:8px;">
@@ -577,7 +601,7 @@
 
             <div class="settings-block">
               <h4>Payment Type List</h4>
-              <small>Deposit options ပါပြီးသား</small>
+              <small>One item per line</small>
               <textarea id="paymentsSetting" rows="6"></textarea>
             </div>
 
@@ -622,7 +646,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
-      getFirestore, collection, serverTimestamp, getDocs, doc, getDoc, setDoc
+      getFirestore, collection, serverTimestamp, getDocs, doc, getDoc, setDoc, deleteDoc
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
     import {
       getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
@@ -662,6 +686,33 @@
     let editingDocId = null;
 
     const $ = (id) => document.getElementById(id);
+
+    // --------- helpers ----------
+    function todayISO(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    function compactDate(iso){
+      if (!iso) iso = todayISO();
+      return iso.replaceAll("-","");
+    }
+    function rand4(){
+      return String(Math.floor(Math.random()*10000)).padStart(4,"0");
+    }
+    async function generateUniqueInvoiceId(){
+      // TG-YYYYMMDD-XXXX
+      const base = `TG-${compactDate($("date").value || todayISO())}-`;
+      for (let i=0; i<8; i++){
+        const candidate = (base + rand4()).toUpperCase();
+        const ex = await getDoc(doc(db, "appointments", candidate));
+        if (!ex.exists()) return candidate;
+      }
+      // fallback
+      return (`TG-${compactDate()}-${Date.now().toString().slice(-4)}`).toUpperCase();
+    }
 
     // ---------- AUTH ----------
     $("loginBtn").addEventListener("click", async () => {
@@ -719,6 +770,12 @@
       if (user) {
         await loadSettingsFromFirestore();
         await loadAppointments();
+
+        // default dates
+        if (!$("date").value) $("date").value = todayISO();
+        if ($("autoInvoiceId").checked && !editingDocId) {
+          await ensureInvoiceIdAuto();
+        }
       }
     });
 
@@ -730,7 +787,8 @@
       const protectedButtons = [
         "saveBtn", "btnCancelEdit", "gotoInvoiceFromEntry",
         "reloadAppointments", "exportCsv", "applyFilter",
-        "loadInvoice", "downloadInvoiceJpeg", "saveSettings"
+        "loadInvoice", "downloadInvoiceJpeg", "saveSettings",
+        "regenInvoiceId"
       ];
       protectedButtons.forEach(id => { const el = $(id); if (el) el.disabled = locked; });
 
@@ -742,8 +800,12 @@
       );
       inputs.forEach(el => { locked ? el.setAttribute("disabled","disabled") : el.removeAttribute("disabled"); });
 
+      // still allow login inputs when locked
       $("loginEmail").disabled = !!currentUser;
       $("loginPassword").disabled = !!currentUser;
+
+      // entry mode lock when guest
+      if (!locked) applyInvoiceIdMode();
     }
 
     function updateRoleUI() {
@@ -913,7 +975,7 @@
       }
     });
 
-    // ✅ Time picker: click/focus => open picker where supported
+    // ✅ Time picker open (when supported)
     const timeInput = $("appointmentTime");
     ["click","focus"].forEach(evt=>{
       timeInput.addEventListener(evt, () => {
@@ -921,7 +983,7 @@
       });
     });
 
-    // ✅ Balance Auto: always Total - Deposit, regardless of payment type
+    // ✅ Balance Auto: always Total - Deposit
     function updateDepositUI() {
       const total = Number($("price").value || 0);
       const deposit = Number($("depositAmount").value || 0);
@@ -932,18 +994,85 @@
     $("price").addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", updateDepositUI);
 
+    // ---------- Invoice ID Auto/Manual ----------
+    function applyInvoiceIdMode(){
+      const auto = $("autoInvoiceId").checked;
+      const isEditing = !!editingDocId;
+      if (isEditing){
+        $("invoiceId").disabled = true;
+        $("autoInvoiceId").disabled = true;
+        $("regenInvoiceId").disabled = true;
+        return;
+      }
+      $("autoInvoiceId").disabled = false;
+      $("regenInvoiceId").disabled = false;
+
+      if (auto){
+        $("invoiceId").disabled = true;
+      } else {
+        $("invoiceId").disabled = false;
+        $("invoiceId").focus();
+      }
+    }
+
+    async function ensureInvoiceIdAuto(){
+      if (currentRole === "guest") return;
+      if (editingDocId) return;
+      if (!$("autoInvoiceId").checked) return;
+
+      const id = await generateUniqueInvoiceId();
+      $("invoiceId").value = id;
+    }
+
+    $("autoInvoiceId").addEventListener("change", async () => {
+      applyInvoiceIdMode();
+      if ($("autoInvoiceId").checked){
+        await ensureInvoiceIdAuto();
+      } else {
+        if (!editingDocId) $("invoiceId").value = "";
+      }
+    });
+
+    $("regenInvoiceId").addEventListener("click", async () => {
+      if (!$("autoInvoiceId").checked) return;
+      await ensureInvoiceIdAuto();
+    });
+
+    // if date changes, refresh auto ID pattern
+    $("date").addEventListener("change", async () => {
+      if ($("autoInvoiceId").checked && !editingDocId && currentUser){
+        await ensureInvoiceIdAuto();
+      }
+    });
+
     // ---------- ENTRY SAVE / EDIT ----------
     const form = $("appointmentForm");
     const messageDiv = $("message");
 
-    $("btnCancelEdit").addEventListener("click", () => {
+    $("btnCancelEdit").addEventListener("click", async () => {
       editingDocId = null;
       $("invoiceId").disabled = false;
       $("saveBtnText").textContent = "Save to Firebase";
       $("btnCancelEdit").style.display = "none";
       messageDiv.textContent = "";
       form.reset();
+      if (!$("date").value) $("date").value = todayISO();
       updateDepositUI();
+
+      applyInvoiceIdMode();
+      if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto();
+    });
+
+    form.addEventListener("reset", async () => {
+      if (!$("date").value) $("date").value = todayISO();
+      updateDepositUI();
+
+      editingDocId = null;
+      $("saveBtnText").textContent = "Save to Firebase";
+      $("btnCancelEdit").style.display = "none";
+
+      applyInvoiceIdMode();
+      if ($("autoInvoiceId").checked && currentUser) await ensureInvoiceIdAuto();
     });
 
     form.addEventListener("submit", async (e) => {
@@ -953,8 +1082,13 @@
       messageDiv.textContent = "";
       messageDiv.className = "message";
 
-      const invoiceIdRaw = $("invoiceId").value.trim();
-      const invoiceId = invoiceIdRaw.toUpperCase();
+      let invoiceId = $("invoiceId").value.trim().toUpperCase();
+
+      // If auto mode and empty for some reason, generate again
+      if ($("autoInvoiceId").checked && !editingDocId && !invoiceId){
+        invoiceId = await generateUniqueInvoiceId();
+        $("invoiceId").value = invoiceId;
+      }
 
       const total = Number($("price").value || 0);
       const dep = Number($("depositAmount").value || 0);
@@ -964,7 +1098,7 @@
         invoiceId,
         date: $("date").value,
         appointmentDate: $("appointmentDate").value,
-        appointmentTime: $("appointmentTime").value || null, // ✅ optional
+        appointmentTime: $("appointmentTime").value || null,
         name: $("name").value.trim(),
         phone: $("phone").value.trim(),
         customerStatus: $("customerStatus").value,
@@ -980,7 +1114,7 @@
         createdBy: currentUser ? currentUser.email : null
       };
 
-      // ✅ Required: Time ကို မစစ်တော့ (optional)
+      // Required: Time optional
       if (!invoiceId || !data.date || !data.appointmentDate || !data.name || !data.phone ||
           !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
         messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။";
@@ -1013,7 +1147,7 @@
         } else {
           const existing = await getDoc(doc(db, "appointments", invoiceId));
           if (existing.exists()) {
-            messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – အသစ် ID တစ်ခု ပေးပါ။";
+            messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – New ID ထုတ်ပါ (Auto) သို့ Manual ပြောင်းပါ။";
             messageDiv.className = "message error";
             return;
           }
@@ -1025,7 +1159,14 @@
           messageDiv.className = "message success";
 
           await sendTelegramNotification(lastSavedData);
-          form.reset(); updateDepositUI();
+
+          // reset but keep auto id fresh
+          form.reset();
+          if (!$("date").value) $("date").value = todayISO();
+          updateDepositUI();
+          applyInvoiceIdMode();
+          if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto();
+
           await loadAppointments();
         }
       } catch (err) {
@@ -1114,22 +1255,28 @@
       const searchText = $("searchText").value.trim().toLowerCase();
       const filterService = $("filterServiceType").value;
       const filterStatus = $("filterStatus").value;
-      const dateFrom = $("filterDateFrom").value;
-      const dateTo = $("filterDateTo").value;
+
+      // ✅ Appointment Date filter
+      const apptFrom = $("filterApptFrom").value;
+      const apptTo = $("filterApptTo").value;
 
       const filtered = cachedAppointments.filter(a => {
         let ok = true;
+
         if (searchText) {
           const s = `${a.name||""} ${a.phone||""} ${a.invoiceId||a.id||""}`;
           ok = s.toLowerCase().includes(searchText);
         }
         if (ok && filterService) ok = a.serviceType === filterService;
         if (ok && filterStatus) ok = (a.customerStatus||"") === filterStatus;
-        if (ok && (dateFrom || dateTo)) {
-          const d = a.date || "";
-          if (dateFrom && d < dateFrom) ok = false;
-          if (dateTo && d > dateTo) ok = false;
+
+        // ✅ Appointment Date range compare on YYYY-MM-DD strings
+        if (ok && (apptFrom || apptTo)) {
+          const d = a.appointmentDate || "";
+          if (apptFrom && d < apptFrom) ok = false;
+          if (apptTo && d > apptTo) ok = false;
         }
+
         return ok;
       });
 
@@ -1151,12 +1298,12 @@
 
         const dep = Number(a.depositAmount||0).toFixed(2);
         const bal = Number(a.balanceAmount||0).toFixed(2);
-
         const apptDT = `${a.appointmentDate || ""}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
+        const id = (a.invoiceId || a.id || "").toUpperCase();
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${(a.invoiceId || a.id || "").toUpperCase()}</td>
+          <td>${id}</td>
           <td>${a.date || ""}</td>
           <td>${apptDT || ""}</td>
           <td>${statusPill(a.customerStatus)}</td>
@@ -1170,14 +1317,15 @@
           <td>${bal}</td>
           <td class="profit-cell" data-profit="${profitText}">${displayProfit}</td>
           <td>
-            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px" data-docid="${(a.invoiceId || a.id || "").toUpperCase()}">Invoice</button>
-            <button class="btn btn-secondary admin-only" style="padding:5px 10px;font-size:12px;${currentRole==="admin"?"":"display:none;"}" data-editid="${(a.invoiceId || a.id || "").toUpperCase()}">Edit</button>
+            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px" data-docid="${id}">Invoice</button>
+            <button class="btn btn-secondary admin-only" style="padding:5px 10px;font-size:12px;${currentRole==="admin"?"":"display:none;"}" data-editid="${id}">Edit</button>
+            <button class="btn btn-danger admin-only" style="padding:5px 10px;font-size:12px;${currentRole==="admin"?"":"display:none;"}" data-delid="${id}">Delete</button>
           </td>
         `;
         body.appendChild(tr);
 
         tr.querySelector("[data-docid]").addEventListener("click", () => {
-          $("invoiceDocId").value = tr.querySelector("[data-docid]").dataset.docid;
+          $("invoiceDocId").value = id;
           document.querySelector('.tab-btn[data-tab="invoice"]').click();
           loadInvoice();
         });
@@ -1186,6 +1334,26 @@
         if (editBtn) editBtn.addEventListener("click", () => {
           if (currentRole !== "admin") return;
           startEditAppointment(a);
+        });
+
+        const delBtn = tr.querySelector("[data-delid]");
+        if (delBtn) delBtn.addEventListener("click", async () => {
+          if (currentRole !== "admin") return;
+          const ok = confirm(`Delete this order?\n\nInvoice ID: ${id}\n\nThis cannot be undone.`);
+          if (!ok) return;
+
+          $("dashboardMessage").textContent = "Deleting...";
+          $("dashboardMessage").className = "message";
+
+          try {
+            await deleteDoc(doc(db, "appointments", id));
+            $("dashboardMessage").textContent = "✅ Deleted: " + id;
+            $("dashboardMessage").className = "message success";
+            await loadAppointments();
+          } catch(e) {
+            $("dashboardMessage").textContent = "❌ Delete failed: " + e.message;
+            $("dashboardMessage").className = "message error";
+          }
         });
       });
 
@@ -1205,12 +1373,13 @@
 
     function startEditAppointment(a) {
       editingDocId = (a.invoiceId || a.id || "").toUpperCase();
+
       $("invoiceId").value = editingDocId;
       $("invoiceId").disabled = true;
 
       $("date").value = a.date || "";
       $("appointmentDate").value = a.appointmentDate || "";
-      $("appointmentTime").value = a.appointmentTime || ""; // ✅ optional
+      $("appointmentTime").value = a.appointmentTime || "";
       $("name").value = a.name || "";
       $("phone").value = a.phone || "";
       $("customerStatus").value = a.customerStatus || "";
@@ -1233,6 +1402,8 @@
       $("saveBtnText").textContent = "Update Appointment";
       $("btnCancelEdit").style.display = (currentRole === "admin") ? "inline-flex" : "none";
 
+      applyInvoiceIdMode();
+
       const msg = $("message");
       msg.textContent = "Edit Mode: Invoice " + editingDocId;
       msg.className = "message";
@@ -1249,7 +1420,7 @@
 
       const rows = [];
       rows.push([
-        "Invoice ID","Date","Appointment Date","Appointment Time","Status","Name","Phone",
+        "Invoice ID","Service Date","Appointment Date","Appointment Time","Status","Name","Phone",
         "Channel","Location","Service Type","Payment Type","Total","Deposit","Balance",
         "Service Cost","Service Profit","Remark"
       ]);
@@ -1319,8 +1490,6 @@
       }
     }
 
-    // ✅ Invoice: Time included (optional); Date included; Status + Service Date not shown
-    // ✅ Total/Deposit/Balance Due
     function fillInvoiceCard(id, data) {
       const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
       $("invRefText").textContent = `Invoice No: ${id}`;
@@ -1394,7 +1563,11 @@
     // Initial
     updateAuthUI();
     renderDropdowns();
+
+    // Default date
+    $("date").value = todayISO();
     updateDepositUI();
+    applyInvoiceIdMode();
   </script>
 </body>
 </html>
