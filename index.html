@@ -11,614 +11,252 @@
       --primary-soft: #eef2ff;
       --accent: #f97316;
       --bg: #0f172a;
-      --card-bg: #ffffff;
-      --border-soft: #e5e7eb;
-      --text-main: #111827;
-      --text-soft: #6b7280;
+      --card-bg: #fff;
+      --muted: #667085;
+      --line: #e5e7eb;
+      --ink: #111827;
       --success: #16a34a;
       --error: #dc2626;
     }
-
     * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
+    body{
+      font-family:system-ui,Arial;margin:0;
       background: radial-gradient(circle at top left, #4f46e5 0, #0f172a 45%, #020617 100%);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 20px 10px;
+      color:var(--ink);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      padding:20px 10px;
     }
-
-    .app-shell {
-      position: relative;
-      width: 100%;
-      max-width: 1200px;
+    .app-shell{
+      position:relative;
+      width:100%;
+      max-width:1200px;
       background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.98));
-      border-radius: 18px;
-      box-shadow:
-        0 20px 40px rgba(15,23,42,0.35),
-        0 0 0 1px rgba(148,163,184,0.3);
-      overflow: hidden;
+      border-radius:18px;
+      box-shadow:0 20px 40px rgba(15,23,42,.35), 0 0 0 1px rgba(148,163,184,.3);
+      overflow:hidden;
     }
-
-    header {
-      padding: 16px 24px 12px;
-      border-bottom: 1px solid rgba(148,163,184,0.3);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    header{
+      padding:16px 24px 12px;
+      border-bottom:1px solid rgba(148,163,184,.3);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
       background: radial-gradient(circle at top right, #eef2ff, #ffffff);
-      gap: 12px;
+      flex-wrap:wrap;
     }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-mark {
-      width: 32px;
-      height: 32px;
-      border-radius: 999px;
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand-mark{
+      width:34px;height:34px;border-radius:999px;
       background: conic-gradient(from 210deg, #4f46e5, #38bdf8, #f97316, #4f46e5);
-      padding: 2px;
-    }
-
-    .brand-mark-inner {
-      width: 100%;
-      height: 100%;
-      border-radius: inherit;
-      background: #020617;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #e5e7eb;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-    }
-
-    .brand-text-title {
-      font-weight: 700;
-      font-size: 18px;
-      color: #0f172a;
-    }
-
-    .brand-text-sub {
-      font-size: 12px;
-      color: var(--text-soft);
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 6px;
-      background: rgba(15,23,42,0.05);
-      padding: 3px;
-      border-radius: 999px;
-    }
-
-    .tab-btn {
-      border: none;
-      background: transparent;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 12px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-soft);
-      transition: all 0.18s ease;
-      white-space: nowrap;
-    }
-
-    .tab-btn span.icon { font-size: 14px; }
-
-    .tab-btn.active {
-      background: #0f172a;
-      color: #e5e7eb;
-      box-shadow: 0 0 0 1px rgba(148,163,184,0.5);
-    }
-
-    .auth-box {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #020617;
-      color: #e5e7eb;
-      padding: 5px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      flex-wrap: wrap;
-    }
-
-    .auth-box input {
-      border-radius: 999px;
-      border: 1px solid #4b5563;
-      background: #111827;
-      color: #e5e7eb;
-      padding: 3px 8px;
-      font-size: 11px;
-      outline: none;
-      min-width: 120px;
-    }
-
-    .auth-box input::placeholder {
-      color: #6b7280;
-    }
-
-    .btn-mini {
-      border: none;
-      border-radius: 999px;
-      padding: 3px 8px;
-      font-size: 11px;
-      cursor: pointer;
-      background: #e5e7eb;
-      color: #0f172a;
-      white-space: nowrap;
-    }
-
-    .auth-status {
-      font-size: 10px;
-      color: #cbd5f5;
-    }
-
-    main { padding: 16px 20px 20px; }
-
-    .tab-panel {
-      display: none;
-      animation: fadeIn 0.18s ease-out;
-    }
-    .tab-panel.active { display: block; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .panel-card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      padding: 16px 18px 18px;
-      box-shadow: 0 10px 25px rgba(15,23,42,0.12);
-      border: 1px solid var(--border-soft);
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .panel-title {
-      font-size: 17px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .badge {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: var(--primary-soft);
-      color: var(--primary);
-      border: 1px solid rgba(129,140,248,0.6);
-    }
-
-    .panel-desc {
-      font-size: 12px;
-      color: var(--text-soft);
-    }
-
-    /* Form */
-    form {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px 18px;
-      margin-top: 8px;
-    }
-
-    .field { display: flex; flex-direction: column; }
-
-    .field label {
-      font-size: 12px;
-      margin-bottom: 4px;
-      font-weight: 600;
-      color: #111827;
-    }
-
-    .field small {
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    input, select, textarea {
-      padding: 8px 10px;
-      font-size: 14px;
-      border-radius: 9px;
-      border: 1px solid #d4d4d8;
-      outline: none;
-      transition: all 0.16s ease;
-      background: #f9fafb;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 1px rgba(79,70,229,0.3);
-      background: #ffffff;
-    }
-
-    textarea {
-      min-height: 70px;
-      resize: vertical;
-    }
-
-    .full-width { grid-column: 1 / -1; }
-
-    .actions {
-      grid-column: 1 / -1;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 999px;
-      padding: 8px 18px;
-      font-size: 13px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
-    }
-
-    .btn:active { transform: translateY(1px); box-shadow: none; }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #4f46e5, #6366f1);
-      color: white;
-      box-shadow: 0 12px 22px rgba(79,70,229,0.35);
-    }
-
-    .btn-secondary {
-      background: #e5e7eb;
-      color: #111827;
-      box-shadow: 0 6px 14px rgba(15,23,42,0.18);
-    }
-
-    .btn-outline {
-      background: transparent;
-      border-radius: 999px;
-      border: 1px dashed rgba(148,163,184,0.9);
-      color: #4b5563;
-    }
-
-    .btn[disabled],
-    .btn-mini[disabled] {
-      opacity: 0.5;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .pill {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .message {
-      margin-top: 8px;
-      font-size: 12px;
-      grid-column: 1 / -1;
-    }
-
-    .message.success { color: var(--success); }
-    .message.error   { color: var(--error); }
-
-    /* Dashboard */
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
-      align-items: center;
-      font-size: 12px;
-    }
-
-    .toolbar-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .toolbar input,
-    .toolbar select {
-      padding: 4px 8px;
-      font-size: 12px;
-      border-radius: 999px;
-      border: 1px solid #d4d4d8;
-      background: #f9fafb;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      margin-top: 4px;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    thead {
-      background: #0f172a;
-      color: #e5e7eb;
-    }
-
-    th, td {
-      padding: 6px 8px;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-    }
-
-    tbody tr:nth-child(even) { background: #f9fafb; }
-    tbody tr:hover { background: #eef2ff; }
-
-    .tag {
-      padding: 2px 6px;
-      border-radius: 999px;
-      font-size: 11px;
-      background: #eef2ff;
-      color: #4f46e5;
-    }
-
-    /* Invoice */
-    .invoice-wrap {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .invoice-controls { flex: 1 1 230px; }
-
-    .invoice-card {
-      flex: 2 1 320px;
-      background: white;
-      border-radius: 14px;
-      border: 1px solid #e5e7eb;
-      padding: 12px 12px;
-      box-shadow: 0 10px 30px rgba(15,23,42,0.25);
-      position: relative;
-      overflow: hidden;
-      width: 500px;
-      height: 500px;
-      margin: 0 auto;
-      display: flex;
-      align-items: stretch;
-      justify-content: center;
-    }
-
-    .invoice-inner {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .invoice-header-main {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-      border-bottom: 1px solid #e5e7eb;
-      padding-bottom: 6px;
-    }
-
-    .invoice-logo {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .invoice-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .invoice-header-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .invoice-brand {
-      font-weight: 800;
-      font-size: 16px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .invoice-sub {
-      font-size: 12px;
-      color: #4b5563;
-    }
-
-    .invoice-meta-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: #6b7280;
-      margin-bottom: 6px;
-    }
-
-    .invoice-section-title {
-      font-size: 12px;
-      font-weight: 600;
-      margin-top: 10px;
-      margin-bottom: 4px;
-      color: #111827;
-    }
-
-    .invoice-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 4px 12px;
-      font-size: 11px;
-    }
-
-    .invoice-label { color: #6b7280; }
-    .invoice-value { font-weight: 500; color: #111827; }
-
-    .invoice-total {
-      margin-top: auto;
-      padding-top: 8px;
-      border-top: 1px dashed #d4d4d8;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-    }
-
-    .invoice-total-amount {
-      font-size: 18px;
-      font-weight: 700;
-      color: #111827;
-    }
-
-    .chip {
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.7);
-      padding: 2px 7px;
-      font-size: 10px;
-    }
-
-    /* Settings */
-    .settings-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px 18px;
-      margin-top: 10px;
-    }
-
-    .settings-block {
-      border-radius: 12px;
-      border: 1px dashed rgba(148,163,184,0.7);
-      padding: 10px 12px;
-      background: #f9fafb;
-    }
-
-    .settings-block h4 {
-      margin: 0 0 4px;
-      font-size: 13px;
-    }
-
-    .settings-block textarea {
-      font-size: 12px;
-      border-radius: 10px;
-    }
-
-    .pricing-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 90px 90px;
-      gap: 4px 8px;
-      align-items: center;
-      font-size: 12px;
-      margin-bottom: 4px;
-    }
-
-    .pricing-row span {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .pricing-row input {
-      font-size: 12px;
-      padding: 4px 6px;
-      border-radius: 7px;
-    }
-
-    .auth-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(15,23,42,0.82);
-      color: #e5e7eb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 20px;
-      z-index: 40;
-      font-size: 14px;
-      /* overlay only visual – clicks ရင်အောက်က Login box ကို လှမ်းသွားစေမယ် */
-      pointer-events: none;
-    }
-
-    .auth-overlay.hidden {
-      display: none;
-    }
-
-    @media (max-width: 640px) {
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-      .panel-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-      }
-      .invoice-grid { grid-template-columns: 1fr; }
-      .actions { justify-content: flex-start; }
-      .invoice-card { width: 100%; height: 90vh; }
+      padding:2px;
+    }
+    .brand-mark-inner{
+      width:100%;height:100%;
+      border-radius:inherit;
+      background:#020617;
+      display:flex;align-items:center;justify-content:center;
+      color:#e5e7eb;font-weight:800;font-size:14px;
+    }
+    .brand-text-title{font-weight:800;font-size:18px}
+    .brand-text-sub{font-size:12px;color:var(--muted)}
+    .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .tabs{display:flex;gap:6px;background:rgba(15,23,42,.05);padding:3px;border-radius:999px}
+    .tab-btn{
+      border:none;background:transparent;
+      padding:6px 14px;border-radius:999px;
+      font-size:12px;cursor:pointer;
+      display:flex;align-items:center;gap:6px;
+      color:var(--muted);
+      transition:all .18s ease;
+      white-space:nowrap;
+    }
+    .tab-btn span.icon{font-size:14px}
+    .tab-btn.active{
+      background:#0f172a;color:#e5e7eb;
+      box-shadow:0 0 0 1px rgba(148,163,184,.5);
+    }
+    .auth-box{
+      display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+      background:#020617;color:#e5e7eb;
+      padding:6px 10px;border-radius:999px;font-size:11px;
+    }
+    .auth-box input{
+      border-radius:999px;border:1px solid #4b5563;
+      background:#111827;color:#e5e7eb;
+      padding:4px 10px;font-size:11px;outline:none;min-width:140px;
+    }
+    .auth-box input::placeholder{color:#6b7280}
+    .btn-mini{
+      border:none;border-radius:999px;
+      padding:4px 10px;font-size:11px;
+      cursor:pointer;background:#e5e7eb;color:#0f172a;
+    }
+    .auth-status{font-size:10px;color:#cbd5f5}
+    main{padding:16px 20px 20px}
+    .tab-panel{display:none;animation:fadeIn .18s ease-out}
+    .tab-panel.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+    .panel-card{
+      background:var(--card-bg);
+      border-radius:14px;
+      padding:16px 18px 18px;
+      box-shadow:0 10px 25px rgba(15,23,42,.12);
+      border:1px solid var(--line);
+    }
+    .panel-header{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+    .panel-title{font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px}
+    .badge{
+      font-size:11px;padding:2px 8px;border-radius:999px;
+      background:var(--primary-soft);color:var(--primary);
+      border:1px solid rgba(129,140,248,.6);
+    }
+    .panel-desc{font-size:12px;color:var(--muted);max-width:760px}
+    form{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:16px 18px;
+      margin-top:8px;
+    }
+    .field{display:flex;flex-direction:column}
+    .field label{font-size:12px;margin-bottom:4px;font-weight:700}
+    .field small{font-size:11px;color:var(--muted)}
+    input,select,textarea{
+      padding:8px 10px;font-size:14px;border-radius:9px;
+      border:1px solid #d4d4d8;outline:none;
+      transition:all .16s ease;background:#f9fafb;
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color:var(--primary);
+      box-shadow:0 0 0 1px rgba(79,70,229,.3);
+      background:#fff;
+    }
+    textarea{min-height:70px;resize:vertical}
+    .full-width{grid-column:1/-1}
+    .actions{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:4px}
+    .btn{
+      border:none;border-radius:999px;
+      padding:8px 18px;font-size:13px;
+      cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+      white-space:nowrap;
+      transition:transform .1s ease, box-shadow .1s ease, background .15s ease;
+    }
+    .btn:active{transform:translateY(1px);box-shadow:none}
+    .btn-primary{background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;box-shadow:0 12px 22px rgba(79,70,229,.35)}
+    .btn-secondary{background:#e5e7eb;color:#111827;box-shadow:0 6px 14px rgba(15,23,42,.18)}
+    .btn-outline{background:transparent;border:1px dashed rgba(148,163,184,.9);color:#4b5563}
+    .btn[disabled], .btn-mini[disabled]{opacity:.5;cursor:not-allowed;box-shadow:none}
+    .message{margin-top:8px;font-size:12px;grid-column:1/-1}
+    .message.success{color:var(--success)}
+    .message.error{color:var(--error)}
+
+    .toolbar{
+      display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;
+      align-items:center;font-size:12px;
+    }
+    .toolbar-group{display:flex;align-items:center;gap:6px}
+    .toolbar input,.toolbar select{
+      padding:4px 10px;font-size:12px;border-radius:999px;
+      border:1px solid #d4d4d8;background:#f9fafb;
+    }
+    table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;border-radius:10px;overflow:hidden}
+    thead{background:#0f172a;color:#e5e7eb}
+    th,td{padding:7px 8px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}
+    tbody tr:nth-child(even){background:#f9fafb}
+    tbody tr:hover{background:#eef2ff}
+    .tag{padding:2px 8px;border-radius:999px;font-size:11px;background:#eef2ff;color:#4f46e5}
+    .status-pill{
+      padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid rgba(148,163,184,.7);
+      display:inline-block;
+    }
+    .status-pending{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+    .status-confirm{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
+
+    /* ===== Invoice ===== */
+    .invoice-wrap{display:flex;gap:16px;flex-wrap:wrap}
+    .invoice-controls{flex:1 1 240px}
+    .invoice-card{
+      flex:2 1 320px;
+      background:#fff;border-radius:14px;border:1px solid #e5e7eb;
+      padding:12px;
+      box-shadow:0 10px 30px rgba(15,23,42,.25);
+      width:500px;height:600px;margin:0 auto;
+      display:flex;align-items:stretch;justify-content:center;
+      position:relative;overflow:hidden;
+    }
+    .invoice-inner{width:100%;height:100%;display:flex;flex-direction:column}
+    .invoice-header-main{
+      display:flex;align-items:center;gap:10px;
+      margin-bottom:8px;border-bottom:1px solid #e5e7eb;padding-bottom:8px;
+    }
+    .invoice-logo{width:64px;height:64px;border-radius:50%;overflow:hidden;flex-shrink:0}
+    .invoice-logo img{width:100%;height:100%;object-fit:cover;display:block}
+    .invoice-brand{font-weight:900;font-size:20px;letter-spacing:.04em;text-transform:uppercase}
+    .invoice-sub{font-size:14px;color:#4b5563;font-weight:800}
+    .invoice-meta-row{display:flex;justify-content:space-between;font-size:12.5px;color:#6b7280;margin-bottom:8px}
+    .invoice-section-title{font-size:14px;font-weight:900;margin-top:10px;margin-bottom:6px}
+    .invoice-grid{
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:6px 12px;font-size:13px;
+    }
+    .invoice-label{color:#6b7280;font-weight:800}
+    .invoice-value{font-weight:800;color:#111827; font-size:15px;} /* slightly bigger */
+    .invoice-total{
+      margin-top:auto;padding-top:10px;border-top:1px dashed #d4d4d8;
+      display:flex;justify-content:space-between;align-items:flex-start;font-size:14px;
+    }
+    .invoice-total-amount{font-size:20px;font-weight:900}
+    .chip{border-radius:999px;border:1px solid rgba(148,163,184,.7);padding:2px 7px;font-size:10px}
+
+    /* ===== Settings ===== */
+    .settings-grid{
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px 18px;margin-top:10px;
+    }
+    .settings-block{
+      border-radius:12px;border:1px dashed rgba(148,163,184,.7);
+      padding:10px 12px;background:#f9fafb;
+    }
+    .settings-block h4{margin:0 0 4px;font-size:13px}
+    .pricing-row{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 90px 90px;
+      gap:4px 8px;align-items:center;font-size:12px;margin-bottom:4px;
+    }
+    .pricing-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pricing-row input{font-size:12px;padding:4px 6px;border-radius:7px}
+
+    .auth-overlay{
+      position:absolute;inset:0;
+      background:rgba(15,23,42,.82);
+      color:#e5e7eb;
+      display:flex;align-items:center;justify-content:center;
+      text-align:center;padding:20px;z-index:40;font-size:14px;
+      pointer-events:none;
+    }
+    .auth-overlay.hidden{display:none}
+
+    @media (max-width: 640px){
+      .invoice-grid{grid-template-columns:1fr}
+      .invoice-card{width:100%;height:90vh}
     }
   </style>
 </head>
+
 <body>
   <div class="app-shell">
     <div id="authOverlay" class="auth-overlay">
       🔒 System Locked – Please login with your Thailand Guide account<br/><br/>
-      <span style="font-size:12px;opacity:0.8;">
+      <span style="font-size:12px;opacity:.85;">
         (Admin / Staff Email &amp; Password သည် Firebase Console မှာ သတ်မှတ်ထားသည့် Account ဖြစ်ရပါမည်)
       </span>
     </div>
 
     <header>
       <div class="brand">
-        <div class="brand-mark">
-          <div class="brand-mark-inner">TG</div>
-        </div>
+        <div class="brand-mark"><div class="brand-mark-inner">TG</div></div>
         <div>
           <div class="brand-text-title">Thailand Guide · Appointment Hub</div>
           <div class="brand-text-sub">Data Entry • Invoice • Dashboard • Telegram Alert</div>
@@ -627,18 +265,10 @@
 
       <div class="header-right">
         <div class="tabs">
-          <button class="tab-btn active" data-tab="entry">
-            <span class="icon">📝</span> Entry
-          </button>
-          <button class="tab-btn" data-tab="dashboard">
-            <span class="icon">📊</span> Dashboard
-          </button>
-          <button class="tab-btn" data-tab="invoice">
-            <span class="icon">🧾</span> Invoice
-          </button>
-          <button class="tab-btn admin-only" data-tab="settings" id="settingsTabBtn">
-            <span class="icon">⚙️</span> Settings
-          </button>
+          <button class="tab-btn active" data-tab="entry"><span class="icon">📝</span> Entry</button>
+          <button class="tab-btn" data-tab="dashboard"><span class="icon">📊</span> Dashboard</button>
+          <button class="tab-btn" data-tab="invoice"><span class="icon">🧾</span> Invoice</button>
+          <button class="tab-btn admin-only" data-tab="settings" id="settingsTabBtn"><span class="icon">⚙️</span> Settings</button>
         </div>
 
         <div class="auth-box">
@@ -652,20 +282,15 @@
     </header>
 
     <main>
-      <!-- ENTRY TAB -->
+      <!-- ENTRY -->
       <section id="tab-entry" class="tab-panel active">
         <div class="panel-card">
           <div class="panel-header">
             <div>
-              <div class="panel-title">
-                <span>📝 Customer Appointment Data</span>
-                <span class="badge">Live Firestore Save</span>
-              </div>
-              <div class="panel-desc">
-                Invoice ထုတ်မည့် အချက်အလက်များကို ဒီနေရာမှာ စနစ်တကျ လက်ခံသိမ်းဆည်းပါတယ်။
-              </div>
+              <div class="panel-title"><span>📝 Customer Appointment Data</span> <span class="badge">Live Firestore Save</span></div>
+              <div class="panel-desc">Invoice ထုတ်မည့် အချက်အလက်များကို ဒီနေရာမှာ စနစ်တကျ လက်ခံသိမ်းဆည်းပါတယ်။</div>
             </div>
-            <span class="pill">Required Fields တွေကို အလိုအလျောက် စစ်ပေးထားပြီးဖြစ်သည်</span>
+            <span class="chip">Staff can save • Admin can edit/export</span>
           </div>
 
           <form id="appointmentForm">
@@ -676,13 +301,20 @@
             </div>
 
             <div class="field">
-              <label for="date">ရက်စွဲ (Today Date)</label>
+              <label for="date">စာရင်းသွင်းရက်</label>
               <input type="date" id="date" required />
             </div>
 
             <div class="field">
               <label for="appointmentDate">ဝန်ဆောင်မှုရယူမည့်ရက်</label>
               <input type="date" id="appointmentDate" required />
+            </div>
+
+            <!-- ✅ NEW: Time (optional) -->
+            <div class="field">
+              <label for="appointmentTime">ဝန်ဆောင်မှုယူရန်လာရမည့်အချိန်</label>
+              <input type="time" id="appointmentTime" step="300" />
+              <small>မရွေးလည်း Save ရပါတယ် (Optional)</small>
             </div>
 
             <div class="field">
@@ -696,9 +328,18 @@
             </div>
 
             <div class="field">
+              <label for="customerStatus">Customer Status</label>
+              <select id="customerStatus" required>
+                <option value="">-- Select --</option>
+                <option value="Pending">Pending</option>
+                <option value="Confirm">Confirm</option>
+              </select>
+              <small>Dashboard မှာသာ အသုံးပြုမယ်</small>
+            </div>
+
+            <div class="field">
               <label for="channel">Customer Channel</label>
               <select id="channel"></select>
-              <small>Channel List ကို Settings Tab မှ ပြင်ဆင်နိုင်သည်</small>
             </div>
 
             <div class="field">
@@ -714,11 +355,24 @@
             <div class="field">
               <label for="paymentType">ငွေပေးချေမှုအမျိုးအစား</label>
               <select id="paymentType" required></select>
+              <small>Deposit ရှိရင် Deposit Amount ထည့်ပါ</small>
             </div>
 
             <div class="field">
-              <label for="price">ဈေးနှုန်း (Cash Collect)</label>
+              <label for="price">စုစုပေါင်း ဈေးနှုန်း (THB)</label>
               <input type="number" id="price" min="0" step="0.01" placeholder="0.00" required />
+            </div>
+
+            <div class="field">
+              <label for="depositAmount">Deposit Amount (THB)</label>
+              <input type="number" id="depositAmount" min="0" step="0.01" placeholder="0.00" />
+              <small>Payment Type ဘာရွေးရွေး ထည့်လို့ရ</small>
+            </div>
+
+            <div class="field">
+              <label for="balanceAmount">Balance (Auto) (THB)</label>
+              <input type="number" id="balanceAmount" placeholder="0.00" disabled />
+              <small>Auto = Total - Deposit (Deposit မထည့်ရင် Total)</small>
             </div>
 
             <div class="field full-width">
@@ -727,13 +381,9 @@
             </div>
 
             <div class="actions">
-              <button type="button" class="btn btn-outline" id="gotoInvoiceFromEntry">
-                Preview Invoice
-              </button>
+              <button type="button" class="btn btn-outline" id="gotoInvoiceFromEntry">Preview Invoice</button>
               <button type="reset" class="btn btn-secondary">Clear</button>
-              <button type="button" class="btn btn-secondary admin-only" id="btnCancelEdit" style="display:none;">
-                Cancel Edit
-              </button>
+              <button type="button" class="btn btn-secondary admin-only" id="btnCancelEdit" style="display:none;">Cancel Edit</button>
               <button type="submit" class="btn btn-primary" id="saveBtn">
                 <span id="saveBtnText">Save to Firebase</span> 🚀
               </button>
@@ -744,18 +394,14 @@
         </div>
       </section>
 
-      <!-- DASHBOARD TAB -->
+      <!-- DASHBOARD -->
       <section id="tab-dashboard" class="tab-panel">
         <div class="panel-card">
           <div class="panel-header">
             <div>
-              <div class="panel-title">
-                <span>📊 Admin Dashboard</span>
-                <span class="badge">View • Edit • Export</span>
-              </div>
+              <div class="panel-title"><span>📊 Admin Dashboard</span> <span class="badge">Filter • Search • Export • Edit</span></div>
               <div class="panel-desc">
-                Appointments အားလုံးကိုကြည့်ရှုနိုင်သလို Name / Service Type / Date / Location Filter တွေနဲ့ ရှာဖွေ၊
-                Admin Mode မှာ Edit / Export CSV (Excel) လည်းလုပ်နိုင်ပါတယ်။
+                Save ထားတဲ့ Appointments အကုန်လုံး ဒီမှာပြမယ်။ Staff က Profit ကို **** ပဲမြင်မယ်။ Admin က Edit/Export လုပ်နိုင်မယ်။
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -776,6 +422,14 @@
               </select>
             </div>
             <div class="toolbar-group">
+              <span>Status</span>
+              <select id="filterStatus">
+                <option value="">All</option>
+                <option value="Pending">Pending</option>
+                <option value="Confirm">Confirm</option>
+              </select>
+            </div>
+            <div class="toolbar-group">
               <span>Date</span>
               <input type="date" id="filterDateFrom" />
               <span>→</span>
@@ -790,19 +444,23 @@
                 <tr>
                   <th>Invoice ID</th>
                   <th>Date</th>
+                  <th>Appt (D/T)</th>
+                  <th>Status</th>
                   <th>Customer</th>
                   <th>Phone</th>
                   <th>Service</th>
                   <th>Location</th>
                   <th>Payment</th>
-                  <th>Amount</th>
+                  <th>Total</th>
+                  <th>Deposit</th>
+                  <th>Balance</th>
                   <th>Profit</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody id="appointmentsTableBody">
                 <tr>
-                  <td colspan="10" style="text-align:center; padding:10px;">
+                  <td colspan="14" style="text-align:center; padding:10px;">
                     Data မရှိသေးပါ… "Reload Data" ကိုနှိပ်ပါ
                   </td>
                 </tr>
@@ -814,20 +472,15 @@
         </div>
       </section>
 
-      <!-- INVOICE TAB -->
+      <!-- INVOICE -->
       <section id="tab-invoice" class="tab-panel">
         <div class="panel-card">
           <div class="panel-header">
             <div>
-              <div class="panel-title">
-                <span>🧾 Invoice Generator</span>
-                <span class="badge">HTML → JPEG (500×1000)</span>
-              </div>
-              <div class="panel-desc">
-                သတ်မှတ်ထားသော Invoice ID ဖြင့် အချိန်မရွေး Invoice ကို ပြန်ရှာဖွေထုတ်နိုင်ပါတယ်။
-              </div>
+              <div class="panel-title"><span>🧾 Invoice Generator</span> <span class="badge">HTML → JPEG (500×1000)</span></div>
+              <div class="panel-desc">သတ်မှတ်ထားသော Invoice ID ဖြင့် အချိန်မရွေး Invoice ကို ပြန်ရှာဖွေထုတ်နိုင်ပါတယ်။</div>
             </div>
-            <span class="chip">Invoice Header: THAILAND GUIDE – ထိုင်းလမ်းညွှန်</span>
+            <span class="chip">Header: THAILAND GUIDE – ထိုင်းလမ်းညွှန်</span>
           </div>
 
           <div class="invoice-wrap">
@@ -835,15 +488,11 @@
               <div class="field full-width">
                 <label for="invoiceDocId">Invoice ID</label>
                 <input type="text" id="invoiceDocId" placeholder="TG-2025-0001" />
-                <small>Entry Tab မှာသတ်မှတ်ထားတဲ့ Invoice ID ကို ထည့်ပါ။</small>
+                <small>Entry/Dashboard မှာ သုံးခဲ့တဲ့ Invoice ID ကို ထည့်ပါ</small>
               </div>
               <div class="actions" style="justify-content:flex-start; margin-top:8px;">
-                <button class="btn btn-secondary" id="loadInvoice">
-                  Load Invoice
-                </button>
-                <button class="btn btn-primary" id="downloadInvoiceJpeg">
-                  Download JPEG
-                </button>
+                <button class="btn btn-secondary" id="loadInvoice">Load Invoice</button>
+                <button class="btn btn-primary" id="downloadInvoiceJpeg">Download JPEG</button>
               </div>
               <div id="invoiceMessage" class="message"></div>
             </div>
@@ -854,7 +503,7 @@
                   <div class="invoice-logo">
                     <img src="logo.png" alt="Thailand Guide Logo">
                   </div>
-                  <div class="invoice-header-text">
+                  <div style="display:flex;flex-direction:column;gap:2px;">
                     <div class="invoice-brand">THAILAND GUIDE</div>
                     <div class="invoice-sub">ထိုင်းလမ်းညွှန်</div>
                   </div>
@@ -872,9 +521,27 @@
                 <div class="invoice-grid" id="invServiceInfo"></div>
 
                 <div class="invoice-total">
-                  <div>စုစုပေါင်း (THB)</div>
-                  <div class="invoice-total-amount" id="invTotalAmount">0.00</div>
+                  <div>
+                    <div style="font-weight:900;">စုစုပေါင်း (THB)</div>
+                    <div id="invDepositRow" style="font-size:13px; color:#374151; display:none; margin-top:4px;">
+                      (-) စရံပေးငွေ
+                    </div>
+                    <div style="margin-top:8px; font-weight:900;">
+                      Customer ဆီမှကောက်ရန်ကျန်ငွေ
+                    </div>
+                  </div>
+
+                  <div style="text-align:right;">
+                    <div class="invoice-total-amount" id="invTotalAmount">0.00</div>
+                    <div id="invDepositAmount" style="font-size:14px; color:#374151; display:none; margin-top:4px;">
+                      -0.00
+                    </div>
+                    <div class="invoice-total-amount" id="invBalanceAmount" style="margin-top:6px;">
+                      0.00
+                    </div>
+                  </div>
                 </div>
+
               </div>
             </div>
           </div>
@@ -882,18 +549,14 @@
         </div>
       </section>
 
-      <!-- SETTINGS TAB (Admin only) -->
+      <!-- SETTINGS (Admin only) -->
       <section id="tab-settings" class="tab-panel admin-only" style="display:none;">
         <div class="panel-card">
           <div class="panel-header">
             <div>
-              <div class="panel-title">
-                <span>⚙️ Global Settings</span>
-                <span class="badge">Dropdown + Pricing + Telegram</span>
-              </div>
+              <div class="panel-title"><span>⚙️ Global Settings</span> <span class="badge">Dropdown + Pricing + Telegram</span></div>
               <div class="panel-desc">
-                Dropdown Option Name တွေ၊ Service Pricing (Cost / Profit) တွေကို ဒီနေရာကနေ ပြင်နိုင်သလို
-                Telegram Bot Auto Notify Setting ကိုလည်း ထည့်သွင်းနိုင်ပါတယ်။
+                Dropdown Option Name တွေ၊ Service Pricing (Cost/Profit) တွေကို ဒီနေရာကနေ ပြင်နိုင်ပါတယ်။
               </div>
             </div>
             <button class="btn btn-secondary" id="saveSettings">Save Settings</button>
@@ -908,31 +571,31 @@
 
             <div class="settings-block">
               <h4>Service Type List</h4>
-              <small>Entry &amp; Dashboard Filter တွေအတွက် အသုံးပြုသည်</small>
+              <small>One item per line</small>
               <textarea id="servicesSetting" rows="6"></textarea>
             </div>
 
             <div class="settings-block">
               <h4>Payment Type List</h4>
-              <small>Cash / Bank Transfer / QR …</small>
+              <small>Deposit options ပါပြီးသား</small>
               <textarea id="paymentsSetting" rows="6"></textarea>
             </div>
 
             <div class="settings-block">
               <h4>Service Location List</h4>
-              <small>Invoice ထဲတွင် “ဝန်ဆောင်မှုယူမည့်နေရာ” အနေနဲ့ ဖော်ပြမည်</small>
+              <small>Invoice ထဲတွင်ဖော်ပြမည်</small>
               <textarea id="locationsSetting" rows="6"></textarea>
             </div>
 
             <div class="settings-block">
               <h4>Service Pricing (Cost / Profit per Service)</h4>
-              <small>Service တစ်မျိုးစီအတွက် စရိတ် / အမြတ် ထည့်ပေးပါ – Save Settings နောက်မှ အလုပ်လုပ်မယ်</small>
+              <small>Service တစ်မျိုးစီအတွက် Cost/Profit ထည့်ပါ</small>
               <div id="servicePricingContainer"></div>
             </div>
 
             <div class="settings-block">
               <h4>Telegram Bot Notify</h4>
-              <small>Save အသစ်တင်တိုင်း Telegram Alert ပို့ချင်ရင် ဖြည့်ပါ (optional)</small>
+              <small>(optional)</small>
               <div class="field">
                 <label for="tgToken">Bot Token</label>
                 <input type="text" id="tgToken" placeholder="123456789:ABC-YourBotToken" />
@@ -942,7 +605,7 @@
                 <input type="text" id="tgChatId" placeholder="@yourchannel or numeric chat id" />
               </div>
               <small style="color:#b91c1c;">
-                ⚠️ Demo အတွက် Frontend ထဲကနေ သတ်တမ်းထည့်ပေးထားတာဖြစ်လို့ Private Project ထဲမှာပဲသုံးပါ။
+                ⚠️ Public hosting မှာ token ထည့်တာ မလုံခြုံပါ (Internal only)
               </small>
             </div>
           </div>
@@ -956,23 +619,13 @@
   <!-- html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
-      getFirestore,
-      collection,
-      serverTimestamp,
-      getDocs,
-      doc,
-      getDoc,
-      setDoc
+      getFirestore, collection, serverTimestamp, getDocs, doc, getDoc, setDoc
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
     import {
-      getAuth,
-      signInWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged
+      getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -989,42 +642,17 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    let currentUser = null;     // firebase user
-    let currentRole = "guest";  // guest | staff | admin
+    let currentUser = null;
+    let currentRole = "guest";
 
     let dropdownSettings = {
-      customerChannels: [
-        "Facebook Page",
-        "Messenger",
-        "Telegram",
-        "Line",
-        "Phone Call",
-        "Walk-in",
-        "Agent / Referral",
-        "Other"
-      ],
-      serviceTypes: [
-        "Bank Account Opening",
-        "Visa Service",
-        "TM30 / 90 Days Report",
-        "Money Exchange",
-        "Flight / Ticket",
-        "Other Service"
-      ],
-      paymentTypes: [
-        "Cash",
-        "Bank Transfer",
-        "QR Payment",
-        "Free of Charge"
-      ],
-      locations: [
-        "Chiang Mai Office",
-        "Bangkok Office",
-        "Online Service"
-      ]
+      customerChannels: ["Facebook Page","Messenger","Telegram","Line","Phone Call","Walk-in","Agent / Referral","Other"],
+      serviceTypes: ["Bank Account Opening","Visa Service","TM30 / 90 Days Report","Money Exchange","Flight / Ticket","Other Service"],
+      paymentTypes: ["Cash","Bank Transfer","QR Payment","Deposit (Partial)","Deposit (50%)","Deposit (Custom)","Free of Charge"],
+      locations: ["Chiang Mai Office","Bangkok Office","Online Service"]
     };
 
-    let servicePricing = {}; // { serviceName: { cost, profit } }
+    let servicePricing = {};
     let telegramSettings = { botToken: "", chatId: "" };
 
     let cachedAppointments = [];
@@ -1033,25 +661,19 @@
     let lastSavedData = null;
     let editingDocId = null;
 
-    function $(id) { return document.getElementById(id); }
+    const $ = (id) => document.getElementById(id);
 
     // ---------- AUTH ----------
     $("loginBtn").addEventListener("click", async () => {
       const email = $("loginEmail").value.trim();
       const pwd = $("loginPassword").value;
-
-      if (!email || !pwd) {
-        alert("Email / Password ဖြည့်ပေးပါ");
-        return;
-      }
+      if (!email || !pwd) return alert("Email / Password ဖြည့်ပေးပါ");
 
       $("loginBtn").disabled = true;
       $("loginBtn").textContent = "Logging in...";
-
       try {
         await signInWithEmailAndPassword(auth, email, pwd);
       } catch (e) {
-        console.error(e);
         alert("Login Error: " + e.message);
         $("loginBtn").disabled = false;
         $("loginBtn").textContent = "Login";
@@ -1059,18 +681,13 @@
     });
 
     $("logoutBtn").addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-      } catch (e) {
-        console.error(e);
-      }
+      try { await signOut(auth); } catch(e) {}
     });
 
-    onAuthStateChanged(auth, async user => {
+    onAuthStateChanged(auth, async (user) => {
       currentUser = user;
 
       if (user) {
-        // look up role from Firestore users collection (doc id = email)
         let role = "staff";
         try {
           const uDoc = await getDoc(doc(db, "users", user.email));
@@ -1078,9 +695,7 @@
             const d = uDoc.data();
             if (d.role === "admin" || d.role === "staff") role = d.role;
           }
-        } catch (e) {
-          console.error("Error loading user role:", e);
-        }
+        } catch(e) { console.error("role lookup error", e); }
         currentRole = role;
 
         $("authStatus").textContent = `Logged in as ${user.email} (${currentRole})`;
@@ -1092,6 +707,7 @@
         currentRole = "guest";
         $("authStatus").textContent = "Not signed in";
         $("loginBtn").disabled = false;
+        $("loginBtn").textContent = "Login";
         $("loginEmail").disabled = false;
         $("loginPassword").disabled = false;
         $("logoutBtn").style.display = "none";
@@ -1101,51 +717,36 @@
       updateAuthUI();
 
       if (user) {
-        // load data after auth
-        loadSettingsFromFirestore();
-        loadAppointments();
+        await loadSettingsFromFirestore();
+        await loadAppointments();
       }
     });
 
     function updateAuthUI() {
       const overlay = $("authOverlay");
-      const disabled = currentRole === "guest";
-      overlay.classList.toggle("hidden", !disabled);
+      const locked = currentRole === "guest";
+      overlay.classList.toggle("hidden", !locked);
 
-      // button / form disabled state
       const protectedButtons = [
         "saveBtn", "btnCancelEdit", "gotoInvoiceFromEntry",
         "reloadAppointments", "exportCsv", "applyFilter",
         "loadInvoice", "downloadInvoiceJpeg", "saveSettings"
       ];
+      protectedButtons.forEach(id => { const el = $(id); if (el) el.disabled = locked; });
 
-      protectedButtons.forEach(id => {
-        const el = $(id);
-        if (!el) return;
-        el.disabled = disabled;
-      });
-
-      // inputs / selects
       const inputs = document.querySelectorAll(
         "#appointmentForm input, #appointmentForm select, #appointmentForm textarea," +
         "#tab-dashboard input, #tab-dashboard select," +
-        "#tab-invoice input"
+        "#tab-invoice input," +
+        "#tab-settings input, #tab-settings textarea"
       );
-      inputs.forEach(el => {
-        if (currentRole === "guest") {
-          el.setAttribute("disabled", "disabled");
-        } else {
-          el.removeAttribute("disabled");
-        }
-      });
+      inputs.forEach(el => { locked ? el.setAttribute("disabled","disabled") : el.removeAttribute("disabled"); });
 
-      // login inputs ကို အမြဲ enable
-      $("loginEmail").disabled = currentUser ? true : false;
-      $("loginPassword").disabled = currentUser ? true : false;
+      $("loginEmail").disabled = !!currentUser;
+      $("loginPassword").disabled = !!currentUser;
     }
 
     function updateRoleUI() {
-      // settings tab visibility
       const settingsTabBtn = $("settingsTabBtn");
       const settingsPanel = $("tab-settings");
       if (currentRole === "admin") {
@@ -1156,23 +757,14 @@
         if (settingsPanel) settingsPanel.style.display = "none";
       }
 
-      // admin-only buttons / elements
       document.querySelectorAll(".admin-only").forEach(el => {
-        if (el.id === "tab-settings") {
-          // handled above
-          return;
-        }
-        el.style.display = currentRole === "admin" ? "" : "none";
+        if (el.id === "tab-settings") return;
+        el.style.display = (currentRole === "admin") ? "" : "none";
       });
 
-      // Profit masking
       document.querySelectorAll(".profit-cell").forEach(td => {
         const real = td.dataset.profit || "";
-        if (!real) {
-          td.textContent = "";
-        } else {
-          td.textContent = currentRole === "admin" ? real : "****";
-        }
+        td.textContent = real ? (currentRole === "admin" ? real : "****") : "";
       });
 
       updateAuthUI();
@@ -1192,78 +784,55 @@
     });
 
     // ---------- DROPDOWNS / SETTINGS ----------
-    function ensureOption(select, value) {
-      if (!value) return;
-      const exists = Array.from(select.options).some(o => o.value === value);
-      if (!exists) {
+    function fillSelect(select, arr, addEmpty = true) {
+      select.innerHTML = "";
+      if (addEmpty) {
         const opt = document.createElement("option");
-        opt.value = opt.textContent = value;
+        opt.value = ""; opt.textContent = "-- Select --";
         select.appendChild(opt);
       }
-      select.value = value;
-    }
-
-    function renderDropdowns() {
-      const channelSelect = $("channel");
-      const serviceSelect = $("serviceType");
-      const paySelect = $("paymentType");
-      const locationSelect = $("location");
-      const filterServiceSelect = $("filterServiceType");
-
-      function fillSelect(select, arr, addEmpty = true) {
-        select.innerHTML = "";
-        if (addEmpty) {
-          const opt = document.createElement("option");
-          opt.value = "";
-          opt.textContent = "-- Select --";
-          select.appendChild(opt);
-        }
-        arr.forEach(v => {
-          const o = document.createElement("option");
-          o.value = o.textContent = v;
-          select.appendChild(o);
-        });
-      }
-
-      fillSelect(channelSelect, dropdownSettings.customerChannels, true);
-      fillSelect(serviceSelect, dropdownSettings.serviceTypes, true);
-      fillSelect(paySelect, dropdownSettings.paymentTypes, true);
-      fillSelect(locationSelect, dropdownSettings.locations, true);
-
-      filterServiceSelect.innerHTML = "";
-      const allOpt = document.createElement("option");
-      allOpt.value = "";
-      allOpt.textContent = "All";
-      filterServiceSelect.appendChild(allOpt);
-      dropdownSettings.serviceTypes.forEach(v => {
+      arr.forEach(v => {
         const o = document.createElement("option");
         o.value = o.textContent = v;
-        filterServiceSelect.appendChild(o);
+        select.appendChild(o);
       });
-
-      renderServicePricingEditor();
     }
 
     function renderServicePricingEditor() {
       const container = $("servicePricingContainer");
       if (!container) return;
-
       container.innerHTML = "";
       dropdownSettings.serviceTypes.forEach(name => {
         const row = document.createElement("div");
         row.className = "pricing-row";
-
         const sp = servicePricing[name] || { cost: "", profit: "" };
-
         row.innerHTML = `
           <span title="${name}">${name}</span>
-          <input type="number" min="0" step="0.01" placeholder="Cost"
-            data-sp-cost="${name}" value="${sp.cost !== undefined ? sp.cost : ""}">
-          <input type="number" min="0" step="0.01" placeholder="Profit"
-            data-sp-profit="${name}" value="${sp.profit !== undefined ? sp.profit : ""}">
+          <input type="number" min="0" step="0.01" placeholder="Cost" data-sp-cost="${name}" value="${sp.cost ?? ""}">
+          <input type="number" min="0" step="0.01" placeholder="Profit" data-sp-profit="${name}" value="${sp.profit ?? ""}">
         `;
         container.appendChild(row);
       });
+    }
+
+    function renderDropdowns() {
+      fillSelect($("channel"), dropdownSettings.customerChannels, true);
+      fillSelect($("serviceType"), dropdownSettings.serviceTypes, true);
+      fillSelect($("paymentType"), dropdownSettings.paymentTypes, true);
+      fillSelect($("location"), dropdownSettings.locations, true);
+
+      const filterService = $("filterServiceType");
+      filterService.innerHTML = "";
+      const all = document.createElement("option");
+      all.value = ""; all.textContent = "All";
+      filterService.appendChild(all);
+      dropdownSettings.serviceTypes.forEach(v => {
+        const o = document.createElement("option");
+        o.value = o.textContent = v;
+        filterService.appendChild(o);
+      });
+
+      renderServicePricingEditor();
     }
 
     async function loadSettingsFromFirestore() {
@@ -1294,45 +863,36 @@
       }
 
       renderDropdowns();
-      $("channelsSetting").value = dropdownSettings.customerChannels.join("\n");
-      $("servicesSetting").value = dropdownSettings.serviceTypes.join("\n");
-      $("paymentsSetting").value = dropdownSettings.paymentTypes.join("\n");
-      $("locationsSetting").value = dropdownSettings.locations.join("\n");
-      $("tgToken").value = telegramSettings.botToken;
-      $("tgChatId").value = telegramSettings.chatId;
+
+      if ($("channelsSetting")) $("channelsSetting").value = dropdownSettings.customerChannels.join("\n");
+      if ($("servicesSetting")) $("servicesSetting").value = dropdownSettings.serviceTypes.join("\n");
+      if ($("paymentsSetting")) $("paymentsSetting").value = dropdownSettings.paymentTypes.join("\n");
+      if ($("locationsSetting")) $("locationsSetting").value = dropdownSettings.locations.join("\n");
+      if ($("tgToken")) $("tgToken").value = telegramSettings.botToken;
+      if ($("tgChatId")) $("tgChatId").value = telegramSettings.chatId;
     }
 
     $("saveSettings").addEventListener("click", async () => {
       const msg = $("settingsMessage");
-      msg.textContent = "";
+      msg.textContent = ""; msg.className = "message";
 
-      dropdownSettings.customerChannels = $("channelsSetting").value.split("\n").map(s => s.trim()).filter(Boolean);
-      dropdownSettings.serviceTypes = $("servicesSetting").value.split("\n").map(s => s.trim()).filter(Boolean);
-      dropdownSettings.paymentTypes = $("paymentsSetting").value.split("\n").map(s => s.trim()).filter(Boolean);
-      dropdownSettings.locations = $("locationsSetting").value.split("\n").map(s => s.trim()).filter(Boolean);
+      dropdownSettings.customerChannels = $("channelsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
+      dropdownSettings.serviceTypes = $("servicesSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
+      dropdownSettings.paymentTypes = $("paymentsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
+      dropdownSettings.locations = $("locationsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
 
-      // pricing
       const newPricing = {};
-      dropdownSettings.serviceTypes.forEach(name => {
-        newPricing[name] = { cost: 0, profit: 0 };
-      });
+      dropdownSettings.serviceTypes.forEach(n => newPricing[n] = { cost: 0, profit: 0 });
 
       document.querySelectorAll("[data-sp-cost]").forEach(input => {
         const name = input.dataset.spCost;
         const val = parseFloat(input.value);
-        if (!isNaN(val)) {
-          if (!newPricing[name]) newPricing[name] = {};
-          newPricing[name].cost = val;
-        }
+        if (!isNaN(val)) { newPricing[name] = newPricing[name] || {}; newPricing[name].cost = val; }
       });
-
       document.querySelectorAll("[data-sp-profit]").forEach(input => {
         const name = input.dataset.spProfit;
         const val = parseFloat(input.value);
-        if (!isNaN(val)) {
-          if (!newPricing[name]) newPricing[name] = {};
-          newPricing[name].profit = val;
-        }
+        if (!isNaN(val)) { newPricing[name] = newPricing[name] || {}; newPricing[name].profit = val; }
       });
 
       servicePricing = newPricing;
@@ -1345,14 +905,32 @@
         await setDoc(doc(db, "settings", "servicePricing"), { services: servicePricing }, { merge: true });
 
         renderDropdowns();
-        msg.textContent = "✅ Settings & Pricing saved.";
+        msg.textContent = "✅ Settings saved.";
         msg.className = "message success";
-      } catch (e) {
-        console.error(e);
-        msg.textContent = "❌ Unable to save settings: " + e.message;
+      } catch(e) {
+        msg.textContent = "❌ Save settings failed: " + e.message;
         msg.className = "message error";
       }
     });
+
+    // ✅ Time picker: click/focus => open picker where supported
+    const timeInput = $("appointmentTime");
+    ["click","focus"].forEach(evt=>{
+      timeInput.addEventListener(evt, () => {
+        if (typeof timeInput.showPicker === "function") timeInput.showPicker();
+      });
+    });
+
+    // ✅ Balance Auto: always Total - Deposit, regardless of payment type
+    function updateDepositUI() {
+      const total = Number($("price").value || 0);
+      const deposit = Number($("depositAmount").value || 0);
+      const balance = Math.max(total - deposit, 0);
+      $("balanceAmount").value = balance.toFixed(2);
+    }
+    $("paymentType").addEventListener("change", updateDepositUI);
+    $("price").addEventListener("input", updateDepositUI);
+    $("depositAmount").addEventListener("input", updateDepositUI);
 
     // ---------- ENTRY SAVE / EDIT ----------
     const form = $("appointmentForm");
@@ -1365,9 +943,10 @@
       $("btnCancelEdit").style.display = "none";
       messageDiv.textContent = "";
       form.reset();
+      updateDepositUI();
     });
 
-    form.addEventListener("submit", async e => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (currentRole === "guest") return;
 
@@ -1377,29 +956,33 @@
       const invoiceIdRaw = $("invoiceId").value.trim();
       const invoiceId = invoiceIdRaw.toUpperCase();
 
+      const total = Number($("price").value || 0);
+      const dep = Number($("depositAmount").value || 0);
+      const bal = Math.max(total - dep, 0);
+
       const data = {
         invoiceId,
         date: $("date").value,
         appointmentDate: $("appointmentDate").value,
+        appointmentTime: $("appointmentTime").value || null, // ✅ optional
         name: $("name").value.trim(),
         phone: $("phone").value.trim(),
+        customerStatus: $("customerStatus").value,
         channel: $("channel").value || null,
         location: $("location").value,
         serviceType: $("serviceType").value,
         paymentType: $("paymentType").value,
-        price: Number($("price").value || 0),
+        price: total,
+        depositAmount: dep,
+        balanceAmount: bal,
         remark: $("remark").value.trim() || null,
         createdAt: serverTimestamp(),
         createdBy: currentUser ? currentUser.email : null
       };
 
-      if (!invoiceId) {
-        messageDiv.textContent = "Invoice ID မပါသေးပါ – ထည့်ပေးပါ။";
-        messageDiv.className = "message error";
-        return;
-      }
-      if (!data.date || !data.appointmentDate || !data.name || !data.phone ||
-          !data.serviceType || !data.paymentType || !data.location) {
+      // ✅ Required: Time ကို မစစ်တော့ (optional)
+      if (!invoiceId || !data.date || !data.appointmentDate || !data.name || !data.phone ||
+          !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
         messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။";
         messageDiv.className = "message error";
         return;
@@ -1408,9 +991,7 @@
       const sp = servicePricing[data.serviceType] || {};
       const cost = typeof sp.cost === "number" ? sp.cost : 0;
       let profit = typeof sp.profit === "number" ? sp.profit : undefined;
-      if (profit === undefined || isNaN(profit)) {
-        profit = data.price - cost;
-      }
+      if (profit === undefined || isNaN(profit)) profit = data.price - cost;
       data.serviceCost = cost;
       data.serviceProfit = profit;
 
@@ -1427,16 +1008,15 @@
           $("invoiceId").disabled = false;
           $("saveBtnText").textContent = "Save to Firebase";
           $("btnCancelEdit").style.display = "none";
-          form.reset();
-          loadAppointments();
+          form.reset(); updateDepositUI();
+          await loadAppointments();
         } else {
           const existing = await getDoc(doc(db, "appointments", invoiceId));
           if (existing.exists()) {
-            messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသားဖြစ်နေပါသည် – အသစ်တစ်ခုကွဲပြားတဲ့ ID ပေးပါ။";
+            messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – အသစ် ID တစ်ခု ပေးပါ။";
             messageDiv.className = "message error";
             return;
           }
-
           await setDoc(doc(db, "appointments", invoiceId), data);
           lastSavedDocId = invoiceId;
           lastSavedData = { ...data, id: invoiceId };
@@ -1444,12 +1024,12 @@
           messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId;
           messageDiv.className = "message success";
 
-          sendTelegramNotification(lastSavedData);
-          form.reset();
-          loadAppointments();
+          await sendTelegramNotification(lastSavedData);
+          form.reset(); updateDepositUI();
+          await loadAppointments();
         }
       } catch (err) {
-        console.error("Error saving:", err);
+        console.error(err);
         messageDiv.textContent = "❌ Error saving data: " + err.message;
         messageDiv.className = "message error";
       }
@@ -1458,57 +1038,55 @@
     // ---------- TELEGRAM ----------
     async function sendTelegramNotification(a) {
       if (!telegramSettings.botToken || !telegramSettings.chatId) return;
+      const apptDT = `${a.appointmentDate || "-"}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
 
       const lines = [
         "📩 *New Appointment Saved*",
         "",
         `🧾 Invoice ID: ${a.invoiceId}`,
+        `🟡 Status: ${a.customerStatus || "-"}`,
         `👤 Name: ${a.name}`,
         `📞 Phone: ${a.phone}`,
         `📍 Location: ${a.location}`,
-        `📅 Date: ${a.date}`,
-        `📅 Appointment: ${a.appointmentDate}`,
+        `📅 Service Date: ${a.date}`,
+        `🕒 Appointment: ${apptDT}`,
         `🧾 Service: ${a.serviceType}`,
         `💳 Payment: ${a.paymentType}`,
-        `💰 Amount: ${a.price.toFixed(2)} THB`,
+        `💰 Total: ${Number(a.price||0).toFixed(2)} THB`,
+        `💵 Deposit: ${Number(a.depositAmount||0).toFixed(2)} | Balance: ${Number(a.balanceAmount||0).toFixed(2)}`,
         a.channel ? `📡 Channel: ${a.channel}` : "",
         a.remark ? `📝 Remark: ${a.remark}` : ""
       ].filter(Boolean);
 
-      const text = lines.join("\n");
-
       try {
         await fetch(`https://api.telegram.org/bot${telegramSettings.botToken}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
           body: JSON.stringify({
             chat_id: telegramSettings.chatId,
-            text,
+            text: lines.join("\n"),
             parse_mode: "Markdown"
           })
         });
-      } catch (e) {
-        console.error("Telegram send error:", e);
+      } catch(e) {
+        console.error("Telegram error", e);
       }
     }
 
-    // ---------- DASHBOARD ----------
+    // ---------- DASHBOARD LOAD ----------
     async function loadAppointments() {
       if (currentRole === "guest") return;
 
       const body = $("appointmentsTableBody");
-      body.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:8px;">Loading...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="14" style="text-align:center;padding:8px;">Loading...</td></tr>`;
       $("dashboardMessage").textContent = "";
 
       try {
         const snap = await getDocs(collection(db, "appointments"));
         const list = [];
-        snap.forEach(ds => {
-          const d = ds.data();
-          list.push({ id: ds.id, ...d });
-        });
+        snap.forEach(ds => list.push({ id: ds.id, ...ds.data() }));
 
-        list.sort((a, b) => {
+        list.sort((a,b) => {
           const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
           const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
           return tb - ta;
@@ -1516,10 +1094,17 @@
 
         cachedAppointments = list;
         renderAppointmentsTable();
-      } catch (e) {
+      } catch(e) {
         console.error(e);
-        body.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:8px;color:#b91c1c;">Error loading data</td></tr>`;
+        body.innerHTML = `<tr><td colspan="14" style="text-align:center;padding:8px;color:#b91c1c;">Error loading: ${e.message}</td></tr>`;
       }
+    }
+
+    function statusPill(status){
+      const s = (status || "").toLowerCase();
+      if (s === "confirm") return `<span class="status-pill status-confirm">Confirm</span>`;
+      if (s === "pending") return `<span class="status-pill status-pending">Pending</span>`;
+      return `<span class="status-pill">-</span>`;
     }
 
     function renderAppointmentsTable() {
@@ -1528,16 +1113,18 @@
 
       const searchText = $("searchText").value.trim().toLowerCase();
       const filterService = $("filterServiceType").value;
+      const filterStatus = $("filterStatus").value;
       const dateFrom = $("filterDateFrom").value;
       const dateTo = $("filterDateTo").value;
 
       const filtered = cachedAppointments.filter(a => {
         let ok = true;
         if (searchText) {
-          const s = (a.name || "") + " " + (a.phone || "") + " " + (a.invoiceId || a.id);
+          const s = `${a.name||""} ${a.phone||""} ${a.invoiceId||a.id||""}`;
           ok = s.toLowerCase().includes(searchText);
         }
         if (ok && filterService) ok = a.serviceType === filterService;
+        if (ok && filterStatus) ok = (a.customerStatus||"") === filterStatus;
         if (ok && (dateFrom || dateTo)) {
           const d = a.date || "";
           if (dateFrom && d < dateFrom) ok = false;
@@ -1549,7 +1136,7 @@
       lastFilteredAppointments = filtered;
 
       if (!filtered.length) {
-        body.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
+        body.innerHTML = `<tr><td colspan="14" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
         return;
       }
 
@@ -1559,58 +1146,74 @@
           : (a.price != null && a.serviceCost != null)
             ? (a.price - a.serviceCost)
             : null;
-        const profitText = profit != null ? profit.toFixed(2) : "";
-        const displayProfit = currentRole === "admin"
-          ? profitText
-          : (profitText ? "****" : "");
+        const profitText = profit != null ? Number(profit).toFixed(2) : "";
+        const displayProfit = (currentRole === "admin") ? profitText : (profitText ? "****" : "");
+
+        const dep = Number(a.depositAmount||0).toFixed(2);
+        const bal = Number(a.balanceAmount||0).toFixed(2);
+
+        const apptDT = `${a.appointmentDate || ""}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${a.invoiceId || a.id}</td>
+          <td>${(a.invoiceId || a.id || "").toUpperCase()}</td>
           <td>${a.date || ""}</td>
+          <td>${apptDT || ""}</td>
+          <td>${statusPill(a.customerStatus)}</td>
           <td>${a.name || ""}</td>
           <td>${a.phone || ""}</td>
           <td><span class="tag">${a.serviceType || ""}</span></td>
           <td>${a.location || ""}</td>
           <td>${a.paymentType || ""}</td>
-          <td>${a.price != null ? a.price.toFixed(2) : ""}</td>
+          <td>${a.price != null ? Number(a.price).toFixed(2) : ""}</td>
+          <td>${dep}</td>
+          <td>${bal}</td>
           <td class="profit-cell" data-profit="${profitText}">${displayProfit}</td>
           <td>
-            <button class="btn btn-outline btn-sm" data-docid="${a.invoiceId || a.id}">Invoice</button>
-            <button class="btn btn-secondary btn-sm admin-only" data-editid="${a.invoiceId || a.id}" style="${currentRole === "admin" ? "" : "display:none;"}">Edit</button>
+            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px" data-docid="${(a.invoiceId || a.id || "").toUpperCase()}">Invoice</button>
+            <button class="btn btn-secondary admin-only" style="padding:5px 10px;font-size:12px;${currentRole==="admin"?"":"display:none;"}" data-editid="${(a.invoiceId || a.id || "").toUpperCase()}">Edit</button>
           </td>
         `;
         body.appendChild(tr);
 
-        const invoiceBtn = tr.querySelector("[data-docid]");
-        invoiceBtn.addEventListener("click", () => {
-          $("invoiceDocId").value = invoiceBtn.dataset.docid;
+        tr.querySelector("[data-docid]").addEventListener("click", () => {
+          $("invoiceDocId").value = tr.querySelector("[data-docid]").dataset.docid;
           document.querySelector('.tab-btn[data-tab="invoice"]').click();
           loadInvoice();
         });
 
         const editBtn = tr.querySelector("[data-editid]");
-        if (editBtn) {
-          editBtn.addEventListener("click", () => {
-            if (currentRole !== "admin") return;
-            startEditAppointment(a);
-          });
-        }
+        if (editBtn) editBtn.addEventListener("click", () => {
+          if (currentRole !== "admin") return;
+          startEditAppointment(a);
+        });
       });
 
       updateRoleUI();
     }
 
-    function startEditAppointment(a) {
-      editingDocId = a.invoiceId || a.id;
+    function ensureOption(select, value) {
+      if (!value) return;
+      const exists = Array.from(select.options).some(o => o.value === value);
+      if (!exists) {
+        const opt = document.createElement("option");
+        opt.value = opt.textContent = value;
+        select.appendChild(opt);
+      }
+      select.value = value;
+    }
 
+    function startEditAppointment(a) {
+      editingDocId = (a.invoiceId || a.id || "").toUpperCase();
       $("invoiceId").value = editingDocId;
       $("invoiceId").disabled = true;
 
       $("date").value = a.date || "";
       $("appointmentDate").value = a.appointmentDate || "";
+      $("appointmentTime").value = a.appointmentTime || ""; // ✅ optional
       $("name").value = a.name || "";
       $("phone").value = a.phone || "";
+      $("customerStatus").value = a.customerStatus || "";
 
       ensureOption($("channel"), a.channel);
       ensureOption($("location"), a.location);
@@ -1622,17 +1225,19 @@
       $("serviceType").value = a.serviceType || "";
       $("paymentType").value = a.paymentType || "";
       $("price").value = a.price != null ? a.price : "";
+      $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
       $("remark").value = a.remark || "";
 
+      updateDepositUI();
+
       $("saveBtnText").textContent = "Update Appointment";
-      $("btnCancelEdit").style.display = currentRole === "admin" ? "inline-flex" : "none";
+      $("btnCancelEdit").style.display = (currentRole === "admin") ? "inline-flex" : "none";
 
       const msg = $("message");
-      msg.textContent = "Edit Mode: Invoice " + editingDocId + " ကို ပြင်ဆိုင်နေပါသည်.";
+      msg.textContent = "Edit Mode: Invoice " + editingDocId;
       msg.className = "message";
 
       document.querySelector('.tab-btn[data-tab="entry"]').click();
-      $("tab-entry").classList.add("active");
     }
 
     $("reloadAppointments").addEventListener("click", loadAppointments);
@@ -1640,33 +1245,22 @@
 
     $("exportCsv").addEventListener("click", () => {
       if (currentRole !== "admin") return;
-      if (!lastFilteredAppointments.length) {
-        alert("Export လုပ်မယ့် data မရှိပါ။ Reload / Filter ပြန်လုပ်ပါ။");
-        return;
-      }
+      if (!lastFilteredAppointments.length) return alert("Export လုပ်မယ့် data မရှိပါ။");
 
       const rows = [];
       rows.push([
-        "Invoice ID",
-        "Date",
-        "Appointment Date",
-        "Name",
-        "Phone",
-        "Channel",
-        "Location",
-        "Service Type",
-        "Payment Type",
-        "Price",
-        "Service Cost",
-        "Service Profit",
-        "Remark"
+        "Invoice ID","Date","Appointment Date","Appointment Time","Status","Name","Phone",
+        "Channel","Location","Service Type","Payment Type","Total","Deposit","Balance",
+        "Service Cost","Service Profit","Remark"
       ]);
 
       lastFilteredAppointments.forEach(a => {
         rows.push([
-          a.invoiceId || a.id || "",
+          (a.invoiceId || a.id || "").toUpperCase(),
           a.date || "",
           a.appointmentDate || "",
+          a.appointmentTime || "",
+          a.customerStatus || "",
           a.name || "",
           a.phone || "",
           a.channel || "",
@@ -1674,16 +1268,15 @@
           a.serviceType || "",
           a.paymentType || "",
           a.price != null ? a.price : "",
+          a.depositAmount != null ? a.depositAmount : "",
+          a.balanceAmount != null ? a.balanceAmount : "",
           a.serviceCost != null ? a.serviceCost : "",
           a.serviceProfit != null ? a.serviceProfit : "",
           a.remark || ""
         ]);
       });
 
-      const csv = rows
-        .map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(","))
-        .join("\r\n");
-
+      const csv = rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",")).join("\r\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -1699,57 +1292,73 @@
     async function loadInvoice() {
       if (currentRole === "guest") return;
 
-      const id = $("invoiceDocId").value.trim() || lastSavedDocId;
+      const id = ($("invoiceDocId").value.trim() || lastSavedDocId || "").toUpperCase();
       const msg = $("invoiceMessage");
-      msg.textContent = "";
-      msg.className = "message";
+      msg.textContent = ""; msg.className = "message";
 
       if (!id) {
-        msg.textContent = "Invoice ID ကို ထည့်ပေးပါ (သို့) Dashboard မှ Invoice ခလုပ်ကို နှိပ်ပါ။";
+        msg.textContent = "Invoice ID ထည့်ပါ (သို့) Dashboard မှ Invoice ကိုနှိပ်ပါ";
         msg.className = "message error";
         return;
       }
 
       try {
-        const snap = await getDoc(doc(db, "appointments", id.toUpperCase()));
+        const snap = await getDoc(doc(db, "appointments", id));
         if (!snap.exists()) {
-          msg.textContent = "အဲ့ဒီ Invoice ID နဲ့ Appointment မတွေ့ပါ။";
+          msg.textContent = "အဲ့ဒီ Invoice ID နဲ့ Appointment မတွေ့ပါ";
           msg.className = "message error";
           return;
         }
         const data = snap.data();
-        fillInvoiceCard(id.toUpperCase(), data);
+        fillInvoiceCard(id, data);
         msg.textContent = "✅ Invoice loaded.";
         msg.className = "message success";
-      } catch (e) {
-        console.error(e);
+      } catch(e) {
         msg.textContent = "❌ Error loading invoice: " + e.message;
         msg.className = "message error";
       }
     }
 
+    // ✅ Invoice: Time included (optional); Date included; Status + Service Date not shown
+    // ✅ Total/Deposit/Balance Due
     function fillInvoiceCard(id, data) {
       const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
       $("invRefText").textContent = `Invoice No: ${id}`;
-      $("invIssueDate").textContent =
-        `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
+      $("invIssueDate").textContent = `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
+
+      const timeText = data.appointmentTime ? ` ${data.appointmentTime}` : "";
 
       $("invCustomerInfo").innerHTML = `
         <div><span class="invoice-label">အမည်</span><br/><span class="invoice-value">${data.name || "-"}</span></div>
         <div><span class="invoice-label">ဖုန်းနံပါတ်</span><br/><span class="invoice-value">${data.phone || "-"}</span></div>
-        <div><span class="invoice-label">ဝန်ဆောင်မှုရယူမည့်ရက်</span><br/><span class="invoice-value">${data.appointmentDate || "-"}</span></div>
         <div><span class="invoice-label">ဝန်ဆောင်မှုယူမည့်နေရာ</span><br/><span class="invoice-value">${data.location || "-"}</span></div>
+        <div><span class="invoice-label">ဝန်ဆောင်မှုရယူမည့်ရက် / အချိန်</span><br/>
+          <span class="invoice-value">${data.appointmentDate || "-"}${timeText}</span>
+        </div>
       `;
 
       $("invServiceInfo").innerHTML = `
         <div><span class="invoice-label">ဝန်ဆောင်မှုအမျိုးအစား</span><br/><span class="invoice-value">${data.serviceType || "-"}</span></div>
         <div><span class="invoice-label">ငွေပေးချေမှုအမျိုးအစား</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div>
-        <div><span class="invoice-label">စာရင်းသွင်းရက်</span><br/><span class="invoice-value">${data.date || "-"}</span></div>
         <div><span class="invoice-label">မှတ်ချက်</span><br/><span class="invoice-value">${data.remark || "-"}</span></div>
+        <div><span class="invoice-label"></span><br/><span class="invoice-value"></span></div>
       `;
 
-      $("invTotalAmount").textContent =
-        data.price != null ? data.price.toFixed(2) : "0.00";
+      const total = Number(data.price || 0);
+      const deposit = Number(data.depositAmount || 0);
+      const balance = Math.max(total - deposit, 0);
+
+      $("invTotalAmount").textContent = total.toFixed(2);
+      $("invBalanceAmount").textContent = balance.toFixed(2);
+
+      if (deposit > 0) {
+        $("invDepositRow").style.display = "block";
+        $("invDepositAmount").style.display = "block";
+        $("invDepositAmount").textContent = "-" + deposit.toFixed(2);
+      } else {
+        $("invDepositRow").style.display = "none";
+        $("invDepositAmount").style.display = "none";
+      }
     }
 
     $("loadInvoice").addEventListener("click", loadInvoice);
@@ -1771,22 +1380,21 @@
       try {
         const canvas = await html2canvas(card, { scale: 3, useCORS: true });
         const link = document.createElement("a");
-        link.download =
-          "invoice-" + ( $("invoiceDocId").value.trim() || "preview" ) + ".jpg";
+        link.download = "invoice-" + (($("invoiceDocId").value.trim() || "preview").toUpperCase()) + ".jpg";
         link.href = canvas.toDataURL("image/jpeg", 0.92);
         link.click();
         msg.textContent = "✅ JPEG Downloaded.";
         msg.className = "message success";
-      } catch (e) {
-        console.error(e);
+      } catch(e) {
         msg.textContent = "❌ Error generating JPEG: " + e.message;
         msg.className = "message error";
       }
     });
 
-    // initial (guest state)
+    // Initial
     updateAuthUI();
+    renderDropdowns();
+    updateDepositUI();
   </script>
 </body>
 </html>
-
