@@ -31,7 +31,7 @@
     .app-shell{
       position:relative;
       width:100%;
-      max-width:1200px;
+      max-width:95%;
       background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.98));
       border-radius:18px;
       box-shadow:0 20px 40px rgba(15,23,42,.35), 0 0 0 1px rgba(148,163,184,.3);
@@ -479,12 +479,13 @@
                   <th>Deposit</th>
                   <th>Balance</th>
                   <th>Profit</th>
+                  <th>Remark</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody id="appointmentsTableBody">
                 <tr>
-                  <td colspan="14" style="text-align:center; padding:10px;">
+                  <td colspan="15" style="text-align:center; padding:10px;">
                     Data မရှိသေးပါ… "Reload Data" ကိုနှိပ်ပါ
                   </td>
                 </tr>
@@ -1219,7 +1220,7 @@
       if (currentRole === "guest") return;
 
       const body = $("appointmentsTableBody");
-      body.innerHTML = `<tr><td colspan="14" style="text-align:center;padding:8px;">Loading...</td></tr>`;
+      body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Loading...</td></tr>`;
       $("dashboardMessage").textContent = "";
 
       try {
@@ -1237,7 +1238,7 @@
         renderAppointmentsTable();
       } catch(e) {
         console.error(e);
-        body.innerHTML = `<tr><td colspan="14" style="text-align:center;padding:8px;color:#b91c1c;">Error loading: ${e.message}</td></tr>`;
+        body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;color:#b91c1c;">Error loading: ${e.message}</td></tr>`;
       }
     }
 
@@ -1283,7 +1284,7 @@
       lastFilteredAppointments = filtered;
 
       if (!filtered.length) {
-        body.innerHTML = `<tr><td colspan="14" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
+        body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
         return;
       }
 
@@ -1316,6 +1317,7 @@
           <td>${dep}</td>
           <td>${bal}</td>
           <td class="profit-cell" data-profit="${profitText}">${displayProfit}</td>
+          <td>${a.remark || "-"}</td>
           <td>
             <button class="btn btn-outline" style="padding:5px 10px;font-size:12px" data-docid="${id}">Invoice</button>
             <button class="btn btn-secondary admin-only" style="padding:5px 10px;font-size:12px;${currentRole==="admin"?"":"display:none;"}" data-editid="${id}">Edit</button>
