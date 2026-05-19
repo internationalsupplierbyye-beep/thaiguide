@@ -354,7 +354,7 @@
 
     @media (max-width: 768px){
       body { padding: 0; }
-      .app-shell { border-radius: 0; min-height: 100vh; }
+      .app-shell { border-radius: 0; min-height: 100vh; overflow-x: hidden; }
       header {
         flex-direction: column; 
         align-items: stretch;
@@ -362,7 +362,7 @@
         position: relative; 
         white-space: normal; 
       }
-      .brand { justify-content: center; margin-bottom: 8px; }
+      .brand { justify-content: center; margin-bottom: 12px; }
       .header-right { 
         flex-direction: column; 
         justify-content: center; 
@@ -380,10 +380,11 @@
         justify-content: center; 
         width: 100%; 
         background: #020617; 
-        padding: 10px; 
+        padding: 12px; 
         border-radius: 12px;
+        flex-wrap: wrap;
       }
-      .auth-box input { width: 100%; min-width: unset; margin-bottom: 6px; }
+      .auth-box input { width: 48%; min-width: 110px; margin-bottom: 6px; }
       .summary-grid { grid-template-columns: 1fr 1fr; }
       form { grid-template-columns: 1fr; }
       .invoice-controls, .invoice-card { flex: 1 1 100%; max-width: 100%; }
@@ -1919,17 +1920,35 @@
       if (!id) { msg.textContent = "Invoice ID ထည့်ပါ (သို့) Dashboard မှ Invoice ကိုနှိပ်ပါ"; msg.className = "message error"; return; }
 
       try {
-        const snap = await getDoc(doc(db, "appointments", id));
-        if (!snap.exists()) { msg.textContent = "အဲ့ဒီ Invoice ID နဲ့ Appointment မတွေ့ပါ"; msg.className = "message error"; return; }
-        const data = snap.data();
-        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
-        $("invRefText").textContent = `Invoice No: ${id}`; $("invIssueDate").textContent = `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
+        let data = cachedAppointments.find(x => (x.invoiceId || x.id || "").toUpperCase() === id);
+        let createdAt = new Date();
+
+        if (!data) {
+          const snap = await getDoc(doc(db, "appointments", id));
+          if (!snap.exists()) { msg.textContent = "အဲ့ဒီ Invoice ID နဲ့ Appointment မတွေ့ပါ"; msg.className = "message error"; return; }
+          data = snap.data();
+          if (data.createdAt?.toDate) createdAt = data.createdAt.toDate();
+        } else {
+          if (data.createdAt?.toDate) createdAt = data.createdAt.toDate();
+          else if (data.createdAt?.toMillis) createdAt = new Date(data.createdAt.toMillis());
+        }
+
+        $("invRefText").textContent = `Invoice No: ${id}`; 
+        $("invIssueDate").textContent = `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
+        
         $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">အမည်</span><br/><span class="invoice-value">${data.name || "-"}</span></div><div><span class="invoice-label">ဖုန်းနံပါတ်</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">ဝန်ဆောင်မှုယူမည့်နေရာ</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">ဝန်ဆောင်မှုရယူမည့်ရက် / အချိန်</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${data.appointmentTime ? ` ${data.appointmentTime}` : ""}</span></div>`;
+        
         $("invServiceInfo").innerHTML = `<div><span class="invoice-label">ဝန်ဆောင်မှုအမျိုးအစား</span><br/><span class="invoice-value">${data.serviceType || "-"}</span></div><div><span class="invoice-label">ငွေပေးချေမှုအမျိုးအစား</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div><span class="invoice-label">မှတ်ချက်</span><br/><span class="invoice-value">${data.remark || "-"}</span></div><div><span class="invoice-label"></span><br/><span class="invoice-value"></span></div>`;
         
         const total = Number(data.price || 0); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
         $("invTotalAmount").textContent = total.toFixed(2); $("invBalanceAmount").textContent = balance.toFixed(2);
-        if (deposit > 0) { $("invDepositRow").style.display = "block"; $("invDepositAmount").style.display = "block"; $("invDepositAmount").textContent = "-" + deposit.toFixed(2); } else { $("invDepositRow").style.display = "none"; $("invDepositAmount").style.display = "none"; }
+        
+        if (deposit > 0) { 
+          $("invDepositRow").style.display = "block"; $("invDepositAmount").style.display = "block"; $("invDepositAmount").textContent = "-" + deposit.toFixed(2); 
+        } else { 
+          $("invDepositRow").style.display = "none"; $("invDepositAmount").style.display = "none"; 
+        }
+        
         msg.textContent = "✅ Invoice loaded."; msg.className = "message success";
       } catch(e) { msg.textContent = "❌ Error loading invoice: " + e.message; msg.className = "message error"; }
     }
