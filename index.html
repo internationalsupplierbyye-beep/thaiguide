@@ -189,10 +189,19 @@
     tbody tr:nth-child(even){background:#f9fafb}
     tbody tr:hover{background:#eef2ff}
     .tag{padding:2px 8px;border-radius:999px;font-size:11px;background:#eef2ff;color:#4f46e5}
-    .status-pill{
-      padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid rgba(148,163,184,.7);
-      display:inline-block;
+    
+    /* Status Inline Select */
+    .status-select {
+      padding: 3px 6px; font-size: 11px; border-radius: 999px; font-weight: 600;
+      border: 1px solid #d1d5db; background: #f9fafb; outline: none; cursor: pointer;
     }
+    .status-select.pending { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
+    .status-select.confirm { background:#ecfdf5; color:#166534; border-color:#bbf7d0; }
+    .status-select.cancel { background:#fee2e2; color:#b91c1c; border-color:#fecaca; }
+    .status-select.completed { background:#dcfce7; color:#15803d; border-color:#bbf7d0; }
+
+    /* History Status Pill */
+    .status-pill{ padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid rgba(148,163,184,.7);display:inline-block; }
     .status-pending{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
     .status-confirm{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
 
@@ -227,9 +236,16 @@
       border-color: #a7f3d0;
     }
     .summary-card.profit-card .summary-value { color: #059669; }
+    
     .summary-card.pending-card {
       background: #fff7ed;
       border-color: #fed7aa;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .summary-card.pending-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(234, 88, 12, 0.15);
     }
     .summary-card.pending-card .summary-value { color: #ea580c; }
 
@@ -244,26 +260,13 @@
       height:550px;
       display:flex;align-items:stretch;justify-content:center;
       position:relative;overflow:hidden;
-      z-index: 1; /* စာတွေကို အရှေ့ရောက်လာစေရန် အသစ်ထပ်တိုးထားသည် */
+      z-index: 1; 
     }
-
-    /* အောက်ပါ အပိုင်းသည် Watermark Logo အတွက် အသစ်တိုးထားသော အပိုင်းဖြစ်သည် */
     .invoice-card::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 350px; /* Logo ၏ အကျယ် */
-      height: 350px; /* Logo ၏ အမြင့် */
-      background-image: url('logo.png'); /* သုံးမည့် Logo နာမည် */
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      opacity: 0.08; /* ဘယ်လောက် မှိန်ချင်သလဲ (0.05 မှ 0.1 ကြား အဆင်ပြေပါသည်) */
-      filter: blur(1.5px); /* ဘယ်လောက် ဝါးချင်သလဲ (Blur ပမာဏ) */
-      z-index: -1; /* Logo ကို စာတွေရဲ့ အနောက်သို့ ပို့ရန် */
-      pointer-events: none; /* Logo ကို Mouse ဖြင့် ထိမိ/Select မှတ်မိခြင်းမှ ကာကွယ်ရန် */
+      content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 350px; height: 350px; background-image: url('logo.png'); background-size: contain;
+      background-repeat: no-repeat; background-position: center; opacity: 0.08; filter: blur(1.5px); 
+      z-index: -1; pointer-events: none; 
     }
     .invoice-inner{width:100%;height:100%;display:flex;flex-direction:column}
     .invoice-header-main{
@@ -277,21 +280,11 @@
     .invoice-meta-row{display:flex;justify-content:space-between;font-size:12.5px;color:#6b7280;margin-bottom:8px}
     
     .invoice-section-title {
-      font-size: 14px;
-      font-weight: 900;
-      margin-top: 12px;
-      margin-bottom: 8px;
-      background: var(--primary-soft);
-      color: var(--primary);
-      padding: 4px 8px;
-      border-left: 4px solid var(--primary);
-      border-radius: 4px;
+      font-size: 14px; font-weight: 900; margin-top: 12px; margin-bottom: 8px;
+      background: var(--primary-soft); color: var(--primary); padding: 4px 8px;
+      border-left: 4px solid var(--primary); border-radius: 4px;
     }
-
-    .invoice-grid{
-      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:6px 12px;font-size:13px;
-    }
+    .invoice-grid{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 12px;font-size:13px; }
     .invoice-label{color:#6b7280;font-weight:800}
     .invoice-value{font-weight:800;color:#111827; font-size:15px;}
     .invoice-total{
@@ -301,37 +294,21 @@
     .invoice-total-amount{font-size:20px;font-weight:900}
     .chip{border-radius:999px;border:1px solid rgba(148,163,184,.7);padding:2px 7px;font-size:10px}
 
-    .settings-grid{
-      display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:14px 18px;margin-top:10px;
-    }
-    .settings-block{
-      border-radius:12px;border:1px dashed rgba(148,163,184,.7);
-      padding:10px 12px;background:#f9fafb;
-    }
+    .settings-grid{ display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px 18px;margin-top:10px; }
+    .settings-block{ border-radius:12px;border:1px dashed rgba(148,163,184,.7); padding:10px 12px;background:#f9fafb; }
     .settings-block h4{margin:0 0 4px;font-size:13px}
-    .pricing-row{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) 90px 90px;
-      gap:4px 8px;align-items:center;font-size:12px;margin-bottom:4px;
-    }
+    .pricing-row{ display:grid; grid-template-columns:minmax(0,1fr) 90px 90px; gap:4px 8px;align-items:center;font-size:12px;margin-bottom:4px; }
     .pricing-row input{font-size:12px;padding:4px 6px;border-radius:7px}
 
     .auth-overlay{
-      position:absolute;inset:0;
-      background:rgba(15,23,42,.82);
-      color:#e5e7eb;
-      display:flex;align-items:center;justify-content:center;
-      text-align:center;padding:20px;z-index:40;font-size:14px;
-      pointer-events:none;
+      position:absolute;inset:0; background:rgba(15,23,42,.82); color:#e5e7eb;
+      display:flex;align-items:center;justify-content:center; text-align:center;padding:20px;z-index:40;font-size:14px; pointer-events:none;
     }
     .auth-overlay.hidden{display:none}
     .inline-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .toggle{
-      display:flex;align-items:center;gap:8px;
-      padding:6px 10px;border-radius:999px;
-      background:#eef2ff;border:1px solid rgba(129,140,248,.6);
-      font-size:12px;color:#3730a3;font-weight:700;
+      display:flex;align-items:center;gap:8px; padding:6px 10px;border-radius:999px;
+      background:#eef2ff;border:1px solid rgba(129,140,248,.6); font-size:12px;color:#3730a3;font-weight:700;
     }
     .toggle input{width:16px;height:16px}
 
@@ -354,31 +331,43 @@
     .close-btn:hover { color: var(--error); }
     .modal-body { overflow-y: auto; }
 
+    /* ဖုန်းအတွက် သီးသန့် အချိုးချခြင်း (Mobile Responsive) */
     @media (max-width: 768px){
+      body { padding: 0; }
+      .app-shell { border-radius: 0; min-height: 100vh; }
       header {
         flex-direction: column; 
         align-items: stretch;
-        padding: 12px;
+        padding: 12px 16px;
         position: relative; 
+        white-space: normal; /* <--- အရေးကြီး: ကွန်ပျူတာမှ nowrap ကို ပြန်ဖြုတ်ခြင်း */
       }
-      .brand { justify-content: center; margin-bottom: 10px; }
-      .header-right { justify-content: center; width: 100%; gap: 12px; }
+      .brand { justify-content: center; margin-bottom: 8px; }
+      .header-right { 
+        flex-direction: column; /* Menu နှင့် Login ကို အပေါ်အောက် စီမည် */
+        justify-content: center; 
+        width: 100%; 
+        gap: 12px; 
+        flex-wrap: wrap; /* <--- အရေးကြီး: ဘေးသို့ ကန်မထွက်စေရန် */
+      }
       .tabs { 
         width: 100%; 
         overflow-x: auto; 
         justify-content: flex-start;
-        padding-bottom: 6px; 
+        padding-bottom: 8px; 
       }
       .auth-box { 
         justify-content: center; 
         width: 100%; 
-        background: transparent; 
-        padding: 0;
+        background: #020617; 
+        padding: 10px; 
+        border-radius: 12px;
       }
-      .auth-box input { width: 45%; min-width: 100px; }
+      .auth-box input { width: 100%; min-width: unset; margin-bottom: 6px; }
       .summary-grid { grid-template-columns: 1fr 1fr; }
       form { grid-template-columns: 1fr; }
       .invoice-controls, .invoice-card { flex: 1 1 100%; max-width: 100%; }
+      .invoice-card { height: auto; min-height: 550px; }
     }
     @media (max-width: 480px) {
       .summary-grid { grid-template-columns: 1fr; }
@@ -562,15 +551,15 @@
               <div class="summary-value" id="sumCount">0</div>
             </div>
             <div class="summary-card">
-              <div class="summary-title">Total Sales (THB)</div>
+              <div class="summary-title">Total Sales (THB)<br/><small style="text-transform:none;font-weight:normal;">* Completed Only</small></div>
               <div class="summary-value" id="sumSales">0.00</div>
             </div>
             <div class="summary-card profit-card" id="sumProfitCard" style="display:none;">
-              <div class="summary-title">Estimated Profit (THB)</div>
+              <div class="summary-title">Estimated Profit (THB)<br/><small style="text-transform:none;font-weight:normal;">* Completed Only</small></div>
               <div class="summary-value" id="sumProfit">0.00</div>
             </div>
-            <div class="summary-card pending-card">
-              <div class="summary-title">Pending Tasks</div>
+            <div class="summary-card pending-card" title="Click to filter Pending tasks">
+              <div class="summary-title">Pending Tasks<br/><small style="text-transform:none;font-weight:normal;">* Click to view</small></div>
               <div class="summary-value" id="sumPending">0</div>
             </div>
           </div>
@@ -608,7 +597,7 @@
                   <th>Invoice ID</th>
                   <th>Service Date</th>
                   <th>Appt (D/T)</th>
-                  <th>Status</th>
+                  <th>Status (Change)</th>
                   <th>Customer</th>
                   <th>Phone</th>
                   <th>Service</th>
@@ -760,8 +749,12 @@
                 <input type="text" id="tgMainChatId" placeholder="-100xxxxxxxxxx" />
               </div>
               <div class="field" style="margin-bottom:8px;">
-                <label>Appointment Topic ID</label>
+                <label>Appointment Topic ID (အသစ်သွင်းလျှင်)</label>
                 <input type="number" id="tgThreadAppt" placeholder="e.g. 2" />
+              </div>
+              <div class="field" style="margin-bottom:8px;">
+                <label>Completed Topic ID (Status Completed ဖြစ်လျှင် ပို့ရန်)</label>
+                <input type="number" id="tgThreadCompleted" placeholder="e.g. 99" />
               </div>
               <div class="field" style="margin-bottom:8px;">
                 <label>Agent Topic ID</label>
@@ -843,7 +836,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
-      getFirestore, collection, serverTimestamp, getDocs, doc, getDoc, setDoc, deleteDoc,
+      getFirestore, collection, serverTimestamp, getDocs, doc, getDoc, setDoc, deleteDoc, updateDoc,
       query, orderBy, limit, startAfter, where
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
     import {
@@ -863,7 +856,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    
     const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
     const secondaryAuth = getAuth(secondaryApp);
 
@@ -879,7 +871,7 @@
     };
 
     let servicePricing = {};
-    let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "" };
+    let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "" };
 
     let cachedAppointments = [];
     let lastFilteredAppointments = [];
@@ -1143,6 +1135,7 @@
       if ($("tgThreadAppt")) $("tgThreadAppt").value = telegramSettings.threadAppt;
       if ($("tgThreadAgent")) $("tgThreadAgent").value = telegramSettings.threadAgent;
       if ($("tgThreadCustomer")) $("tgThreadCustomer").value = telegramSettings.threadCustomer;
+      if ($("tgThreadCompleted")) $("tgThreadCompleted").value = telegramSettings.threadCompleted || "";
     }
 
     $("saveSettings").addEventListener("click", async () => {
@@ -1172,6 +1165,7 @@
       telegramSettings.threadAppt = $("tgThreadAppt").value.trim();
       telegramSettings.threadAgent = $("tgThreadAgent").value.trim();
       telegramSettings.threadCustomer = $("tgThreadCustomer").value.trim();
+      telegramSettings.threadCompleted = $("tgThreadCompleted").value.trim();
 
       try {
         await setDoc(doc(db, "settings", "dropdowns"), dropdownSettings, { merge: true });
@@ -1259,6 +1253,8 @@
       data.serviceCost = typeof sp.cost === "number" ? sp.cost : 0;
       data.serviceProfit = typeof sp.profit === "number" ? sp.profit : (data.price - data.serviceCost);
 
+      let oldStatus = editingDocId ? (cachedAppointments.find(x => x.id === editingDocId)?.customerStatus) : null;
+
       try {
         if (editingDocId && editingDocId === invoiceId) {
           const canEditDelete = currentRole === "admin" || currentRole === "manager";
@@ -1279,6 +1275,11 @@
           form.reset(); if (!$("date").value) $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
           if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); await loadAppointments(); 
         }
+
+        if (data.customerStatus === "Completed" && oldStatus !== "Completed") {
+          await sendCompletedTelegram(data);
+        }
+
       } catch (err) { messageDiv.textContent = "❌ Error saving data: " + err.message; messageDiv.className = "message error"; }
     });
 
@@ -1329,6 +1330,37 @@
         await sendToTg(mainChat, telegramSettings.threadCustomer, linesCust.join("\n"));
       }
     }
+
+    async function sendCompletedTelegram(a) {
+      if (!telegramSettings.botToken || !telegramSettings.mainChatId || !telegramSettings.threadCompleted) return;
+      const mainChat = telegramSettings.mainChatId;
+      const apptDT = `${a.appointmentDate || "-"}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
+
+      const lines = [
+        "✅ *Service Completed*", "",
+        `🧾 Invoice ID: ${a.invoiceId}`,
+        `👤 Name: ${a.name}`,
+        a.socialName ? `🌐 Social Name: ${a.socialName}` : "",
+        `📞 Phone: ${a.phone}`,
+        `📍 Location: ${a.location}`,
+        `📅 Service Date: ${a.date}`,
+        `🕒 Appointment: ${apptDT}`,
+        `🧾 Service: ${a.serviceType}`,
+        `💳 Payment: ${a.paymentType}`,
+        `💰 Total: ${Number(a.price||0).toFixed(2)} THB`,
+        `💵 Deposit: ${Number(a.depositAmount||0).toFixed(2)} | Balance: ${Number(a.balanceAmount||0).toFixed(2)}`,
+        a.channel ? `📡 Channel: ${a.channel}` : "",
+        a.remark ? `📝 Remark: ${a.remark}` : ""
+      ].filter(Boolean);
+
+      await sendToTg(mainChat, telegramSettings.threadCompleted, lines.join("\n"));
+    }
+
+    // Pending Card Click Event
+    document.querySelector(".pending-card").addEventListener("click", () => {
+      $("filterStatus").value = "Pending";
+      $("applyFilter").click();
+    });
 
     async function loadAppointments(isLoadMore = false) {
       if (currentRole === "guest") return;
@@ -1381,6 +1413,7 @@
        loadAppointments(true);
     });
 
+    // History status pill function
     function statusPill(status){
       if (!status) return `<span class="status-pill">-</span>`;
       const s = status.toLowerCase();
@@ -1388,8 +1421,6 @@
       if (s === "pending") return `<span class="status-pill status-pending">${status}</span>`;
       if (s === "cancel") return `<span class="status-pill" style="background:#fee2e2;color:#b91c1c;border-color:#fecaca">${status}</span>`;
       if (s === "completed" || s === "done") return `<span class="status-pill" style="background:#dcfce7;color:#15803d;border-color:#bbf7d0">${status}</span>`;
-      
-      // Default style for custom statuses
       return `<span class="status-pill" style="background:#f3f4f6;color:#374151;border-color:#d1d5db">${status}</span>`;
     }
 
@@ -1400,12 +1431,16 @@
       let pendingCount = 0;
 
       filteredData.forEach(a => {
-        totalSales += Number(a.price || 0);
-        const profit = (a.serviceProfit != null) 
-          ? Number(a.serviceProfit) 
-          : (a.price != null && a.serviceCost != null) ? Number(a.price - a.serviceCost) : 0;
-        totalProfit += profit;
-        if ((a.customerStatus || "").toLowerCase() === "pending") {
+        const status = (a.customerStatus || "").toLowerCase();
+        // Total Sales & Profit ကို Completed ဖြစ်တာတွေကိုပဲ ပေါင်းပါမည်
+        if (status === "completed" || status === "done") {
+          totalSales += Number(a.price || 0);
+          const profit = (a.serviceProfit != null) 
+            ? Number(a.serviceProfit) 
+            : (a.price != null && a.serviceCost != null) ? Number(a.price - a.serviceCost) : 0;
+          totalProfit += profit;
+        }
+        if (status === "pending") {
           pendingCount++;
         }
       });
@@ -1454,6 +1489,12 @@
         const apptDT = `${a.appointmentDate || ""}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
         const id = (a.invoiceId || a.id || "").toUpperCase();
 
+        // ဇယားထဲတွင် Status ချက်ချင်းပြောင်းနိုင်သော Dropdown ထည့်သွင်းခြင်း
+        let statusOptions = "";
+        dropdownSettings.customerStatuses.forEach(s => {
+          statusOptions += `<option value="${s}" ${a.customerStatus === s ? 'selected' : ''}>${s}</option>`;
+        });
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>
@@ -1462,7 +1503,11 @@
           </td>
           <td>${a.date || ""}</td>
           <td>${apptDT || ""}</td>
-          <td>${statusPill(a.customerStatus)}</td>
+          <td>
+            <select class="status-select ${(a.customerStatus||'').toLowerCase()}" data-statusid="${id}" data-oldstatus="${a.customerStatus}">
+              ${statusOptions}
+            </select>
+          </td>
           <td>
             <span class="history-link" style="cursor:pointer; color:var(--primary); font-weight:700; text-decoration:underline;" data-phone="${a.phone}" data-name="${a.name}">${a.name || "-"}</span><br/>
             <small style="color:var(--muted); font-weight:600;">${a.socialName || ""}</small>
@@ -1482,6 +1527,34 @@
           </td>
         `;
         body.appendChild(tr);
+
+        // Status ချက်ချင်းပြောင်းခြင်း Event
+        tr.querySelector(".status-select").addEventListener("change", async (e) => {
+          const newVal = e.target.value;
+          const docId = e.target.dataset.statusid;
+          const oldVal = e.target.dataset.oldstatus;
+          e.target.disabled = true;
+          try {
+            await updateDoc(doc(db, "appointments", docId), { customerStatus: newVal });
+            e.target.className = `status-select ${newVal.toLowerCase()}`;
+            e.target.dataset.oldstatus = newVal;
+
+            const idx = cachedAppointments.findIndex(x => x.id === docId);
+            if (idx > -1) {
+              cachedAppointments[idx].customerStatus = newVal;
+              // 'Completed' သို့ပြောင်းလျှင် Telegram သို့ ပို့မည်
+              if (newVal === "Completed" && oldVal !== "Completed") {
+                await sendCompletedTelegram(cachedAppointments[idx]);
+              }
+            }
+            // Summary ကို Reload မလုပ်ဘဲ ချက်ချင်း Update ပြမည်
+            updateSummaryCards(lastFilteredAppointments);
+          } catch(err) {
+            alert("Status Update Error: " + err.message + "\n\n(Firebase Rule တွင် Finance ကို Update လုပ်ခွင့်ပေးထားရန် လိုအပ်ပါသည်)");
+            e.target.value = oldVal;
+          }
+          e.target.disabled = false;
+        });
 
         tr.querySelector("[data-docid]").addEventListener("click", () => {
           $("invoiceDocId").value = id; document.querySelector('.tab-btn[data-tab="invoice"]').click(); loadInvoice();
@@ -1699,7 +1772,6 @@
       $("createNewAccBtn").disabled = false;
     });
 
-    // Initial
     updateAuthUI(); renderDropdowns(); $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
 
   </script>
