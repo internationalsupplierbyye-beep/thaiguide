@@ -37,7 +37,6 @@
       box-shadow:0 20px 40px rgba(15,23,42,.35), 0 0 0 1px rgba(148,163,184,.3);
     }
     
-    /* Responsive Header */
     header{
       padding:12px 20px;
       border-bottom:1px solid rgba(148,163,184,.3);
@@ -50,8 +49,8 @@
       top: 0;
       z-index: 100;
       border-radius: 18px 18px 0 0;
-      flex-wrap: nowrap; /* <--- တစ်တန်းတည်းဖြစ်စေရန် nowrap ပြန်ပြောင်းပါ */
-      white-space: nowrap; /* <--- စာများအောက်မဆင်းစေရန် */
+      flex-wrap: nowrap; 
+      white-space: nowrap; 
     }
     .brand{display:flex;align-items:center;gap:10px}
     .brand-mark{
@@ -72,7 +71,7 @@
       display:flex;
       align-items:center;
       gap:10px;
-      flex-wrap: nowrap; /* <--- တစ်တန်းတည်းဖြစ်စေရန် nowrap ပြန်ပြောင်းပါ */
+      flex-wrap: nowrap; 
       justify-content:flex-end;
     }
     .tabs{display:flex;gap:6px;background:rgba(15,23,42,.05);padding:3px;border-radius:999px}
@@ -175,7 +174,6 @@
       border:1px solid #d4d4d8;background:#f9fafb;
     }
     
-    /* Table Settings */
     table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;border-radius:10px;overflow:hidden}
     thead{background:#0f172a;color:#e5e7eb}
     th,td{
@@ -198,7 +196,6 @@
     .status-pending{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
     .status-confirm{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
 
-    /* ===== Summary Analytics ===== */
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -236,7 +233,6 @@
     }
     .summary-card.pending-card .summary-value { color: #ea580c; }
 
-    /* ===== Invoice ===== */
     .invoice-wrap{display:flex;gap:20px;flex-wrap:wrap; justify-content: flex-start; align-items: flex-start;}
     .invoice-controls{flex: 1 1 300px; max-width: 400px;}
     .invoice-card{
@@ -248,6 +244,26 @@
       height:550px;
       display:flex;align-items:stretch;justify-content:center;
       position:relative;overflow:hidden;
+      z-index: 1; /* စာတွေကို အရှေ့ရောက်လာစေရန် အသစ်ထပ်တိုးထားသည် */
+    }
+
+    /* အောက်ပါ အပိုင်းသည် Watermark Logo အတွက် အသစ်တိုးထားသော အပိုင်းဖြစ်သည် */
+    .invoice-card::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 350px; /* Logo ၏ အကျယ် */
+      height: 350px; /* Logo ၏ အမြင့် */
+      background-image: url('logo.png'); /* သုံးမည့် Logo နာမည် */
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.08; /* ဘယ်လောက် မှိန်ချင်သလဲ (0.05 မှ 0.1 ကြား အဆင်ပြေပါသည်) */
+      filter: blur(1.5px); /* ဘယ်လောက် ဝါးချင်သလဲ (Blur ပမာဏ) */
+      z-index: -1; /* Logo ကို စာတွေရဲ့ အနောက်သို့ ပို့ရန် */
+      pointer-events: none; /* Logo ကို Mouse ဖြင့် ထိမိ/Select မှတ်မိခြင်းမှ ကာကွယ်ရန် */
     }
     .invoice-inner{width:100%;height:100%;display:flex;flex-direction:column}
     .invoice-header-main{
@@ -285,7 +301,6 @@
     .invoice-total-amount{font-size:20px;font-weight:900}
     .chip{border-radius:999px;border:1px solid rgba(148,163,184,.7);padding:2px 7px;font-size:10px}
 
-    /* ===== Settings & Auth ===== */
     .settings-grid{
       display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
       gap:14px 18px;margin-top:10px;
@@ -320,7 +335,6 @@
     }
     .toggle input{width:16px;height:16px}
 
-    /* ===== History Modal ===== */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(15,23,42,0.85); z-index: 200;
       display: flex; align-items: center; justify-content: center;
@@ -340,13 +354,12 @@
     .close-btn:hover { color: var(--error); }
     .modal-body { overflow-y: auto; }
 
-    /* ===== Responsive Media Queries (Mobile View Fixes) ===== */
     @media (max-width: 768px){
       header {
-        flex-direction: column; /* အောက်ကိုဆင်းစေရန် */
+        flex-direction: column; 
         align-items: stretch;
         padding: 12px;
-        position: relative; /* ဖုန်းတွင် sticky ဖြုတ်ပါ */
+        position: relative; 
       }
       .brand { justify-content: center; margin-bottom: 10px; }
       .header-right { justify-content: center; width: 100%; gap: 12px; }
@@ -378,7 +391,7 @@
     <div id="authOverlay" class="auth-overlay">
       🔒 System Locked – Please login with your Thailand Guide account<br/><br/>
       <span style="font-size:12px;opacity:.85;">
-        (Admin / Staff Email &amp; Password သည် Firebase Console မှာ သတ်မှတ်ထားသည့် Account ဖြစ်ရပါမည်)
+        (Login ဝင်ရောက်ပြီးမှသာ သက်ဆိုင်ရာ Role အလိုက် အသုံးပြုနိုင်ပါမည်)
       </span>
     </div>
 
@@ -393,11 +406,11 @@
 
       <div class="header-right">
         <div class="tabs">
-          <button class="tab-btn active" data-tab="entry"><span class="icon">📝</span> Entry</button>
+          <button class="tab-btn active" data-tab="entry" id="entryTabBtn"><span class="icon">📝</span> Entry</button>
           <button class="tab-btn" data-tab="dashboard"><span class="icon">📊</span> Dashboard</button>
           <button class="tab-btn" data-tab="invoice"><span class="icon">🧾</span> Invoice</button>
-          <button class="tab-btn admin-only" data-tab="settings" id="settingsTabBtn"><span class="icon">⚙️</span> Settings</button>
-          <button class="tab-btn admin-only" data-tab="users" id="usersTabBtn"><span class="icon">👥</span> Users</button>
+          <button class="tab-btn system-manage-only" data-tab="settings" id="settingsTabBtn"><span class="icon">⚙️</span> Settings</button>
+          <button class="tab-btn system-manage-only" data-tab="users" id="usersTabBtn"><span class="icon">👥</span> Users</button>
         </div>
 
         <div class="auth-box">
@@ -418,7 +431,7 @@
               <div class="panel-title"><span>📝 Customer Appointment Data</span> <span class="badge">Live Firestore Save</span></div>
               <div class="panel-desc">Invoice ထုတ်မည့် အချက်အလက်များကို ဒီနေရာမှာ စနစ်တကျ လက်ခံသိမ်းဆည်းပါတယ်။</div>
             </div>
-            <span class="chip">Staff can save • Admin can edit/export/delete</span>
+            <span class="chip">Entry Access Allowed</span>
           </div>
 
           <form id="appointmentForm">
@@ -470,11 +483,7 @@
 
             <div class="field">
               <label for="customerStatus">Customer Status</label>
-              <select id="customerStatus" required>
-                <option value="">-- Select --</option>
-                <option value="Pending">Pending</option>
-                <option value="Confirm">Confirm</option>
-              </select>
+              <select id="customerStatus" required></select>
             </div>
 
             <div class="field">
@@ -522,7 +531,7 @@
             <div class="actions">
               <button type="button" class="btn btn-outline" id="gotoInvoiceFromEntry">Preview Invoice</button>
               <button type="reset" class="btn btn-secondary">Clear</button>
-              <button type="button" class="btn btn-secondary admin-only" id="btnCancelEdit" style="display:none;">Cancel Edit</button>
+              <button type="button" class="btn btn-secondary action-edit-ui" id="btnCancelEdit" style="display:none;">Cancel Edit</button>
               <button type="submit" class="btn btn-primary" id="saveBtn">
                 <span id="saveBtnText">Save to Firebase</span> 🚀
               </button>
@@ -536,14 +545,14 @@
         <div class="panel-card">
           <div class="panel-header">
             <div>
-              <div class="panel-title"><span>📊 Admin Dashboard</span> <span class="badge">Filter • Search • Export • Edit • Delete</span></div>
+              <div class="panel-title"><span>📊 Dashboard & Records</span> <span class="badge">Filter • Search • Action</span></div>
               <div class="panel-desc">
-                ✅ Appointment Date အလိုက် Filter လုပ်နိုင်ပါတယ်။ Admin က Delete လည်းလုပ်နိုင်ပါတယ်။ (History ကြည့်ရန် နာမည်ကိုနှိပ်ပါ)
+                ✅ သတ်မှတ်ထားသော Role အလိုက် အချက်အလက်များကို ခွဲခြားကြည့်ရှု/စီမံနိုင်ပါသည်။
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
               <button class="btn btn-secondary" id="reloadAppointments">Reload Data</button>
-              <button class="btn btn-secondary admin-only" id="exportCsv" style="display:none;">Export CSV (Excel)</button>
+              <button class="btn btn-secondary action-export-ui" id="exportCsv" style="display:none;">Export CSV (Excel)</button>
             </div>
           </div>
 
@@ -556,7 +565,7 @@
               <div class="summary-title">Total Sales (THB)</div>
               <div class="summary-value" id="sumSales">0.00</div>
             </div>
-            <div class="summary-card profit-card admin-only" style="display:none;">
+            <div class="summary-card profit-card" id="sumProfitCard" style="display:none;">
               <div class="summary-title">Estimated Profit (THB)</div>
               <div class="summary-value" id="sumProfit">0.00</div>
             </div>
@@ -581,8 +590,6 @@
               <span>Status</span>
               <select id="filterStatus">
                 <option value="">All</option>
-                <option value="Pending">Pending</option>
-                <option value="Confirm">Confirm</option>
               </select>
             </div>
             <div class="toolbar-group">
@@ -706,7 +713,7 @@
         </div>
       </section>
 
-      <section id="tab-settings" class="tab-panel admin-only" style="display:none;">
+      <section id="tab-settings" class="tab-panel system-manage-only" style="display:none;">
         <div class="panel-card">
           <div class="panel-header">
             <div>
@@ -717,6 +724,10 @@
           </div>
 
           <div class="settings-grid">
+            <div class="settings-block">
+              <h4>Customer Status List</h4>
+              <textarea id="statusesSetting" rows="4"></textarea>
+            </div>
             <div class="settings-block">
               <h4>Customer Channel List</h4>
               <textarea id="channelsSetting" rows="6"></textarea>
@@ -766,12 +777,12 @@
         </div>
       </section>
 
-      <section id="tab-users" class="tab-panel admin-only" style="display:none;">
+      <section id="tab-users" class="tab-panel system-manage-only" style="display:none;">
         <div class="panel-card">
           <div class="panel-header">
             <div>
               <div class="panel-title"><span>👥 User Management</span> <span class="badge">Admin Access</span></div>
-              <div class="panel-desc">Staff နှင့် Admin အကောင့်အသစ်များ ဖွင့်ပေးခြင်း၊ Role သတ်မှတ်ပေးခြင်းများကို ဤနေရာမှ ပြုလုပ်နိုင်ပါသည်။</div>
+              <div class="panel-desc">ဝန်ထမ်းအကောင့်အသစ်များ ဖွင့်ပေးခြင်း၊ Role သတ်မှတ်ပေးခြင်းများကို ဤနေရာမှ ပြုလုပ်နိုင်ပါသည်။</div>
             </div>
             <button class="btn btn-secondary" id="reloadUsersBtn">Reload Users</button>
           </div>
@@ -783,6 +794,9 @@
               <input type="password" id="newAccPwd" placeholder="Password (min 6 chars)" style="min-width:180px;" />
               <select id="newAccRole" style="min-width:120px;">
                 <option value="staff">Staff</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="finance">Finance</option>
+                <option value="manager">Manager</option>
                 <option value="admin">Admin</option>
               </select>
               <button class="btn btn-primary" id="createNewAccBtn">Create Account</button>
@@ -827,7 +841,6 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script type="module">
-    // Add 'startAfter' and 'where' to imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
       getFirestore, collection, serverTimestamp, getDocs, doc, getDoc, setDoc, deleteDoc,
@@ -851,14 +864,14 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
     
-    // For creating users without logging out admin
     const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
     const secondaryAuth = getAuth(secondaryApp);
 
     let currentUser = null;
-    let currentRole = "guest";
+    let currentRole = "guest"; 
 
     let dropdownSettings = {
+      customerStatuses: ["Pending", "Confirm", "Cancel", "Completed"],
       customerChannels: ["Facebook Page","Messenger","Telegram","Line","Phone Call","Walk-in","Agent / Referral","Other"],
       serviceTypes: ["Bank Account Opening","Visa Service","TM30 / 90 Days Report","Money Exchange","Flight / Ticket","Other Service"],
       paymentTypes: ["Cash","Bank Transfer","QR Payment","Deposit (Partial)","Deposit (50%)","Deposit (Custom)","Free of Charge"],
@@ -873,13 +886,10 @@
     let lastSavedDocId = null;
     let lastSavedData = null;
     let editingDocId = null;
-    
-    // Pagination (Feature 3) Variables
     let lastVisibleDoc = null; 
 
     const $ = (id) => document.getElementById(id);
 
-    // --------- Helpers ----------
     function todayISO(){
       const d = new Date();
       return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -895,7 +905,6 @@
       return (`TG-${compactDate()}-${Date.now().toString().slice(-4)}`).toUpperCase();
     }
 
-    // ---------- AUTH ----------
     $("loginBtn").addEventListener("click", async () => {
       const email = $("loginEmail").value.trim();
       const pwd = $("loginPassword").value;
@@ -920,19 +929,20 @@
       currentUser = user;
 
       if (user) {
-        let role = "staff";
+        let role = "staff"; 
         try {
           const uDoc = await getDoc(doc(db, "users", user.email));
           if (uDoc.exists()) {
             const d = uDoc.data();
-            if (d.role === "admin" || d.role === "staff") role = d.role;
+            const validRoles = ["admin", "manager", "supervisor", "finance", "staff"];
+            if (validRoles.includes(d.role)) role = d.role;
           } else {
              console.warn("User role not found in database.");
           }
         } catch(e) { console.error("role lookup error", e); }
         currentRole = role;
 
-        $("authStatus").textContent = `Logged in as ${user.email} (${currentRole})`;
+        $("authStatus").textContent = `Logged in as ${user.email} (${currentRole.toUpperCase()})`;
         $("loginBtn").disabled = true;
         $("loginEmail").disabled = true;
         $("loginPassword").disabled = true;
@@ -955,11 +965,10 @@
       }
 
       updateRoleUI();
-      updateAuthUI();
-
+      
       if (user) {
         await loadSettingsFromFirestore();
-        await loadAppointments(); // Load first batch
+        await loadAppointments(); 
         if (!$("date").value) $("date").value = todayISO();
         if ($("autoInvoiceId").checked && !editingDocId) await ensureInvoiceIdAuto();
       }
@@ -996,36 +1005,53 @@
       const settingsPanel = $("tab-settings");
       const usersTabBtn = $("usersTabBtn");
       const usersPanel = $("tab-users");
+      const entryTabBtn = $("entryTabBtn");
+      
+      const isAdmin = currentRole === "admin";
+      const isManager = currentRole === "manager";
+      const isSupervisor = currentRole === "supervisor";
+      const isFinance = currentRole === "finance";
+      const isStaff = currentRole === "staff";
 
-      if (currentRole === "admin") {
-        if (settingsTabBtn) settingsTabBtn.style.display = "";
-        if (settingsPanel) settingsPanel.style.display = "";
-        if (usersTabBtn) usersTabBtn.style.display = "";
-        if (usersPanel) usersPanel.style.display = "";
-      } else {
-        if (settingsTabBtn) settingsTabBtn.style.display = "none";
-        if (settingsPanel) settingsPanel.style.display = "none";
-        if (usersTabBtn) usersTabBtn.style.display = "none";
-        if (usersPanel) usersPanel.style.display = "none";
-      }
+      const canManageSystem = isAdmin;
+      const canViewProfit = isAdmin || isManager;
+      const canEditDelete = isAdmin || isManager;
+      const canEntry = isAdmin || isManager || isSupervisor || isStaff;
 
-      document.querySelectorAll(".admin-only").forEach(el => {
-        if (el.id === "tab-settings" || el.id === "tab-users") return;
-        el.style.display = (currentRole === "admin") ? "" : "none";
+      if (settingsTabBtn) settingsTabBtn.style.display = canManageSystem ? "" : "none";
+      if (settingsPanel) settingsPanel.style.display = canManageSystem ? "" : "none";
+      if (usersTabBtn) usersTabBtn.style.display = canManageSystem ? "" : "none";
+      if (usersPanel) usersPanel.style.display = canManageSystem ? "" : "none";
+
+      if (entryTabBtn) entryTabBtn.style.display = canEntry ? "" : "none";
+      if ($("exportCsv")) $("exportCsv").style.display = canEditDelete ? "" : "none";
+
+      document.querySelectorAll(".profit-card").forEach(el => {
+        el.style.display = canViewProfit ? "" : "none";
       });
 
       document.querySelectorAll(".profit-cell").forEach(td => {
         const real = td.dataset.profit || "";
-        td.textContent = real ? (currentRole === "admin" ? real : "****") : "";
+        td.textContent = real ? (canViewProfit ? real : "****") : "";
       });
+      
+      document.querySelectorAll(".action-edit, .action-del, .action-edit-ui").forEach(el => {
+        el.style.display = canEditDelete ? "" : "none";
+      });
+
+      if (!canEntry && document.querySelector('#tab-entry').classList.contains('active')) {
+         document.querySelector('.tab-btn[data-tab="dashboard"]').click();
+      }
+
       updateAuthUI();
     }
 
-    // ---------- TABS ----------
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const tab = btn.dataset.tab;
         if ((tab === "settings" || tab === "users") && currentRole !== "admin") return;
+        if (tab === "entry" && currentRole === "finance") return;
+
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
         document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
         btn.classList.add("active");
@@ -1033,7 +1059,6 @@
       });
     });
 
-    // ---------- DROPDOWNS / SETTINGS ----------
     function fillSelect(select, arr, addEmpty = true) {
       select.innerHTML = "";
       if (addEmpty) {
@@ -1062,6 +1087,7 @@
     }
 
     function renderDropdowns() {
+      fillSelect($("customerStatus"), dropdownSettings.customerStatuses, true);
       fillSelect($("channel"), dropdownSettings.customerChannels, true);
       fillSelect($("serviceType"), dropdownSettings.serviceTypes, true);
       fillSelect($("paymentType"), dropdownSettings.paymentTypes, true);
@@ -1069,9 +1095,16 @@
 
       const filterService = $("filterServiceType");
       filterService.innerHTML = "";
-      const all = document.createElement("option"); all.value = ""; all.textContent = "All";
-      filterService.appendChild(all);
+      const allService = document.createElement("option"); allService.value = ""; allService.textContent = "All";
+      filterService.appendChild(allService);
       dropdownSettings.serviceTypes.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; filterService.appendChild(o); });
+      
+      const filterStatus = $("filterStatus");
+      filterStatus.innerHTML = "";
+      const allStatus = document.createElement("option"); allStatus.value = ""; allStatus.textContent = "All";
+      filterStatus.appendChild(allStatus);
+      dropdownSettings.customerStatuses.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; filterStatus.appendChild(o); });
+
       renderServicePricingEditor();
     }
 
@@ -1080,6 +1113,7 @@
         const ddSnap = await getDoc(doc(db, "settings", "dropdowns"));
         if (ddSnap.exists()) {
           const d = ddSnap.data();
+          dropdownSettings.customerStatuses = d.customerStatuses || dropdownSettings.customerStatuses;
           dropdownSettings.customerChannels = d.customerChannels || dropdownSettings.customerChannels;
           dropdownSettings.serviceTypes = d.serviceTypes || dropdownSettings.serviceTypes;
           dropdownSettings.paymentTypes = d.paymentTypes || dropdownSettings.paymentTypes;
@@ -1098,6 +1132,7 @@
 
       renderDropdowns();
 
+      if ($("statusesSetting")) $("statusesSetting").value = dropdownSettings.customerStatuses.join("\n");
       if ($("channelsSetting")) $("channelsSetting").value = dropdownSettings.customerChannels.join("\n");
       if ($("servicesSetting")) $("servicesSetting").value = dropdownSettings.serviceTypes.join("\n");
       if ($("paymentsSetting")) $("paymentsSetting").value = dropdownSettings.paymentTypes.join("\n");
@@ -1111,8 +1146,10 @@
     }
 
     $("saveSettings").addEventListener("click", async () => {
+      if(currentRole !== "admin") return;
       const msg = $("settingsMessage"); msg.textContent = ""; msg.className = "message";
 
+      dropdownSettings.customerStatuses = $("statusesSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
       dropdownSettings.customerChannels = $("channelsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
       dropdownSettings.serviceTypes = $("servicesSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
       dropdownSettings.paymentTypes = $("paymentsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
@@ -1179,7 +1216,6 @@
     $("regenInvoiceId").addEventListener("click", async () => { if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); });
     $("date").addEventListener("change", async () => { if ($("autoInvoiceId").checked && !editingDocId && currentUser) await ensureInvoiceIdAuto(); });
 
-    // ---------- ENTRY SAVE / EDIT ----------
     const form = $("appointmentForm");
     const messageDiv = $("message");
 
@@ -1196,7 +1232,8 @@
     });
 
     form.addEventListener("submit", async (e) => {
-      e.preventDefault(); if (currentRole === "guest") return;
+      e.preventDefault(); 
+      if (currentRole === "guest" || currentRole === "finance") return;
       messageDiv.textContent = ""; messageDiv.className = "message";
 
       let invoiceId = $("invoiceId").value.trim().toUpperCase();
@@ -1224,11 +1261,13 @@
 
       try {
         if (editingDocId && editingDocId === invoiceId) {
+          const canEditDelete = currentRole === "admin" || currentRole === "manager";
+          if(!canEditDelete) throw new Error("Permission denied to edit.");
           await setDoc(doc(db, "appointments", editingDocId), data, { merge: true });
           lastSavedDocId = editingDocId; lastSavedData = { ...data, id: editingDocId };
           messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; messageDiv.className = "message success";
           editingDocId = null; $("invoiceId").disabled = false; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
-          form.reset(); updateDepositUI(); await loadAppointments(); // full reload to get latest 200
+          form.reset(); updateDepositUI(); await loadAppointments(); 
         } else {
           if ((await getDoc(doc(db, "appointments", invoiceId))).exists()) {
             messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – New ID ထုတ်ပါ (Auto) သို့ Manual ပြောင်းပါ။"; messageDiv.className = "message error"; return;
@@ -1238,12 +1277,11 @@
           messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId; messageDiv.className = "message success";
           await sendMultiTelegramNotifications(lastSavedData);
           form.reset(); if (!$("date").value) $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
-          if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); await loadAppointments(); // full reload
+          if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); await loadAppointments(); 
         }
       } catch (err) { messageDiv.textContent = "❌ Error saving data: " + err.message; messageDiv.className = "message error"; }
     });
 
-    // ---------- MULTI-TELEGRAM (TOPICS) ----------
     async function sendToTg(chatId, threadId, text) {
       try {
         const bodyData = { chat_id: chatId, text: text, parse_mode: "Markdown" };
@@ -1292,7 +1330,6 @@
       }
     }
 
-    // ---------- DASHBOARD LOAD (WITH LOAD MORE FEATURE) ----------
     async function loadAppointments(isLoadMore = false) {
       if (currentRole === "guest") return;
       const body = $("appointmentsTableBody"); 
@@ -1309,7 +1346,7 @@
 
       try {
         let q;
-        const fetchLimit = 200; // Database ကနေ တစ်ခါခေါ်ရင် အခု ၂၀၀ 
+        const fetchLimit = 200; 
         
         if (isLoadMore && lastVisibleDoc) {
           q = query(collection(db, "appointments"), orderBy("createdAt", "desc"), startAfter(lastVisibleDoc), limit(fetchLimit));
@@ -1320,12 +1357,12 @@
         const snap = await getDocs(q);
         
         if (!snap.empty) {
-          lastVisibleDoc = snap.docs[snap.docs.length - 1]; // နောက်ဆုံး Document ကို မှတ်ထားမည်
+          lastVisibleDoc = snap.docs[snap.docs.length - 1]; 
           const newBatch = []; 
           snap.forEach(ds => newBatch.push({ id: ds.id, ...ds.data() }));
           
           cachedAppointments = [...cachedAppointments, ...newBatch];
-          renderAppointmentsTable(); // UI ပေါ်သို့ ပြန်ချမည်
+          renderAppointmentsTable(); 
           
           if (loadBtn) loadBtn.style.display = (snap.docs.length === fetchLimit) ? "inline-block" : "none";
         } else {
@@ -1345,13 +1382,17 @@
     });
 
     function statusPill(status){
-      const s = (status || "").toLowerCase();
-      if (s === "confirm") return `<span class="status-pill status-confirm">Confirm</span>`;
-      if (s === "pending") return `<span class="status-pill status-pending">Pending</span>`;
-      return `<span class="status-pill">-</span>`;
+      if (!status) return `<span class="status-pill">-</span>`;
+      const s = status.toLowerCase();
+      if (s === "confirm") return `<span class="status-pill status-confirm">${status}</span>`;
+      if (s === "pending") return `<span class="status-pill status-pending">${status}</span>`;
+      if (s === "cancel") return `<span class="status-pill" style="background:#fee2e2;color:#b91c1c;border-color:#fecaca">${status}</span>`;
+      if (s === "completed" || s === "done") return `<span class="status-pill" style="background:#dcfce7;color:#15803d;border-color:#bbf7d0">${status}</span>`;
+      
+      // Default style for custom statuses
+      return `<span class="status-pill" style="background:#f3f4f6;color:#374151;border-color:#d1d5db">${status}</span>`;
     }
 
-    // ---------- SUMMARY ANALYTICS (FEATURE 2) ----------
     function updateSummaryCards(filteredData) {
       let totalCount = filteredData.length;
       let totalSales = 0;
@@ -1396,16 +1437,18 @@
         return ok;
       });
 
-      // စာရင်းချုပ်ကို Update လုပ်ရန်
       updateSummaryCards(filtered);
 
       lastFilteredAppointments = filtered;
       if (!filtered.length) { body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`; return; }
+      
+      const canViewProfit = currentRole === "admin" || currentRole === "manager";
+      const canEditDelete = currentRole === "admin" || currentRole === "manager";
 
       filtered.forEach(a => {
         const profit = (a.serviceProfit != null) ? a.serviceProfit : ((a.price != null && a.serviceCost != null) ? (a.price - a.serviceCost) : null);
         const profitText = profit != null ? Number(profit).toFixed(2) : "";
-        const displayProfit = (currentRole === "admin") ? profitText : (profitText ? "****" : "");
+        const displayProfit = canViewProfit ? profitText : (profitText ? "****" : "");
 
         const dep = Number(a.depositAmount||0).toFixed(2); const bal = Number(a.balanceAmount||0).toFixed(2);
         const apptDT = `${a.appointmentDate || ""}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
@@ -1434,44 +1477,39 @@
           <td class="profit-cell" data-profit="${profitText}">${displayProfit}</td>
           <td>${a.remark || "-"}</td>
           <td>
-            <button class="btn btn-secondary admin-only" style="padding:4px 8px;font-size:11px;${currentRole==="admin"?"":"display:none;"}" data-editid="${id}">Edit</button>
-            <button class="btn btn-danger admin-only" style="padding:4px 8px;font-size:11px;${currentRole==="admin"?"":"display:none;"}" data-delid="${id}">Delete</button>
+            <button class="btn btn-secondary action-edit" style="padding:4px 8px;font-size:11px;${canEditDelete?"":"display:none;"}" data-editid="${id}">Edit</button>
+            <button class="btn btn-danger action-del" style="padding:4px 8px;font-size:11px;${canEditDelete?"":"display:none;"}" data-delid="${id}">Delete</button>
           </td>
         `;
         body.appendChild(tr);
 
-        // Invoice Click
         tr.querySelector("[data-docid]").addEventListener("click", () => {
           $("invoiceDocId").value = id; document.querySelector('.tab-btn[data-tab="invoice"]').click(); loadInvoice();
         });
         
-        // History Modal Click (FEATURE 4)
         const histLink = tr.querySelector(".history-link");
         if(histLink) {
           histLink.addEventListener("click", () => showCustomerHistory(histLink.dataset.phone, histLink.dataset.name));
         }
 
-        // Edit
         const editBtn = tr.querySelector("[data-editid]");
-        if (editBtn) editBtn.addEventListener("click", () => { if (currentRole === "admin") startEditAppointment(a); });
+        if (editBtn) editBtn.addEventListener("click", () => { if (canEditDelete) startEditAppointment(a); });
 
-        // Delete
         const delBtn = tr.querySelector("[data-delid]");
         if (delBtn) delBtn.addEventListener("click", async () => {
-          if (currentRole !== "admin") return;
+          if (!canEditDelete) return;
           if (!confirm(`Delete this order?\n\nInvoice ID: ${id}`)) return;
           $("dashboardMessage").textContent = "Deleting..."; $("dashboardMessage").className = "message";
           try {
             await deleteDoc(doc(db, "appointments", id));
             $("dashboardMessage").textContent = "✅ Deleted: " + id; $("dashboardMessage").className = "message success";
-            await loadAppointments(); // Reload all after delete to keep UI fresh
+            await loadAppointments(); 
           } catch(e) { $("dashboardMessage").textContent = "❌ Delete failed: " + e.message; $("dashboardMessage").className = "message error"; }
         });
       });
       updateRoleUI();
     }
 
-    // ---------- HISTORY MODAL LOGIC (FEATURE 4) ----------
     async function showCustomerHistory(phone, name) {
       if(!phone) return;
       $("historyModal").classList.remove("hidden");
@@ -1480,17 +1518,15 @@
       tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Loading history from database...</td></tr>`;
       
       try {
-        // Query Firestore by phone directly
         const q = query(collection(db, "appointments"), where("phone", "==", phone));
         const snap = await getDocs(q);
         const list = [];
         snap.forEach(d => list.push(d.data()));
         
-        // Memory sort by createdAt to avoid needing complex Firestore indexes
         list.sort((a,b) => {
            const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
            const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-           return timeB - timeA; // Descending
+           return timeB - timeA;
         });
         
         tbody.innerHTML = "";
@@ -1519,7 +1555,6 @@
       $("historyModal").classList.add("hidden");
     });
 
-    // Form Helpers
     function ensureOption(select, value) {
       if (!value) return;
       if (!Array.from(select.options).some(o => o.value === value)) {
@@ -1533,15 +1568,18 @@
       $("invoiceId").value = editingDocId; $("invoiceId").disabled = true;
 
       $("date").value = a.date || ""; $("appointmentDate").value = a.appointmentDate || ""; $("appointmentTime").value = a.appointmentTime || "";
-      $("name").value = a.name || ""; $("socialName").value = a.socialName || ""; $("phone").value = a.phone || ""; $("customerStatus").value = a.customerStatus || "";
+      $("name").value = a.name || ""; $("socialName").value = a.socialName || ""; $("phone").value = a.phone || ""; 
 
+      ensureOption($("customerStatus"), a.customerStatus);
       ensureOption($("channel"), a.channel); ensureOption($("location"), a.location); ensureOption($("serviceType"), a.serviceType); ensureOption($("paymentType"), a.paymentType);
 
+      $("customerStatus").value = a.customerStatus || ""; 
       $("channel").value = a.channel || ""; $("location").value = a.location || ""; $("serviceType").value = a.serviceType || "";
       $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
       $("remark").value = a.remark || ""; updateDepositUI();
 
-      $("saveBtnText").textContent = "Update Appointment"; $("btnCancelEdit").style.display = (currentRole === "admin") ? "inline-flex" : "none";
+      const canEditDelete = currentRole === "admin" || currentRole === "manager";
+      $("saveBtnText").textContent = "Update Appointment"; $("btnCancelEdit").style.display = canEditDelete ? "inline-flex" : "none";
       applyInvoiceIdMode();
       const msg = $("message"); msg.textContent = "Edit Mode: Invoice " + editingDocId; msg.className = "message";
       document.querySelector('.tab-btn[data-tab="entry"]').click();
@@ -1550,7 +1588,8 @@
     $("reloadAppointments").addEventListener("click", () => loadAppointments(false));
     $("applyFilter").addEventListener("click", renderAppointmentsTable);
     $("exportCsv").addEventListener("click", () => {
-      if (currentRole !== "admin" || !lastFilteredAppointments.length) return alert("Export လုပ်မယ့် data မရှိပါ။");
+      const canEditDelete = currentRole === "admin" || currentRole === "manager";
+      if (!canEditDelete || !lastFilteredAppointments.length) return alert("Export လုပ်မယ့် data မရှိပါ။");
       const rows = [["Invoice ID","Service Date","Appointment Date","Appointment Time","Status","Name", "Social Name", "Phone","Channel","Location","Service Type","Payment Type","Total","Deposit","Balance","Service Cost","Service Profit","Remark"]];
       lastFilteredAppointments.forEach(a => {
         rows.push([(a.invoiceId || a.id || "").toUpperCase(), a.date || "", a.appointmentDate || "", a.appointmentTime || "", a.customerStatus || "", a.name || "", a.socialName || "", a.phone || "", a.channel || "", a.location || "", a.serviceType || "", a.paymentType || "", a.price != null ? a.price : "", a.depositAmount != null ? a.depositAmount : "", a.balanceAmount != null ? a.balanceAmount : "", a.serviceCost != null ? a.serviceCost : "", a.serviceProfit != null ? a.serviceProfit : "", a.remark || ""]);
@@ -1561,7 +1600,6 @@
       document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
     });
 
-    // ---------- INVOICE ----------
     async function loadInvoice() {
       if (currentRole === "guest") return;
       const id = ($("invoiceDocId").value.trim() || lastSavedDocId || "").toUpperCase();
@@ -1601,7 +1639,6 @@
       } catch(e) { msg.textContent = "❌ Error generating JPEG: " + e.message; msg.className = "message error"; }
     });
 
-    // ---------- USER MANAGEMENT (Admin Only) ----------
     async function loadUsersList() {
       if (currentRole !== "admin") return;
       const tbody = $("usersTableBody"); tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Loading...</td></tr>`;
@@ -1612,8 +1649,15 @@
 
         snap.forEach(docSnap => {
           const email = docSnap.id; const role = docSnap.data().role;
+          
+          let roleColor = '#eef2ff'; let roleText = '#4f46e5';
+          if (role === 'admin') { roleColor = '#fee2e2'; roleText = '#dc2626'; }
+          else if (role === 'manager') { roleColor = '#fef3c7'; roleText = '#d97706'; }
+          else if (role === 'finance') { roleColor = '#dcfce7'; roleText = '#16a34a'; }
+          else if (role === 'supervisor') { roleColor = '#e0e7ff'; roleText = '#4338ca'; }
+
           const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${email}</td><td><span class="tag" style="background:${role==='admin'?'#fee2e2':'#eef2ff'}; color:${role==='admin'?'#dc2626':'#4f46e5'}">${role.toUpperCase()}</span></td><td><button class="btn btn-outline admin-only" style="padding:4px 8px;font-size:11px;" data-deluser="${email}">Remove Access</button></td>`;
+          tr.innerHTML = `<td>${email}</td><td><span class="tag" style="background:${roleColor}; color:${roleText}">${role.toUpperCase()}</span></td><td><button class="btn btn-outline system-manage-only" style="padding:4px 8px;font-size:11px;" data-deluser="${email}">Remove Access</button></td>`;
           tbody.appendChild(tr);
 
           tr.querySelector(`[data-deluser="${email}"]`).addEventListener("click", async () => {
