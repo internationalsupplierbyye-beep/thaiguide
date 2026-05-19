@@ -31,23 +31,27 @@
     .app-shell{
       position:relative;
       width:100%;
-      max-width: 1350px; /* <--- ဒီနေရာမှာ 98% အစား 1350px လို့ ပြောင်းလိုက်ပါ */
+      max-width: 1350px; 
       background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.98));
       border-radius:18px;
       box-shadow:0 20px 40px rgba(15,23,42,.35), 0 0 0 1px rgba(148,163,184,.3);
-      overflow:hidden;
     }
+    
+    /* Responsive Header */
     header{
-      padding:16px 24px 12px;
+      padding:12px 20px;
       border-bottom:1px solid rgba(148,163,184,.3);
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap:12px;
       background: radial-gradient(circle at top right, #eef2ff, #ffffff);
-      flex-wrap:wrap;
-      position: relative; /* <--- ဒါလေး အသစ်ထပ်ထည့်ပါ */
-      z-index: 50;        /* <--- ဒါလေး အသစ်ထပ်ထည့်ပါ (အမည်းရောင်ဘောင်ထက် အပေါ်ရောက်လာပါမည်) */
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-radius: 18px 18px 0 0;
+      flex-wrap: nowrap; /* <--- တစ်တန်းတည်းဖြစ်စေရန် nowrap ပြန်ပြောင်းပါ */
+      white-space: nowrap; /* <--- စာများအောက်မဆင်းစေရန် */
     }
     .brand{display:flex;align-items:center;gap:10px}
     .brand-mark{
@@ -64,7 +68,13 @@
     }
     .brand-text-title{font-weight:800;font-size:18px}
     .brand-text-sub{font-size:12px;color:var(--muted)}
-    .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .header-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap: nowrap; /* <--- တစ်တန်းတည်းဖြစ်စေရန် nowrap ပြန်ပြောင်းပါ */
+      justify-content:flex-end;
+    }
     .tabs{display:flex;gap:6px;background:rgba(15,23,42,.05);padding:3px;border-radius:999px}
     .tab-btn{
       border:none;background:transparent;
@@ -88,7 +98,7 @@
     .auth-box input{
       border-radius:999px;border:1px solid #4b5563;
       background:#111827;color:#e5e7eb;
-      padding:4px 10px;font-size:11px;outline:none;min-width:140px;
+      padding:4px 10px;font-size:11px;outline:none;min-width:130px;
     }
     .auth-box input::placeholder{color:#6b7280}
     .btn-mini{
@@ -164,6 +174,8 @@
       padding:4px 10px;font-size:12px;border-radius:999px;
       border:1px solid #d4d4d8;background:#f9fafb;
     }
+    
+    /* Table Settings */
     table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;border-radius:10px;overflow:hidden}
     thead{background:#0f172a;color:#e5e7eb}
     th,td{
@@ -172,9 +184,9 @@
       text-align:left;
       vertical-align:middle;
       white-space:nowrap;
-      max-width: 180px; /* <--- အကျယ်ကို ကန့်သတ်ရန် */
-      overflow: hidden; /* <--- ဘောင်ကျော်သွားသော စာများကို ဖျောက်ရန် */
-      text-overflow: ellipsis; /* <--- ... ပုံစံဖြင့် ပြရန် */
+      max-width: 180px; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
     }
     tbody tr:nth-child(even){background:#f9fafb}
     tbody tr:hover{background:#eef2ff}
@@ -186,15 +198,54 @@
     .status-pending{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
     .status-confirm{background:#ecfdf5;color:#166534;border-color:#bbf7d0}
 
+    /* ===== Summary Analytics ===== */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .summary-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .summary-title {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .summary-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .summary-card.profit-card {
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+    }
+    .summary-card.profit-card .summary-value { color: #059669; }
+    .summary-card.pending-card {
+      background: #fff7ed;
+      border-color: #fed7aa;
+    }
+    .summary-card.pending-card .summary-value { color: #ea580c; }
+
     /* ===== Invoice ===== */
-    .invoice-wrap{display:flex;gap:16px;flex-wrap:wrap}
-    .invoice-controls{flex:1 1 240px}
+    .invoice-wrap{display:flex;gap:20px;flex-wrap:wrap; justify-content: flex-start; align-items: flex-start;}
+    .invoice-controls{flex: 1 1 300px; max-width: 400px;}
     .invoice-card{
-      flex:2 1 320px;
+      flex: 0 0 500px;
+      max-width: 100%;
       background:#fff;border-radius:14px;border:1px solid #e5e7eb;
       padding:12px;
       box-shadow:0 10px 30px rgba(15,23,42,.25);
-      width:500px;height:550px;margin:0 auto;
+      height:550px;
       display:flex;align-items:stretch;justify-content:center;
       position:relative;overflow:hidden;
     }
@@ -208,7 +259,19 @@
     .invoice-brand{font-weight:900;font-size:20px;letter-spacing:.04em;text-transform:uppercase}
     .invoice-sub{font-size:14px;color:#4b5563;font-weight:800}
     .invoice-meta-row{display:flex;justify-content:space-between;font-size:12.5px;color:#6b7280;margin-bottom:8px}
-    .invoice-section-title{font-size:14px;font-weight:900;margin-top:10px;margin-bottom:6px}
+    
+    .invoice-section-title {
+      font-size: 14px;
+      font-weight: 900;
+      margin-top: 12px;
+      margin-bottom: 8px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      padding: 4px 8px;
+      border-left: 4px solid var(--primary);
+      border-radius: 4px;
+    }
+
     .invoice-grid{
       display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
       gap:6px 12px;font-size:13px;
@@ -222,7 +285,7 @@
     .invoice-total-amount{font-size:20px;font-weight:900}
     .chip{border-radius:999px;border:1px solid rgba(148,163,184,.7);padding:2px 7px;font-size:10px}
 
-    /* ===== Settings ===== */
+    /* ===== Settings & Auth ===== */
     .settings-grid{
       display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
       gap:14px 18px;margin-top:10px;
@@ -237,7 +300,6 @@
       grid-template-columns:minmax(0,1fr) 90px 90px;
       gap:4px 8px;align-items:center;font-size:12px;margin-bottom:4px;
     }
-    .pricing-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .pricing-row input{font-size:12px;padding:4px 6px;border-radius:7px}
 
     .auth-overlay{
@@ -249,7 +311,6 @@
       pointer-events:none;
     }
     .auth-overlay.hidden{display:none}
-
     .inline-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .toggle{
       display:flex;align-items:center;gap:8px;
@@ -259,9 +320,55 @@
     }
     .toggle input{width:16px;height:16px}
 
-    @media (max-width: 640px){
-      .invoice-grid{grid-template-columns:1fr}
-      .invoice-card{width:100%;height:90vh}
+    /* ===== History Modal ===== */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15,23,42,0.85); z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-content {
+      background: #fff; width: 90%; max-width: 650px; border-radius: 12px;
+      padding: 20px; max-height: 85vh; display: flex; flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #e5e7eb; padding-bottom: 12px; margin-bottom: 12px;
+    }
+    .modal-header h3 { margin: 0; font-size: 16px; color: var(--primary); }
+    .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--muted); }
+    .close-btn:hover { color: var(--error); }
+    .modal-body { overflow-y: auto; }
+
+    /* ===== Responsive Media Queries (Mobile View Fixes) ===== */
+    @media (max-width: 768px){
+      header {
+        flex-direction: column; /* အောက်ကိုဆင်းစေရန် */
+        align-items: stretch;
+        padding: 12px;
+        position: relative; /* ဖုန်းတွင် sticky ဖြုတ်ပါ */
+      }
+      .brand { justify-content: center; margin-bottom: 10px; }
+      .header-right { justify-content: center; width: 100%; gap: 12px; }
+      .tabs { 
+        width: 100%; 
+        overflow-x: auto; 
+        justify-content: flex-start;
+        padding-bottom: 6px; 
+      }
+      .auth-box { 
+        justify-content: center; 
+        width: 100%; 
+        background: transparent; 
+        padding: 0;
+      }
+      .auth-box input { width: 45%; min-width: 100px; }
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+      form { grid-template-columns: 1fr; }
+      .invoice-controls, .invoice-card { flex: 1 1 100%; max-width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .summary-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -290,6 +397,7 @@
           <button class="tab-btn" data-tab="dashboard"><span class="icon">📊</span> Dashboard</button>
           <button class="tab-btn" data-tab="invoice"><span class="icon">🧾</span> Invoice</button>
           <button class="tab-btn admin-only" data-tab="settings" id="settingsTabBtn"><span class="icon">⚙️</span> Settings</button>
+          <button class="tab-btn admin-only" data-tab="users" id="usersTabBtn"><span class="icon">👥</span> Users</button>
         </div>
 
         <div class="auth-box">
@@ -316,7 +424,6 @@
           <form id="appointmentForm">
             <div class="field">
               <label for="invoiceId">Invoice ID</label>
-
               <div class="inline-row">
                 <input type="text" id="invoiceId" placeholder="TG-2025-0001" required />
                 <label class="toggle" title="Auto ID On/Off">
@@ -327,7 +434,6 @@
                   🔁 New ID
                 </button>
               </div>
-
               <small>Auto ID (default) သို့ Manual ID နှစ်မျိုးလုံး သုံးနိုင်ပါတယ်</small>
             </div>
 
@@ -421,7 +527,6 @@
                 <span id="saveBtnText">Save to Firebase</span> 🚀
               </button>
             </div>
-
             <div id="message" class="message"></div>
           </form>
         </div>
@@ -433,7 +538,7 @@
             <div>
               <div class="panel-title"><span>📊 Admin Dashboard</span> <span class="badge">Filter • Search • Export • Edit • Delete</span></div>
               <div class="panel-desc">
-                ✅ Appointment Date အလိုက် Filter လုပ်နိုင်ပါတယ်။ Admin က Delete လည်းလုပ်နိုင်ပါတယ်။
+                ✅ Appointment Date အလိုက် Filter လုပ်နိုင်ပါတယ်။ Admin က Delete လည်းလုပ်နိုင်ပါတယ်။ (History ကြည့်ရန် နာမည်ကိုနှိပ်ပါ)
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -442,19 +547,36 @@
             </div>
           </div>
 
+          <div class="summary-grid" id="dashboardSummary">
+            <div class="summary-card">
+              <div class="summary-title">Total Appointments</div>
+              <div class="summary-value" id="sumCount">0</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-title">Total Sales (THB)</div>
+              <div class="summary-value" id="sumSales">0.00</div>
+            </div>
+            <div class="summary-card profit-card admin-only" style="display:none;">
+              <div class="summary-title">Estimated Profit (THB)</div>
+              <div class="summary-value" id="sumProfit">0.00</div>
+            </div>
+            <div class="summary-card pending-card">
+              <div class="summary-title">Pending Tasks</div>
+              <div class="summary-value" id="sumPending">0</div>
+            </div>
+          </div>
+
           <div class="toolbar">
             <div class="toolbar-group">
               <span>🔍 Search</span>
               <input type="text" id="searchText" placeholder="Name / Phone / Invoice ID" />
             </div>
-
             <div class="toolbar-group">
               <span>Service</span>
               <select id="filterServiceType">
                 <option value="">All</option>
               </select>
             </div>
-
             <div class="toolbar-group">
               <span>Status</span>
               <select id="filterStatus">
@@ -463,18 +585,16 @@
                 <option value="Confirm">Confirm</option>
               </select>
             </div>
-
             <div class="toolbar-group">
               <span>Appointment Date</span>
               <input type="date" id="filterApptFrom" />
               <span>→</span>
               <input type="date" id="filterApptTo" />
             </div>
-
             <button class="btn btn-secondary" id="applyFilter">Apply Filter</button>
           </div>
 
-          <div style="max-height: 360px; overflow:auto; border-radius:10px; border:1px solid #e5e7eb;">
+          <div style="max-height: 450px; overflow:auto; border-radius:10px; border:1px solid #e5e7eb;">
             <table>
               <thead>
                 <tr>
@@ -504,7 +624,10 @@
               </tbody>
             </table>
           </div>
-
+          
+          <div style="text-align: center; margin-top: 12px;">
+            <button class="btn btn-secondary" id="loadMoreBtn" style="display:none;">Load More (နောက်ထပ်ခေါ်ရန်)</button>
+          </div>
           <div id="dashboardMessage" class="message"></div>
         </div>
       </section>
@@ -537,7 +660,7 @@
               <div class="invoice-inner">
                 <div class="invoice-header-main">
                   <div class="invoice-logo">
-                    <img src="logo.png" alt="Thailand Guide Logo">
+                    <img src="logo.png" alt="Thailand Guide Logo" onerror="this.style.display='none'">
                   </div>
                   <div style="display:flex;flex-direction:column;gap:2px;">
                     <div class="invoice-brand">THAILAND GUIDE</div>
@@ -577,11 +700,9 @@
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
@@ -590,9 +711,7 @@
           <div class="panel-header">
             <div>
               <div class="panel-title"><span>⚙️ Global Settings</span> <span class="badge">Dropdown + Pricing + Telegram</span></div>
-              <div class="panel-desc">
-                Dropdown Option Name တွေ၊ Service Pricing (Cost/Profit) တွေကို ဒီနေရာကနေ ပြင်နိုင်ပါတယ်။
-              </div>
+              <div class="panel-desc">Dropdown Option Name တွေ၊ Service Pricing တွေကို ဒီနေရာကနေ ပြင်နိုင်ပါတယ်။</div>
             </div>
             <button class="btn btn-secondary" id="saveSettings">Save Settings</button>
           </div>
@@ -600,79 +719,122 @@
           <div class="settings-grid">
             <div class="settings-block">
               <h4>Customer Channel List</h4>
-              <small>One item per line</small>
               <textarea id="channelsSetting" rows="6"></textarea>
             </div>
-
             <div class="settings-block">
               <h4>Service Type List</h4>
-              <small>One item per line</small>
               <textarea id="servicesSetting" rows="6"></textarea>
             </div>
-
             <div class="settings-block">
               <h4>Payment Type List</h4>
-              <small>One item per line</small>
               <textarea id="paymentsSetting" rows="6"></textarea>
             </div>
-
             <div class="settings-block">
               <h4>Service Location List</h4>
-              <small>Invoice ထဲတွင်ဖော်ပြမည်</small>
               <textarea id="locationsSetting" rows="6"></textarea>
             </div>
-
             <div class="settings-block">
               <h4>Service Pricing (Cost / Profit per Service)</h4>
-              <small>Service တစ်မျိုးစီအတွက် Cost/Profit ထည့်ပါ</small>
               <div id="servicePricingContainer"></div>
             </div>
-
             <div class="settings-block">
               <h4>Telegram Bot Notify (Topics)</h4>
               <small>(optional)</small>
               <div class="field" style="margin-bottom:8px;">
-                <label for="tgToken">Bot Token</label>
+                <label>Bot Token</label>
                 <input type="text" id="tgToken" placeholder="123456789:ABC-YourBotToken" />
               </div>
               <div class="field" style="margin-bottom:8px;">
-                <label for="tgMainChatId">Main Group Chat ID</label>
+                <label>Main Group Chat ID</label>
                 <input type="text" id="tgMainChatId" placeholder="-100xxxxxxxxxx" />
               </div>
               <div class="field" style="margin-bottom:8px;">
-                <label for="tgThreadAppt">Appointment Topic ID</label>
+                <label>Appointment Topic ID</label>
                 <input type="number" id="tgThreadAppt" placeholder="e.g. 2" />
               </div>
               <div class="field" style="margin-bottom:8px;">
-                <label for="tgThreadAgent">Agent Topic ID</label>
+                <label>Agent Topic ID</label>
                 <input type="number" id="tgThreadAgent" placeholder="e.g. 45" />
               </div>
               <div class="field" style="margin-bottom:8px;">
-                <label for="tgThreadCustomer">Customer Topic ID</label>
+                <label>Customer Topic ID</label>
                 <input type="number" id="tgThreadCustomer" placeholder="e.g. 89" />
               </div>
-              <small style="color:#b91c1c;">
-                ⚠️ Group Chat ID ကို -100 ဖြင့်စ၍ ထည့်ပါ။ Topic ID များကို ကိန်းဂဏန်းသီးသန့် ထည့်ပါ။
-              </small>
             </div>
           </div>
-
           <div id="settingsMessage" class="message"></div>
         </div>
       </section>
+
+      <section id="tab-users" class="tab-panel admin-only" style="display:none;">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title"><span>👥 User Management</span> <span class="badge">Admin Access</span></div>
+              <div class="panel-desc">Staff နှင့် Admin အကောင့်အသစ်များ ဖွင့်ပေးခြင်း၊ Role သတ်မှတ်ပေးခြင်းများကို ဤနေရာမှ ပြုလုပ်နိုင်ပါသည်။</div>
+            </div>
+            <button class="btn btn-secondary" id="reloadUsersBtn">Reload Users</button>
+          </div>
+
+          <div class="settings-block" style="margin-bottom: 16px;">
+            <h4>Create New Account</h4>
+            <div class="inline-row">
+              <input type="email" id="newAccEmail" placeholder="staff@example.com" style="min-width:200px;" />
+              <input type="password" id="newAccPwd" placeholder="Password (min 6 chars)" style="min-width:180px;" />
+              <select id="newAccRole" style="min-width:120px;">
+                <option value="staff">Staff</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button class="btn btn-primary" id="createNewAccBtn">Create Account</button>
+            </div>
+            <div id="userManageMessage" class="message"></div>
+          </div>
+
+          <div style="max-height: 350px; overflow:auto; border-radius:10px; border:1px solid #e5e7eb;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email (Account)</th>
+                  <th>Role (ရာထူး)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr><td colspan="3" style="text-align:center;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </main>
+    
+    <div id="historyModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="historyModalTitle">Customer History</h3>
+          <button class="close-btn" id="closeHistoryModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <table style="width:100%">
+            <thead><tr><th>Date</th><th>Service</th><th>Location</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script type="module">
+    // Add 'startAfter' and 'where' to imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
       getFirestore, collection, serverTimestamp, getDocs, doc, getDoc, setDoc, deleteDoc,
-      query, orderBy, limit
+      query, orderBy, limit, startAfter, where
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
     import {
-      getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+      getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -688,6 +850,10 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    
+    // For creating users without logging out admin
+    const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+    const secondaryAuth = getAuth(secondaryApp);
 
     let currentUser = null;
     let currentRole = "guest";
@@ -707,33 +873,25 @@
     let lastSavedDocId = null;
     let lastSavedData = null;
     let editingDocId = null;
+    
+    // Pagination (Feature 3) Variables
+    let lastVisibleDoc = null; 
 
     const $ = (id) => document.getElementById(id);
 
-    // --------- helpers ----------
+    // --------- Helpers ----------
     function todayISO(){
       const d = new Date();
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth()+1).padStart(2,"0");
-      const dd = String(d.getDate()).padStart(2,"0");
-      return `${yyyy}-${mm}-${dd}`;
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     }
-    function compactDate(iso){
-      if (!iso) iso = todayISO();
-      return iso.replaceAll("-","");
-    }
-    function rand4(){
-      return String(Math.floor(Math.random()*10000)).padStart(4,"0");
-    }
+    function compactDate(iso){ return (iso || todayISO()).replaceAll("-",""); }
+    function rand4(){ return String(Math.floor(Math.random()*10000)).padStart(4,"0"); }
     async function generateUniqueInvoiceId(){
-      // TG-YYYYMMDD-XXXX
       const base = `TG-${compactDate($("date").value || todayISO())}-`;
       for (let i=0; i<8; i++){
         const candidate = (base + rand4()).toUpperCase();
-        const ex = await getDoc(doc(db, "appointments", candidate));
-        if (!ex.exists()) return candidate;
+        if (!(await getDoc(doc(db, "appointments", candidate))).exists()) return candidate;
       }
-      // fallback
       return (`TG-${compactDate()}-${Date.now().toString().slice(-4)}`).toUpperCase();
     }
 
@@ -768,6 +926,8 @@
           if (uDoc.exists()) {
             const d = uDoc.data();
             if (d.role === "admin" || d.role === "staff") role = d.role;
+          } else {
+             console.warn("User role not found in database.");
           }
         } catch(e) { console.error("role lookup error", e); }
         currentRole = role;
@@ -786,12 +946,12 @@
         $("loginPassword").disabled = false;
         $("logoutBtn").style.display = "none";
         
-        // Login ထွက်လိုက်လျှင် (သို့) မဝင်ရသေးလျှင် Data များ အကုန်ရှင်းထုတ်ရန်
         cachedAppointments = [];
         const tbody = $("appointmentsTableBody");
         if (tbody) tbody.innerHTML = `<tr><td colspan="15" style="text-align:center; padding:10px;">🔒 Data ကြည့်ရန် Login ဝင်ပါ</td></tr>`;
         const form = $("appointmentForm");
         if (form) form.reset();
+        if ($("loadMoreBtn")) $("loadMoreBtn").style.display = "none";
       }
 
       updateRoleUI();
@@ -799,13 +959,9 @@
 
       if (user) {
         await loadSettingsFromFirestore();
-        await loadAppointments();
-
-        // default dates
+        await loadAppointments(); // Load first batch
         if (!$("date").value) $("date").value = todayISO();
-        if ($("autoInvoiceId").checked && !editingDocId) {
-          await ensureInvoiceIdAuto();
-        }
+        if ($("autoInvoiceId").checked && !editingDocId) await ensureInvoiceIdAuto();
       }
     });
 
@@ -818,7 +974,7 @@
         "saveBtn", "btnCancelEdit", "gotoInvoiceFromEntry",
         "reloadAppointments", "exportCsv", "applyFilter",
         "loadInvoice", "downloadInvoiceJpeg", "saveSettings",
-        "regenInvoiceId"
+        "regenInvoiceId", "loadMoreBtn"
       ];
       protectedButtons.forEach(id => { const el = $(id); if (el) el.disabled = locked; });
 
@@ -830,27 +986,31 @@
       );
       inputs.forEach(el => { locked ? el.setAttribute("disabled","disabled") : el.removeAttribute("disabled"); });
 
-      // still allow login inputs when locked
       $("loginEmail").disabled = !!currentUser;
       $("loginPassword").disabled = !!currentUser;
-
-      // entry mode lock when guest
       if (!locked) applyInvoiceIdMode();
     }
 
     function updateRoleUI() {
       const settingsTabBtn = $("settingsTabBtn");
       const settingsPanel = $("tab-settings");
+      const usersTabBtn = $("usersTabBtn");
+      const usersPanel = $("tab-users");
+
       if (currentRole === "admin") {
         if (settingsTabBtn) settingsTabBtn.style.display = "";
         if (settingsPanel) settingsPanel.style.display = "";
+        if (usersTabBtn) usersTabBtn.style.display = "";
+        if (usersPanel) usersPanel.style.display = "";
       } else {
         if (settingsTabBtn) settingsTabBtn.style.display = "none";
         if (settingsPanel) settingsPanel.style.display = "none";
+        if (usersTabBtn) usersTabBtn.style.display = "none";
+        if (usersPanel) usersPanel.style.display = "none";
       }
 
       document.querySelectorAll(".admin-only").forEach(el => {
-        if (el.id === "tab-settings") return;
+        if (el.id === "tab-settings" || el.id === "tab-users") return;
         el.style.display = (currentRole === "admin") ? "" : "none";
       });
 
@@ -858,7 +1018,6 @@
         const real = td.dataset.profit || "";
         td.textContent = real ? (currentRole === "admin" ? real : "****") : "";
       });
-
       updateAuthUI();
     }
 
@@ -866,8 +1025,7 @@
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const tab = btn.dataset.tab;
-        if (tab === "settings" && currentRole !== "admin") return;
-
+        if ((tab === "settings" || tab === "users") && currentRole !== "admin") return;
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
         document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
         btn.classList.add("active");
@@ -883,11 +1041,7 @@
         opt.value = ""; opt.textContent = "-- Select --";
         select.appendChild(opt);
       }
-      arr.forEach(v => {
-        const o = document.createElement("option");
-        o.value = o.textContent = v;
-        select.appendChild(o);
-      });
+      arr.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; select.appendChild(o); });
     }
 
     function renderServicePricingEditor() {
@@ -915,15 +1069,9 @@
 
       const filterService = $("filterServiceType");
       filterService.innerHTML = "";
-      const all = document.createElement("option");
-      all.value = ""; all.textContent = "All";
+      const all = document.createElement("option"); all.value = ""; all.textContent = "All";
       filterService.appendChild(all);
-      dropdownSettings.serviceTypes.forEach(v => {
-        const o = document.createElement("option");
-        o.value = o.textContent = v;
-        filterService.appendChild(o);
-      });
-
+      dropdownSettings.serviceTypes.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; filterService.appendChild(o); });
       renderServicePricingEditor();
     }
 
@@ -941,21 +1089,12 @@
         const tgSnap = await getDoc(doc(db, "settings", "telegram"));
         if (tgSnap.exists()) {
           const t = tgSnap.data();
-          telegramSettings.botToken = t.botToken || "";
-          telegramSettings.mainChatId = t.mainChatId || "";
-          telegramSettings.threadAppt = t.threadAppt || "";
-          telegramSettings.threadAgent = t.threadAgent || "";
-          telegramSettings.threadCustomer = t.threadCustomer || "";
+          telegramSettings = { ...telegramSettings, ...t };
         }
 
         const spSnap = await getDoc(doc(db, "settings", "servicePricing"));
-        if (spSnap.exists()) {
-          const sp = spSnap.data();
-          servicePricing = sp.services || {};
-        }
-      } catch (e) {
-        console.error("Load settings error:", e);
-      }
+        if (spSnap.exists()) { servicePricing = spSnap.data().services || {}; }
+      } catch (e) { console.error("Load settings error:", e); }
 
       renderDropdowns();
 
@@ -972,8 +1111,7 @@
     }
 
     $("saveSettings").addEventListener("click", async () => {
-      const msg = $("settingsMessage");
-      msg.textContent = ""; msg.className = "message";
+      const msg = $("settingsMessage"); msg.textContent = ""; msg.className = "message";
 
       dropdownSettings.customerChannels = $("channelsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
       dropdownSettings.serviceTypes = $("servicesSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
@@ -982,19 +1120,16 @@
 
       const newPricing = {};
       dropdownSettings.serviceTypes.forEach(n => newPricing[n] = { cost: 0, profit: 0 });
-
       document.querySelectorAll("[data-sp-cost]").forEach(input => {
-        const name = input.dataset.spCost;
-        const val = parseFloat(input.value);
+        const name = input.dataset.spCost; const val = parseFloat(input.value);
         if (!isNaN(val)) { newPricing[name] = newPricing[name] || {}; newPricing[name].cost = val; }
       });
       document.querySelectorAll("[data-sp-profit]").forEach(input => {
-        const name = input.dataset.spProfit;
-        const val = parseFloat(input.value);
+        const name = input.dataset.spProfit; const val = parseFloat(input.value);
         if (!isNaN(val)) { newPricing[name] = newPricing[name] || {}; newPricing[name].profit = val; }
       });
-
       servicePricing = newPricing;
+      
       telegramSettings.botToken = $("tgToken").value.trim();
       telegramSettings.mainChatId = $("tgMainChatId").value.trim();
       telegramSettings.threadAppt = $("tgThreadAppt").value.trim();
@@ -1005,239 +1140,118 @@
         await setDoc(doc(db, "settings", "dropdowns"), dropdownSettings, { merge: true });
         await setDoc(doc(db, "settings", "telegram"), telegramSettings, { merge: true });
         await setDoc(doc(db, "settings", "servicePricing"), { services: servicePricing }, { merge: true });
-
         renderDropdowns();
-        msg.textContent = "✅ Settings saved.";
-        msg.className = "message success";
-      } catch(e) {
-        msg.textContent = "❌ Save settings failed: " + e.message;
-        msg.className = "message error";
-      }
+        msg.textContent = "✅ Settings saved."; msg.className = "message success";
+      } catch(e) { msg.textContent = "❌ Save failed: " + e.message; msg.className = "message error"; }
     });
 
-    // ✅ Time picker open (when supported)
     const timeInput = $("appointmentTime");
-    ["click","focus"].forEach(evt=>{
-      timeInput.addEventListener(evt, () => {
-        if (typeof timeInput.showPicker === "function") timeInput.showPicker();
-      });
-    });
+    ["click","focus"].forEach(evt=>{ timeInput.addEventListener(evt, () => { if (typeof timeInput.showPicker === "function") timeInput.showPicker(); }); });
 
-    // ✅ Balance Auto: always Total - Deposit
     function updateDepositUI() {
       const total = Number($("price").value || 0);
       const deposit = Number($("depositAmount").value || 0);
-      const balance = Math.max(total - deposit, 0);
-      $("balanceAmount").value = balance.toFixed(2);
+      $("balanceAmount").value = Math.max(total - deposit, 0).toFixed(2);
     }
     $("paymentType").addEventListener("change", updateDepositUI);
     $("price").addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", updateDepositUI);
 
-    // ---------- Invoice ID Auto/Manual ----------
     function applyInvoiceIdMode(){
       const auto = $("autoInvoiceId").checked;
       const isEditing = !!editingDocId;
       if (isEditing){
-        $("invoiceId").disabled = true;
-        $("autoInvoiceId").disabled = true;
-        $("regenInvoiceId").disabled = true;
-        return;
+        $("invoiceId").disabled = true; $("autoInvoiceId").disabled = true; $("regenInvoiceId").disabled = true; return;
       }
-      $("autoInvoiceId").disabled = false;
-      $("regenInvoiceId").disabled = false;
-
-      if (auto){
-        $("invoiceId").disabled = true;
-      } else {
-        $("invoiceId").disabled = false;
-        $("invoiceId").focus();
-      }
+      $("autoInvoiceId").disabled = false; $("regenInvoiceId").disabled = false;
+      if (auto){ $("invoiceId").disabled = true; } else { $("invoiceId").disabled = false; $("invoiceId").focus(); }
     }
 
     async function ensureInvoiceIdAuto(){
-      if (currentRole === "guest") return;
-      if (editingDocId) return;
-      if (!$("autoInvoiceId").checked) return;
-
-      const id = await generateUniqueInvoiceId();
-      $("invoiceId").value = id;
+      if (currentRole === "guest" || editingDocId || !$("autoInvoiceId").checked) return;
+      $("invoiceId").value = await generateUniqueInvoiceId();
     }
 
     $("autoInvoiceId").addEventListener("change", async () => {
       applyInvoiceIdMode();
-      if ($("autoInvoiceId").checked){
-        await ensureInvoiceIdAuto();
-      } else {
-        if (!editingDocId) $("invoiceId").value = "";
-      }
+      if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); else if (!editingDocId) $("invoiceId").value = "";
     });
-
-    $("regenInvoiceId").addEventListener("click", async () => {
-      if (!$("autoInvoiceId").checked) return;
-      await ensureInvoiceIdAuto();
-    });
-
-    // if date changes, refresh auto ID pattern
-    $("date").addEventListener("change", async () => {
-      if ($("autoInvoiceId").checked && !editingDocId && currentUser){
-        await ensureInvoiceIdAuto();
-      }
-    });
+    $("regenInvoiceId").addEventListener("click", async () => { if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); });
+    $("date").addEventListener("change", async () => { if ($("autoInvoiceId").checked && !editingDocId && currentUser) await ensureInvoiceIdAuto(); });
 
     // ---------- ENTRY SAVE / EDIT ----------
     const form = $("appointmentForm");
     const messageDiv = $("message");
 
     $("btnCancelEdit").addEventListener("click", async () => {
-      editingDocId = null;
-      $("invoiceId").disabled = false;
-      $("saveBtnText").textContent = "Save to Firebase";
-      $("btnCancelEdit").style.display = "none";
-      messageDiv.textContent = "";
-      form.reset();
-      if (!$("date").value) $("date").value = todayISO();
-      updateDepositUI();
-
-      applyInvoiceIdMode();
-      if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto();
+      editingDocId = null; $("invoiceId").disabled = false; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
+      messageDiv.textContent = ""; form.reset(); if (!$("date").value) $("date").value = todayISO();
+      updateDepositUI(); applyInvoiceIdMode(); if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto();
     });
 
     form.addEventListener("reset", async () => {
-      if (!$("date").value) $("date").value = todayISO();
-      updateDepositUI();
-
-      editingDocId = null;
-      $("saveBtnText").textContent = "Save to Firebase";
-      $("btnCancelEdit").style.display = "none";
-
-      applyInvoiceIdMode();
-      if ($("autoInvoiceId").checked && currentUser) await ensureInvoiceIdAuto();
+      if (!$("date").value) $("date").value = todayISO(); updateDepositUI();
+      editingDocId = null; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
+      applyInvoiceIdMode(); if ($("autoInvoiceId").checked && currentUser) await ensureInvoiceIdAuto();
     });
 
     form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (currentRole === "guest") return;
-
-      messageDiv.textContent = "";
-      messageDiv.className = "message";
+      e.preventDefault(); if (currentRole === "guest") return;
+      messageDiv.textContent = ""; messageDiv.className = "message";
 
       let invoiceId = $("invoiceId").value.trim().toUpperCase();
-
-      // If auto mode and empty for some reason, generate again
       if ($("autoInvoiceId").checked && !editingDocId && !invoiceId){
-        invoiceId = await generateUniqueInvoiceId();
-        $("invoiceId").value = invoiceId;
+        invoiceId = await generateUniqueInvoiceId(); $("invoiceId").value = invoiceId;
       }
 
-      const total = Number($("price").value || 0);
-      const dep = Number($("depositAmount").value || 0);
-      const bal = Math.max(total - dep, 0);
-
+      const total = Number($("price").value || 0); const dep = Number($("depositAmount").value || 0);
       const data = {
-        invoiceId,
-        date: $("date").value,
-        appointmentDate: $("appointmentDate").value,
-        appointmentTime: $("appointmentTime").value || null,
-        name: $("name").value.trim(),
-        socialName: $("socialName").value.trim() || null,
-        phone: $("phone").value.trim(),
-        customerStatus: $("customerStatus").value,
-        channel: $("channel").value || null,
-        location: $("location").value,
-        serviceType: $("serviceType").value,
-        paymentType: $("paymentType").value,
-        price: total,
-        depositAmount: dep,
-        balanceAmount: bal,
-        remark: $("remark").value.trim() || null,
-        createdAt: serverTimestamp(),
-        createdBy: currentUser ? currentUser.email : null
+        invoiceId, date: $("date").value, appointmentDate: $("appointmentDate").value, appointmentTime: $("appointmentTime").value || null,
+        name: $("name").value.trim(), socialName: $("socialName").value.trim() || null, phone: $("phone").value.trim(),
+        customerStatus: $("customerStatus").value, channel: $("channel").value || null, location: $("location").value,
+        serviceType: $("serviceType").value, paymentType: $("paymentType").value, price: total, depositAmount: dep,
+        balanceAmount: Math.max(total - dep, 0), remark: $("remark").value.trim() || null,
+        createdAt: serverTimestamp(), createdBy: currentUser ? currentUser.email : null
       };
 
-      // Required: Time optional
-      if (!invoiceId || !data.date || !data.appointmentDate || !data.name || !data.phone ||
-          !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
-        messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။";
-        messageDiv.className = "message error";
-        return;
+      if (!invoiceId || !data.date || !data.appointmentDate || !data.name || !data.phone || !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
+        messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။"; messageDiv.className = "message error"; return;
       }
 
       const sp = servicePricing[data.serviceType] || {};
-      const cost = typeof sp.cost === "number" ? sp.cost : 0;
-      let profit = typeof sp.profit === "number" ? sp.profit : undefined;
-      if (profit === undefined || isNaN(profit)) profit = data.price - cost;
-      data.serviceCost = cost;
-      data.serviceProfit = profit;
+      data.serviceCost = typeof sp.cost === "number" ? sp.cost : 0;
+      data.serviceProfit = typeof sp.profit === "number" ? sp.profit : (data.price - data.serviceCost);
 
       try {
         if (editingDocId && editingDocId === invoiceId) {
           await setDoc(doc(db, "appointments", editingDocId), data, { merge: true });
-          lastSavedDocId = editingDocId;
-          lastSavedData = { ...data, id: editingDocId };
-
-          messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId;
-          messageDiv.className = "message success";
-
-          editingDocId = null;
-          $("invoiceId").disabled = false;
-          $("saveBtnText").textContent = "Save to Firebase";
-          $("btnCancelEdit").style.display = "none";
-          form.reset(); updateDepositUI();
-          await loadAppointments();
+          lastSavedDocId = editingDocId; lastSavedData = { ...data, id: editingDocId };
+          messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; messageDiv.className = "message success";
+          editingDocId = null; $("invoiceId").disabled = false; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
+          form.reset(); updateDepositUI(); await loadAppointments(); // full reload to get latest 200
         } else {
-          const existing = await getDoc(doc(db, "appointments", invoiceId));
-          if (existing.exists()) {
-            messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – New ID ထုတ်ပါ (Auto) သို့ Manual ပြောင်းပါ။";
-            messageDiv.className = "message error";
-            return;
+          if ((await getDoc(doc(db, "appointments", invoiceId))).exists()) {
+            messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – New ID ထုတ်ပါ (Auto) သို့ Manual ပြောင်းပါ။"; messageDiv.className = "message error"; return;
           }
           await setDoc(doc(db, "appointments", invoiceId), data);
-          lastSavedDocId = invoiceId;
-          lastSavedData = { ...data, id: invoiceId };
-
-          messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId;
-          messageDiv.className = "message success";
-
+          lastSavedDocId = invoiceId; lastSavedData = { ...data, id: invoiceId };
+          messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId; messageDiv.className = "message success";
           await sendMultiTelegramNotifications(lastSavedData);
-
-          // reset but keep auto id fresh
-          form.reset();
-          if (!$("date").value) $("date").value = todayISO();
-          updateDepositUI();
-          applyInvoiceIdMode();
-          if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto();
-
-          await loadAppointments();
+          form.reset(); if (!$("date").value) $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
+          if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); await loadAppointments(); // full reload
         }
-      } catch (err) {
-        console.error(err);
-        messageDiv.textContent = "❌ Error saving data: " + err.message;
-        messageDiv.className = "message error";
-      }
+      } catch (err) { messageDiv.textContent = "❌ Error saving data: " + err.message; messageDiv.className = "message error"; }
     });
 
-    // ---------- NEW: MULTI-TELEGRAM (TOPICS) ----------
+    // ---------- MULTI-TELEGRAM (TOPICS) ----------
     async function sendToTg(chatId, threadId, text) {
       try {
-        const bodyData = { 
-          chat_id: chatId, 
-          text: text, 
-          parse_mode: "Markdown" 
-        };
-        // Topic ID (thread_id) ရှိရင် ထည့်ပေးမယ်
-        if (threadId) {
-          bodyData.message_thread_id = threadId;
-        }
-
+        const bodyData = { chat_id: chatId, text: text, parse_mode: "Markdown" };
+        if (threadId) bodyData.message_thread_id = threadId;
         await fetch(`https://api.telegram.org/bot${telegramSettings.botToken}/sendMessage`, {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify(bodyData)
+          method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(bodyData)
         });
-      } catch(e) {
-        console.error("Telegram error for chat/topic " + chatId + "/" + threadId, e);
-      }
+      } catch(e) { console.error("Telegram error", e); }
     }
 
     async function sendMultiTelegramNotifications(a) {
@@ -1245,85 +1259,90 @@
       const mainChat = telegramSettings.mainChatId;
       const apptDT = `${a.appointmentDate || "-"}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
 
-      // 1. Appointment Topic (Full Data)
       if (telegramSettings.threadAppt) {
         const linesAppt = [
-          "📩 *New Appointment Saved*",
-          "",
-          `🧾 Invoice ID: ${a.invoiceId}`,
-          `🟡 Status: ${a.customerStatus || "-"}`,
-          `👤 Name: ${a.name}`,
-          a.socialName ? `🌐 Social Name: ${a.socialName}` : "",
-          `📞 Phone: ${a.phone}`,
-          `📍 Location: ${a.location}`,
-          `📅 Service Date: ${a.date}`,
-          `🕒 Appointment: ${apptDT}`,
-          `🧾 Service: ${a.serviceType}`,
-          `💳 Payment: ${a.paymentType}`,
-          `💰 Total: ${Number(a.price||0).toFixed(2)} THB`,
-          `
- Deposit: ${Number(a.depositAmount||0).toFixed(2)} | Balance: ${Number(a.balanceAmount||0).toFixed(2)}`,
-          a.channel ? `📡 Channel: ${a.channel}` : "",
-          a.remark ? `📝 Remark: ${a.remark}` : ""
+          "📩 *New Appointment Saved*", "",
+          `🧾 Invoice ID: ${a.invoiceId}`, `🟡 Status: ${a.customerStatus || "-"}`, `👤 Name: ${a.name}`,
+          a.socialName ? `🌐 Social Name: ${a.socialName}` : "", `📞 Phone: ${a.phone}`, `📍 Location: ${a.location}`,
+          `📅 Service Date: ${a.date}`, `🕒 Appointment: ${apptDT}`, `🧾 Service: ${a.serviceType}`,
+          `💳 Payment: ${a.paymentType}`, `💰 Total: ${Number(a.price||0).toFixed(2)} THB`,
+          `💵 Deposit: ${Number(a.depositAmount||0).toFixed(2)} | Balance: ${Number(a.balanceAmount||0).toFixed(2)}`,
+          a.channel ? `📡 Channel: ${a.channel}` : "", a.remark ? `📝 Remark: ${a.remark}` : ""
         ].filter(Boolean);
         await sendToTg(mainChat, telegramSettings.threadAppt, linesAppt.join("\n"));
       }
 
-      // 2. Agent Topic
       if (telegramSettings.threadAgent) {
         const linesAgent = [
-          `🧾 Invoice ID: ${a.invoiceId}`,
-          `👤 Name: ${a.name}`,
-          `📞 Phone: ${a.phone}`,
-          `🧾 Service: ${a.serviceType}`,
-          `💵 Balance (ငွေကောက်): ${Number(a.balanceAmount||0).toFixed(2)}`,
-          a.remark ? `📝 Remark: ${a.remark}` : ""
+          `🧾 Invoice ID: ${a.invoiceId}`, `👤 Name: ${a.name}`, `📞 Phone: ${a.phone}`, `🧾 Service: ${a.serviceType}`,
+          `💵 Balance (ငွေကောက်): ${Number(a.balanceAmount||0).toFixed(2)}`, a.remark ? `📝 Remark: ${a.remark}` : ""
         ].filter(Boolean);
         await sendToTg(mainChat, telegramSettings.threadAgent, linesAgent.join("\n"));
       }
 
-      // 3. Customer Topic
       if (telegramSettings.threadCustomer) {
         const linesCust = [
-          `🧾 Invoice ID: ${a.invoiceId}`,
-          `👤 Name: ${a.name}`,
-          `📞 Phone: ${a.phone}`,
-          `📍 Location: ${a.location}`,
-          `📅 Service Date: ${a.date}`,
-          `🕒 Appointment: ${apptDT}`,
-          `🧾 Service: ${a.serviceType}`,
-          `💳 Payment: ${a.paymentType}`,
-          `💰 Total: ${Number(a.price||0).toFixed(2)}`,
+          `🧾 Invoice ID: ${a.invoiceId}`, `👤 Name: ${a.name}`, `📞 Phone: ${a.phone}`, `📍 Location: ${a.location}`,
+          `📅 Service Date: ${a.date}`, `🕒 Appointment: ${apptDT}`, `🧾 Service: ${a.serviceType}`,
+          `💳 Payment: ${a.paymentType}`, `💰 Total: ${Number(a.price||0).toFixed(2)}`,
           `💵 Deposit: ${Number(a.depositAmount||0).toFixed(2)} | Balance(ပေးချေရန်ကျန်ငွေ): ${Number(a.balanceAmount||0).toFixed(2)}`,
-          a.channel ? `📡 Channel: ${a.channel}` : "",
-          a.remark ? `📝 Remark: ${a.remark}` : ""
+          a.channel ? `📡 Channel: ${a.channel}` : "", a.remark ? `📝 Remark: ${a.remark}` : ""
         ].filter(Boolean);
         await sendToTg(mainChat, telegramSettings.threadCustomer, linesCust.join("\n"));
       }
     }
 
-    // ---------- DASHBOARD LOAD ----------
-    async function loadAppointments() {
+    // ---------- DASHBOARD LOAD (WITH LOAD MORE FEATURE) ----------
+    async function loadAppointments(isLoadMore = false) {
       if (currentRole === "guest") return;
-
-      const body = $("appointmentsTableBody");
-      body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Loading...</td></tr>`;
-      $("dashboardMessage").textContent = "";
+      const body = $("appointmentsTableBody"); 
+      const loadBtn = $("loadMoreBtn");
+      
+      if (!isLoadMore) {
+        body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Loading...</td></tr>`;
+        $("dashboardMessage").textContent = "";
+        cachedAppointments = [];
+        lastVisibleDoc = null;
+      } else {
+        if(loadBtn) loadBtn.textContent = "Loading...";
+      }
 
       try {
-        // NEW: Load only last 200 documents
-        const q = query(collection(db, "appointments"), orderBy("createdAt", "desc"), limit(200));
+        let q;
+        const fetchLimit = 200; // Database ကနေ တစ်ခါခေါ်ရင် အခု ၂၀၀ 
+        
+        if (isLoadMore && lastVisibleDoc) {
+          q = query(collection(db, "appointments"), orderBy("createdAt", "desc"), startAfter(lastVisibleDoc), limit(fetchLimit));
+        } else {
+          q = query(collection(db, "appointments"), orderBy("createdAt", "desc"), limit(fetchLimit));
+        }
+        
         const snap = await getDocs(q);
-        const list = [];
-        snap.forEach(ds => list.push({ id: ds.id, ...ds.data() }));
-
-        cachedAppointments = list;
-        renderAppointmentsTable();
-      } catch(e) {
+        
+        if (!snap.empty) {
+          lastVisibleDoc = snap.docs[snap.docs.length - 1]; // နောက်ဆုံး Document ကို မှတ်ထားမည်
+          const newBatch = []; 
+          snap.forEach(ds => newBatch.push({ id: ds.id, ...ds.data() }));
+          
+          cachedAppointments = [...cachedAppointments, ...newBatch];
+          renderAppointmentsTable(); // UI ပေါ်သို့ ပြန်ချမည်
+          
+          if (loadBtn) loadBtn.style.display = (snap.docs.length === fetchLimit) ? "inline-block" : "none";
+        } else {
+          if (loadBtn) loadBtn.style.display = "none";
+          if (!isLoadMore) body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
+        }
+      } catch(e) { 
         console.error(e);
-        body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;color:#b91c1c;">Error loading: ${e.message}</td></tr>`;
+        if(!isLoadMore) body.innerHTML = `<tr><td colspan="15" style="text-align:center;color:#b91c1c;">Error loading: ${e.message}</td></tr>`; 
       }
+      
+      if (loadBtn && loadBtn.style.display !== "none") loadBtn.textContent = "Load More (နောက်ထပ်ခေါ်ရန်)";
     }
+
+    $("loadMoreBtn").addEventListener("click", () => {
+       loadAppointments(true);
+    });
 
     function statusPill(status){
       const s = (status || "").toLowerCase();
@@ -1332,68 +1351,78 @@
       return `<span class="status-pill">-</span>`;
     }
 
-    function renderAppointmentsTable() {
-      const body = $("appointmentsTableBody");
-      body.innerHTML = "";
+    // ---------- SUMMARY ANALYTICS (FEATURE 2) ----------
+    function updateSummaryCards(filteredData) {
+      let totalCount = filteredData.length;
+      let totalSales = 0;
+      let totalProfit = 0;
+      let pendingCount = 0;
 
+      filteredData.forEach(a => {
+        totalSales += Number(a.price || 0);
+        const profit = (a.serviceProfit != null) 
+          ? Number(a.serviceProfit) 
+          : (a.price != null && a.serviceCost != null) ? Number(a.price - a.serviceCost) : 0;
+        totalProfit += profit;
+        if ((a.customerStatus || "").toLowerCase() === "pending") {
+          pendingCount++;
+        }
+      });
+
+      if($("sumCount")) $("sumCount").textContent = totalCount;
+      if($("sumSales")) $("sumSales").textContent = totalSales.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      if($("sumProfit")) $("sumProfit").textContent = totalProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      if($("sumPending")) $("sumPending").textContent = pendingCount;
+    }
+
+    function renderAppointmentsTable() {
+      const body = $("appointmentsTableBody"); body.innerHTML = "";
       const searchText = $("searchText").value.trim().toLowerCase();
       const filterService = $("filterServiceType").value;
       const filterStatus = $("filterStatus").value;
-
-      // ✅ Appointment Date filter
       const apptFrom = $("filterApptFrom").value;
       const apptTo = $("filterApptTo").value;
 
       const filtered = cachedAppointments.filter(a => {
         let ok = true;
-
-        if (searchText) {
-          const s = `${a.name||""} ${a.socialName||""} ${a.phone||""} ${a.invoiceId||a.id||""}`;
-          ok = s.toLowerCase().includes(searchText);
-        }
+        if (searchText) ok = `${a.name||""} ${a.socialName||""} ${a.phone||""} ${a.invoiceId||a.id||""}`.toLowerCase().includes(searchText);
         if (ok && filterService) ok = a.serviceType === filterService;
         if (ok && filterStatus) ok = (a.customerStatus||"") === filterStatus;
-
-        // ✅ Appointment Date range compare on YYYY-MM-DD strings
         if (ok && (apptFrom || apptTo)) {
           const d = a.appointmentDate || "";
           if (apptFrom && d < apptFrom) ok = false;
           if (apptTo && d > apptTo) ok = false;
         }
-
         return ok;
       });
 
-      lastFilteredAppointments = filtered;
+      // စာရင်းချုပ်ကို Update လုပ်ရန်
+      updateSummaryCards(filtered);
 
-      if (!filtered.length) {
-        body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
-        return;
-      }
+      lastFilteredAppointments = filtered;
+      if (!filtered.length) { body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`; return; }
 
       filtered.forEach(a => {
-        const profit = (a.serviceProfit != null)
-          ? a.serviceProfit
-          : (a.price != null && a.serviceCost != null)
-            ? (a.price - a.serviceCost)
-            : null;
+        const profit = (a.serviceProfit != null) ? a.serviceProfit : ((a.price != null && a.serviceCost != null) ? (a.price - a.serviceCost) : null);
         const profitText = profit != null ? Number(profit).toFixed(2) : "";
         const displayProfit = (currentRole === "admin") ? profitText : (profitText ? "****" : "");
 
-        const dep = Number(a.depositAmount||0).toFixed(2);
-        const bal = Number(a.balanceAmount||0).toFixed(2);
+        const dep = Number(a.depositAmount||0).toFixed(2); const bal = Number(a.balanceAmount||0).toFixed(2);
         const apptDT = `${a.appointmentDate || ""}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
         const id = (a.invoiceId || a.id || "").toUpperCase();
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${id}</td>
+          <td>
+            <div style="font-weight:700;">${id}</div>
+            <button class="btn btn-outline" style="padding:2px 8px;font-size:10px;margin-top:4px;" data-docid="${id}">🧾 Invoice</button>
+          </td>
           <td>${a.date || ""}</td>
           <td>${apptDT || ""}</td>
           <td>${statusPill(a.customerStatus)}</td>
           <td>
-            ${a.name || ""}<br/>
-            <small style="color:var(--primary); font-weight:600;">${a.socialName || ""}</small>
+            <span class="history-link" style="cursor:pointer; color:var(--primary); font-weight:700; text-decoration:underline;" data-phone="${a.phone}" data-name="${a.name}">${a.name || "-"}</span><br/>
+            <small style="color:var(--muted); font-weight:600;">${a.socialName || ""}</small>
           </td>
           <td>${a.phone || ""}</td>
           <td><span class="tag">${a.serviceType || ""}</span></td>
@@ -1405,259 +1434,230 @@
           <td class="profit-cell" data-profit="${profitText}">${displayProfit}</td>
           <td>${a.remark || "-"}</td>
           <td>
-            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px" data-docid="${id}">Invoice</button>
-            <button class="btn btn-secondary admin-only" style="padding:5px 10px;font-size:12px;${currentRole==="admin"?"":"display:none;"}" data-editid="${id}">Edit</button>
-            <button class="btn btn-danger admin-only" style="padding:5px 10px;font-size:12px;${currentRole==="admin"?"":"display:none;"}" data-delid="${id}">Delete</button>
+            <button class="btn btn-secondary admin-only" style="padding:4px 8px;font-size:11px;${currentRole==="admin"?"":"display:none;"}" data-editid="${id}">Edit</button>
+            <button class="btn btn-danger admin-only" style="padding:4px 8px;font-size:11px;${currentRole==="admin"?"":"display:none;"}" data-delid="${id}">Delete</button>
           </td>
         `;
         body.appendChild(tr);
 
+        // Invoice Click
         tr.querySelector("[data-docid]").addEventListener("click", () => {
-          $("invoiceDocId").value = id;
-          document.querySelector('.tab-btn[data-tab="invoice"]').click();
-          loadInvoice();
+          $("invoiceDocId").value = id; document.querySelector('.tab-btn[data-tab="invoice"]').click(); loadInvoice();
         });
+        
+        // History Modal Click (FEATURE 4)
+        const histLink = tr.querySelector(".history-link");
+        if(histLink) {
+          histLink.addEventListener("click", () => showCustomerHistory(histLink.dataset.phone, histLink.dataset.name));
+        }
 
+        // Edit
         const editBtn = tr.querySelector("[data-editid]");
-        if (editBtn) editBtn.addEventListener("click", () => {
-          if (currentRole !== "admin") return;
-          startEditAppointment(a);
-        });
+        if (editBtn) editBtn.addEventListener("click", () => { if (currentRole === "admin") startEditAppointment(a); });
 
+        // Delete
         const delBtn = tr.querySelector("[data-delid]");
         if (delBtn) delBtn.addEventListener("click", async () => {
           if (currentRole !== "admin") return;
-          const ok = confirm(`Delete this order?\n\nInvoice ID: ${id}\n\nThis cannot be undone.`);
-          if (!ok) return;
-
-          $("dashboardMessage").textContent = "Deleting...";
-          $("dashboardMessage").className = "message";
-
+          if (!confirm(`Delete this order?\n\nInvoice ID: ${id}`)) return;
+          $("dashboardMessage").textContent = "Deleting..."; $("dashboardMessage").className = "message";
           try {
             await deleteDoc(doc(db, "appointments", id));
-            $("dashboardMessage").textContent = "✅ Deleted: " + id;
-            $("dashboardMessage").className = "message success";
-            await loadAppointments();
-          } catch(e) {
-            $("dashboardMessage").textContent = "❌ Delete failed: " + e.message;
-            $("dashboardMessage").className = "message error";
-          }
+            $("dashboardMessage").textContent = "✅ Deleted: " + id; $("dashboardMessage").className = "message success";
+            await loadAppointments(); // Reload all after delete to keep UI fresh
+          } catch(e) { $("dashboardMessage").textContent = "❌ Delete failed: " + e.message; $("dashboardMessage").className = "message error"; }
         });
       });
-
       updateRoleUI();
     }
 
+    // ---------- HISTORY MODAL LOGIC (FEATURE 4) ----------
+    async function showCustomerHistory(phone, name) {
+      if(!phone) return;
+      $("historyModal").classList.remove("hidden");
+      $("historyModalTitle").textContent = `${name} (${phone}) - History`;
+      const tbody = $("historyTableBody");
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Loading history from database...</td></tr>`;
+      
+      try {
+        // Query Firestore by phone directly
+        const q = query(collection(db, "appointments"), where("phone", "==", phone));
+        const snap = await getDocs(q);
+        const list = [];
+        snap.forEach(d => list.push(d.data()));
+        
+        // Memory sort by createdAt to avoid needing complex Firestore indexes
+        list.sort((a,b) => {
+           const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+           const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+           return timeB - timeA; // Descending
+        });
+        
+        tbody.innerHTML = "";
+        if(list.length === 0) {
+           tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">မှတ်တမ်း မရှိပါ။</td></tr>`;
+           return;
+        }
+        
+        list.forEach(a => {
+           tbody.innerHTML += `
+             <tr>
+               <td>${a.date || "-"}</td>
+               <td><span class="tag">${a.serviceType || "-"}</span></td>
+               <td>${a.location || "-"}</td>
+               <td style="font-weight:700;">${Number(a.price || 0).toFixed(2)}</td>
+               <td>${statusPill(a.customerStatus)}</td>
+             </tr>
+           `;
+        });
+      } catch(e) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">Error loading: ${e.message}</td></tr>`;
+      }
+    }
+    
+    $("closeHistoryModal").addEventListener("click", () => {
+      $("historyModal").classList.add("hidden");
+    });
+
+    // Form Helpers
     function ensureOption(select, value) {
       if (!value) return;
-      const exists = Array.from(select.options).some(o => o.value === value);
-      if (!exists) {
-        const opt = document.createElement("option");
-        opt.value = opt.textContent = value;
-        select.appendChild(opt);
+      if (!Array.from(select.options).some(o => o.value === value)) {
+        const opt = document.createElement("option"); opt.value = opt.textContent = value; select.appendChild(opt);
       }
       select.value = value;
     }
 
     function startEditAppointment(a) {
       editingDocId = (a.invoiceId || a.id || "").toUpperCase();
+      $("invoiceId").value = editingDocId; $("invoiceId").disabled = true;
 
-      $("invoiceId").value = editingDocId;
-      $("invoiceId").disabled = true;
+      $("date").value = a.date || ""; $("appointmentDate").value = a.appointmentDate || ""; $("appointmentTime").value = a.appointmentTime || "";
+      $("name").value = a.name || ""; $("socialName").value = a.socialName || ""; $("phone").value = a.phone || ""; $("customerStatus").value = a.customerStatus || "";
 
-      $("date").value = a.date || "";
-      $("appointmentDate").value = a.appointmentDate || "";
-      $("appointmentTime").value = a.appointmentTime || "";
-      $("name").value = a.name || "";
-      $("socialName").value = a.socialName || "";
-      $("phone").value = a.phone || "";
-      $("customerStatus").value = a.customerStatus || "";
+      ensureOption($("channel"), a.channel); ensureOption($("location"), a.location); ensureOption($("serviceType"), a.serviceType); ensureOption($("paymentType"), a.paymentType);
 
-      ensureOption($("channel"), a.channel);
-      ensureOption($("location"), a.location);
-      ensureOption($("serviceType"), a.serviceType);
-      ensureOption($("paymentType"), a.paymentType);
+      $("channel").value = a.channel || ""; $("location").value = a.location || ""; $("serviceType").value = a.serviceType || "";
+      $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
+      $("remark").value = a.remark || ""; updateDepositUI();
 
-      $("channel").value = a.channel || "";
-      $("location").value = a.location || "";
-      $("serviceType").value = a.serviceType || "";
-      $("paymentType").value = a.paymentType || "";
-      $("price").value = a.price != null ? a.price : "";
-      $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
-      $("remark").value = a.remark || "";
-
-      updateDepositUI();
-
-      $("saveBtnText").textContent = "Update Appointment";
-      $("btnCancelEdit").style.display = (currentRole === "admin") ? "inline-flex" : "none";
-
+      $("saveBtnText").textContent = "Update Appointment"; $("btnCancelEdit").style.display = (currentRole === "admin") ? "inline-flex" : "none";
       applyInvoiceIdMode();
-
-      const msg = $("message");
-      msg.textContent = "Edit Mode: Invoice " + editingDocId;
-      msg.className = "message";
-
+      const msg = $("message"); msg.textContent = "Edit Mode: Invoice " + editingDocId; msg.className = "message";
       document.querySelector('.tab-btn[data-tab="entry"]').click();
     }
 
-    $("reloadAppointments").addEventListener("click", loadAppointments);
+    $("reloadAppointments").addEventListener("click", () => loadAppointments(false));
     $("applyFilter").addEventListener("click", renderAppointmentsTable);
-
     $("exportCsv").addEventListener("click", () => {
-      if (currentRole !== "admin") return;
-      if (!lastFilteredAppointments.length) return alert("Export လုပ်မယ့် data မရှိပါ။");
-
-      const rows = [];
-      rows.push([
-        "Invoice ID","Service Date","Appointment Date","Appointment Time","Status","Name", "Social Name", "Phone",
-        "Channel","Location","Service Type","Payment Type","Total","Deposit","Balance",
-        "Service Cost","Service Profit","Remark"
-      ]);
-
+      if (currentRole !== "admin" || !lastFilteredAppointments.length) return alert("Export လုပ်မယ့် data မရှိပါ။");
+      const rows = [["Invoice ID","Service Date","Appointment Date","Appointment Time","Status","Name", "Social Name", "Phone","Channel","Location","Service Type","Payment Type","Total","Deposit","Balance","Service Cost","Service Profit","Remark"]];
       lastFilteredAppointments.forEach(a => {
-        rows.push([
-          (a.invoiceId || a.id || "").toUpperCase(),
-          a.date || "",
-          a.appointmentDate || "",
-          a.appointmentTime || "",
-          a.customerStatus || "",
-          a.name || "",
-          a.socialName || "",
-          a.phone || "",
-          a.channel || "",
-          a.location || "",
-          a.serviceType || "",
-          a.paymentType || "",
-          a.price != null ? a.price : "",
-          a.depositAmount != null ? a.depositAmount : "",
-          a.balanceAmount != null ? a.balanceAmount : "",
-          a.serviceCost != null ? a.serviceCost : "",
-          a.serviceProfit != null ? a.serviceProfit : "",
-          a.remark || ""
-        ]);
+        rows.push([(a.invoiceId || a.id || "").toUpperCase(), a.date || "", a.appointmentDate || "", a.appointmentTime || "", a.customerStatus || "", a.name || "", a.socialName || "", a.phone || "", a.channel || "", a.location || "", a.serviceType || "", a.paymentType || "", a.price != null ? a.price : "", a.depositAmount != null ? a.depositAmount : "", a.balanceAmount != null ? a.balanceAmount : "", a.serviceCost != null ? a.serviceCost : "", a.serviceProfit != null ? a.serviceProfit : "", a.remark || ""]);
       });
-
       const csv = rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",")).join("\r\n");
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "appointments_export.csv";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" }); const url = URL.createObjectURL(blob);
+      const link = document.createElement("a"); link.href = url; link.download = "appointments_export.csv";
+      document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
     });
 
     // ---------- INVOICE ----------
     async function loadInvoice() {
       if (currentRole === "guest") return;
-
       const id = ($("invoiceDocId").value.trim() || lastSavedDocId || "").toUpperCase();
-      const msg = $("invoiceMessage");
-      msg.textContent = ""; msg.className = "message";
-
-      if (!id) {
-        msg.textContent = "Invoice ID ထည့်ပါ (သို့) Dashboard မှ Invoice ကိုနှိပ်ပါ";
-        msg.className = "message error";
-        return;
-      }
+      const msg = $("invoiceMessage"); msg.textContent = ""; msg.className = "message";
+      if (!id) { msg.textContent = "Invoice ID ထည့်ပါ (သို့) Dashboard မှ Invoice ကိုနှိပ်ပါ"; msg.className = "message error"; return; }
 
       try {
         const snap = await getDoc(doc(db, "appointments", id));
-        if (!snap.exists()) {
-          msg.textContent = "အဲ့ဒီ Invoice ID နဲ့ Appointment မတွေ့ပါ";
-          msg.className = "message error";
-          return;
-        }
+        if (!snap.exists()) { msg.textContent = "အဲ့ဒီ Invoice ID နဲ့ Appointment မတွေ့ပါ"; msg.className = "message error"; return; }
         const data = snap.data();
-        fillInvoiceCard(id, data);
-        msg.textContent = "✅ Invoice loaded.";
-        msg.className = "message success";
-      } catch(e) {
-        msg.textContent = "❌ Error loading invoice: " + e.message;
-        msg.className = "message error";
-      }
-    }
-
-    function fillInvoiceCard(id, data) {
-      const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
-      $("invRefText").textContent = `Invoice No: ${id}`;
-      $("invIssueDate").textContent = `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
-
-      const timeText = data.appointmentTime ? ` ${data.appointmentTime}` : "";
-
-      $("invCustomerInfo").innerHTML = `
-        <div><span class="invoice-label">အမည်</span><br/><span class="invoice-value">${data.name || "-"}</span></div>
-        <div><span class="invoice-label">ဖုန်းနံပါတ်</span><br/><span class="invoice-value">${data.phone || "-"}</span></div>
-        <div><span class="invoice-label">ဝန်ဆောင်မှုယူမည့်နေရာ</span><br/><span class="invoice-value">${data.location || "-"}</span></div>
-        <div><span class="invoice-label">ဝန်ဆောင်မှုရယူမည့်ရက် / အချိန်</span><br/>
-          <span class="invoice-value">${data.appointmentDate || "-"}${timeText}</span>
-        </div>
-      `;
-
-      $("invServiceInfo").innerHTML = `
-        <div><span class="invoice-label">ဝန်ဆောင်မှုအမျိုးအစား</span><br/><span class="invoice-value">${data.serviceType || "-"}</span></div>
-        <div><span class="invoice-label">ငွေပေးချေမှုအမျိုးအစား</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div>
-        <div><span class="invoice-label">မှတ်ချက်</span><br/><span class="invoice-value">${data.remark || "-"}</span></div>
-        <div><span class="invoice-label"></span><br/><span class="invoice-value"></span></div>
-      `;
-
-      const total = Number(data.price || 0);
-      const deposit = Number(data.depositAmount || 0);
-      const balance = Math.max(total - deposit, 0);
-
-      $("invTotalAmount").textContent = total.toFixed(2);
-      $("invBalanceAmount").textContent = balance.toFixed(2);
-
-      if (deposit > 0) {
-        $("invDepositRow").style.display = "block";
-        $("invDepositAmount").style.display = "block";
-        $("invDepositAmount").textContent = "-" + deposit.toFixed(2);
-      } else {
-        $("invDepositRow").style.display = "none";
-        $("invDepositAmount").style.display = "none";
-      }
+        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+        $("invRefText").textContent = `Invoice No: ${id}`; $("invIssueDate").textContent = `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
+        $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">အမည်</span><br/><span class="invoice-value">${data.name || "-"}</span></div><div><span class="invoice-label">ဖုန်းနံပါတ်</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">ဝန်ဆောင်မှုယူမည့်နေရာ</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">ဝန်ဆောင်မှုရယူမည့်ရက် / အချိန်</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${data.appointmentTime ? ` ${data.appointmentTime}` : ""}</span></div>`;
+        $("invServiceInfo").innerHTML = `<div><span class="invoice-label">ဝန်ဆောင်မှုအမျိုးအစား</span><br/><span class="invoice-value">${data.serviceType || "-"}</span></div><div><span class="invoice-label">ငွေပေးချေမှုအမျိုးအစား</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div><span class="invoice-label">မှတ်ချက်</span><br/><span class="invoice-value">${data.remark || "-"}</span></div><div><span class="invoice-label"></span><br/><span class="invoice-value"></span></div>`;
+        
+        const total = Number(data.price || 0); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
+        $("invTotalAmount").textContent = total.toFixed(2); $("invBalanceAmount").textContent = balance.toFixed(2);
+        if (deposit > 0) { $("invDepositRow").style.display = "block"; $("invDepositAmount").style.display = "block"; $("invDepositAmount").textContent = "-" + deposit.toFixed(2); } else { $("invDepositRow").style.display = "none"; $("invDepositAmount").style.display = "none"; }
+        msg.textContent = "✅ Invoice loaded."; msg.className = "message success";
+      } catch(e) { msg.textContent = "❌ Error loading invoice: " + e.message; msg.className = "message error"; }
     }
 
     $("loadInvoice").addEventListener("click", loadInvoice);
-
     $("gotoInvoiceFromEntry").addEventListener("click", () => {
       if (lastSavedDocId) $("invoiceDocId").value = lastSavedDocId;
-      document.querySelector('.tab-btn[data-tab="invoice"]').click();
-      if (lastSavedDocId) loadInvoice();
+      document.querySelector('.tab-btn[data-tab="invoice"]').click(); if (lastSavedDocId) loadInvoice();
     });
 
     $("downloadInvoiceJpeg").addEventListener("click", async () => {
       if (currentRole === "guest") return;
+      const card = $("invoiceCard"); const msg = $("invoiceMessage"); msg.textContent = "Rendering JPEG..."; msg.className = "message";
+      try {
+        const canvas = await html2canvas(card, { scale: 3, useCORS: true }); const link = document.createElement("a");
+        link.download = "invoice-" + (($("invoiceDocId").value.trim() || "preview").toUpperCase()) + ".jpg";
+        link.href = canvas.toDataURL("image/jpeg", 0.92); link.click();
+        msg.textContent = "✅ JPEG Downloaded."; msg.className = "message success";
+      } catch(e) { msg.textContent = "❌ Error generating JPEG: " + e.message; msg.className = "message error"; }
+    });
 
-      const card = $("invoiceCard");
-      const msg = $("invoiceMessage");
-      msg.textContent = "Rendering JPEG...";
-      msg.className = "message";
+    // ---------- USER MANAGEMENT (Admin Only) ----------
+    async function loadUsersList() {
+      if (currentRole !== "admin") return;
+      const tbody = $("usersTableBody"); tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Loading...</td></tr>`;
+      
+      try {
+        const snap = await getDocs(collection(db, "users")); tbody.innerHTML = "";
+        if(snap.empty) { tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">No users found.</td></tr>`; return; }
+
+        snap.forEach(docSnap => {
+          const email = docSnap.id; const role = docSnap.data().role;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${email}</td><td><span class="tag" style="background:${role==='admin'?'#fee2e2':'#eef2ff'}; color:${role==='admin'?'#dc2626':'#4f46e5'}">${role.toUpperCase()}</span></td><td><button class="btn btn-outline admin-only" style="padding:4px 8px;font-size:11px;" data-deluser="${email}">Remove Access</button></td>`;
+          tbody.appendChild(tr);
+
+          tr.querySelector(`[data-deluser="${email}"]`).addEventListener("click", async () => {
+            if(!confirm(`${email} ၏ ဝင်ရောက်ခွင့်ကို ပိတ်ရန် သေချာပါသလား?`)) return;
+            try { await deleteDoc(doc(db, "users", email)); alert("ဝင်ရောက်ခွင့် ပိတ်လိုက်ပါပြီ။"); loadUsersList(); } catch(e) { alert("Error: " + e.message); }
+          });
+        });
+      } catch(e) { tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:red;">Error loading users</td></tr>`; }
+    }
+
+    $("usersTabBtn")?.addEventListener("click", loadUsersList);
+    $("reloadUsersBtn")?.addEventListener("click", loadUsersList);
+
+    $("createNewAccBtn")?.addEventListener("click", async () => {
+      if (currentRole !== "admin") return;
+      const email = $("newAccEmail").value.trim(); const pwd = $("newAccPwd").value; const role = $("newAccRole").value;
+      const msg = $("userManageMessage");
+
+      if(!email || !pwd) { msg.textContent = "Email နှင့် Password ကို ပြည့်စုံစွာ ထည့်ပါ။"; msg.className = "message error"; return; }
+      if(pwd.length < 6) { msg.textContent = "Password အနည်းဆုံး ၆ လုံး ရှိရပါမည်။"; msg.className = "message error"; return; }
+
+      msg.textContent = "Creating account..."; msg.className = "message"; $("createNewAccBtn").disabled = true;
 
       try {
-        const canvas = await html2canvas(card, { scale: 3, useCORS: true });
-        const link = document.createElement("a");
-        link.download = "invoice-" + (($("invoiceDocId").value.trim() || "preview").toUpperCase()) + ".jpg";
-        link.href = canvas.toDataURL("image/jpeg", 0.92);
-        link.click();
-        msg.textContent = "✅ JPEG Downloaded.";
-        msg.className = "message success";
+        await createUserWithEmailAndPassword(secondaryAuth, email, pwd);
+        await signOut(secondaryAuth);
+        await setDoc(doc(db, "users", email), { role: role });
+        msg.textContent = `✅ Account (${email}) အောင်မြင်စွာ ဖွင့်ပေးပြီးပါပြီ။`; msg.className = "message success";
+        $("newAccEmail").value = ""; $("newAccPwd").value = ""; loadUsersList();
       } catch(e) {
-        msg.textContent = "❌ Error generating JPEG: " + e.message;
-        msg.className = "message error";
+        if(e.code === 'auth/email-already-in-use') {
+           try {
+             await setDoc(doc(db, "users", email), { role: role });
+             msg.textContent = `✅ ထို Email သည် ရှိပြီးသားဖြစ်၍ Role (${role}) သို့ ပြောင်းလဲသတ်မှတ်ပေးလိုက်ပါသည်။`; msg.className = "message success";
+             $("newAccEmail").value = ""; $("newAccPwd").value = ""; loadUsersList();
+           } catch(err) { msg.textContent = "❌ Role ပြောင်းလဲခြင်း မအောင်မြင်ပါ: " + err.message; msg.className = "message error"; }
+        } else { msg.textContent = "❌ အကောင့်ဖွင့်ခြင်း မအောင်မြင်ပါ: " + e.message; msg.className = "message error"; }
       }
+      $("createNewAccBtn").disabled = false;
     });
 
     // Initial
-    updateAuthUI();
-    renderDropdowns();
+    updateAuthUI(); renderDropdowns(); $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
 
-    // Default date
-    $("date").value = todayISO();
-    updateDepositUI();
-    applyInvoiceIdMode();
   </script>
 </body>
 </html>
