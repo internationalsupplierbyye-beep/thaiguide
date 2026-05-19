@@ -26,12 +26,12 @@
       min-height:100vh;
       display:flex;
       justify-content:center;
-      padding:20px 10px;
+      padding:10px;
     }
     .app-shell{
       position:relative;
       width:100%;
-      max-width:95%;
+      max-width: 1350px; /* <--- ဒီနေရာမှာ 98% အစား 1350px လို့ ပြောင်းလိုက်ပါ */
       background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.98));
       border-radius:18px;
       box-shadow:0 20px 40px rgba(15,23,42,.35), 0 0 0 1px rgba(148,163,184,.3);
@@ -46,6 +46,8 @@
       gap:12px;
       background: radial-gradient(circle at top right, #eef2ff, #ffffff);
       flex-wrap:wrap;
+      position: relative; /* <--- ဒါလေး အသစ်ထပ်ထည့်ပါ */
+      z-index: 50;        /* <--- ဒါလေး အသစ်ထပ်ထည့်ပါ (အမည်းရောင်ဘောင်ထက် အပေါ်ရောက်လာပါမည်) */
     }
     .brand{display:flex;align-items:center;gap:10px}
     .brand-mark{
@@ -164,7 +166,16 @@
     }
     table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;border-radius:10px;overflow:hidden}
     thead{background:#0f172a;color:#e5e7eb}
-    th,td{padding:7px 8px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}
+    th,td{
+      padding:7px 8px;
+      border-bottom:1px solid #e5e7eb;
+      text-align:left;
+      vertical-align:middle;
+      white-space:nowrap;
+      max-width: 180px; /* <--- အကျယ်ကို ကန့်သတ်ရန် */
+      overflow: hidden; /* <--- ဘောင်ကျော်သွားသော စာများကို ဖျောက်ရန် */
+      text-overflow: ellipsis; /* <--- ... ပုံစံဖြင့် ပြရန် */
+    }
     tbody tr:nth-child(even){background:#f9fafb}
     tbody tr:hover{background:#eef2ff}
     .tag{padding:2px 8px;border-radius:999px;font-size:11px;background:#eef2ff;color:#4f46e5}
@@ -292,7 +303,6 @@
     </header>
 
     <main>
-      <!-- ENTRY -->
       <section id="tab-entry" class="tab-panel active">
         <div class="panel-card">
           <div class="panel-header">
@@ -304,7 +314,6 @@
           </div>
 
           <form id="appointmentForm">
-            <!-- Invoice ID + Auto toggle -->
             <div class="field">
               <label for="invoiceId">Invoice ID</label>
 
@@ -341,6 +350,11 @@
             <div class="field">
               <label for="name">အမည်</label>
               <input type="text" id="name" placeholder="Customer Name" required />
+            </div>
+
+            <div class="field">
+              <label for="socialName">Customer Social Name</label>
+              <input type="text" id="socialName" placeholder="Fb / Line / Tg Name" />
             </div>
 
             <div class="field">
@@ -413,7 +427,6 @@
         </div>
       </section>
 
-      <!-- DASHBOARD -->
       <section id="tab-dashboard" class="tab-panel">
         <div class="panel-card">
           <div class="panel-header">
@@ -451,7 +464,6 @@
               </select>
             </div>
 
-            <!-- ✅ NEW: Appointment Date Filter -->
             <div class="toolbar-group">
               <span>Appointment Date</span>
               <input type="date" id="filterApptFrom" />
@@ -497,7 +509,6 @@
         </div>
       </section>
 
-      <!-- INVOICE -->
       <section id="tab-invoice" class="tab-panel">
         <div class="panel-card">
           <div class="panel-header">
@@ -574,7 +585,6 @@
         </div>
       </section>
 
-      <!-- SETTINGS (Admin only) -->
       <section id="tab-settings" class="tab-panel admin-only" style="display:none;">
         <div class="panel-card">
           <div class="panel-header">
@@ -619,18 +629,30 @@
             </div>
 
             <div class="settings-block">
-              <h4>Telegram Bot Notify</h4>
+              <h4>Telegram Bot Notify (Topics)</h4>
               <small>(optional)</small>
-              <div class="field">
+              <div class="field" style="margin-bottom:8px;">
                 <label for="tgToken">Bot Token</label>
                 <input type="text" id="tgToken" placeholder="123456789:ABC-YourBotToken" />
               </div>
-              <div class="field">
-                <label for="tgChatId">Chat ID</label>
-                <input type="text" id="tgChatId" placeholder="@yourchannel or numeric chat id" />
+              <div class="field" style="margin-bottom:8px;">
+                <label for="tgMainChatId">Main Group Chat ID</label>
+                <input type="text" id="tgMainChatId" placeholder="-100xxxxxxxxxx" />
+              </div>
+              <div class="field" style="margin-bottom:8px;">
+                <label for="tgThreadAppt">Appointment Topic ID</label>
+                <input type="number" id="tgThreadAppt" placeholder="e.g. 2" />
+              </div>
+              <div class="field" style="margin-bottom:8px;">
+                <label for="tgThreadAgent">Agent Topic ID</label>
+                <input type="number" id="tgThreadAgent" placeholder="e.g. 45" />
+              </div>
+              <div class="field" style="margin-bottom:8px;">
+                <label for="tgThreadCustomer">Customer Topic ID</label>
+                <input type="number" id="tgThreadCustomer" placeholder="e.g. 89" />
               </div>
               <small style="color:#b91c1c;">
-                ⚠️ Public hosting မှာ token ထည့်တာ မလုံခြုံပါ (Internal only)
+                ⚠️ Group Chat ID ကို -100 ဖြင့်စ၍ ထည့်ပါ။ Topic ID များကို ကိန်းဂဏန်းသီးသန့် ထည့်ပါ။
               </small>
             </div>
           </div>
@@ -641,13 +663,13 @@
     </main>
   </div>
 
-  <!-- html2canvas -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
-      getFirestore, collection, serverTimestamp, getDocs, doc, getDoc, setDoc, deleteDoc
+      getFirestore, collection, serverTimestamp, getDocs, doc, getDoc, setDoc, deleteDoc,
+      query, orderBy, limit
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
     import {
       getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
@@ -678,7 +700,7 @@
     };
 
     let servicePricing = {};
-    let telegramSettings = { botToken: "", chatId: "" };
+    let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "" };
 
     let cachedAppointments = [];
     let lastFilteredAppointments = [];
@@ -763,6 +785,13 @@
         $("loginEmail").disabled = false;
         $("loginPassword").disabled = false;
         $("logoutBtn").style.display = "none";
+        
+        // Login ထွက်လိုက်လျှင် (သို့) မဝင်ရသေးလျှင် Data များ အကုန်ရှင်းထုတ်ရန်
+        cachedAppointments = [];
+        const tbody = $("appointmentsTableBody");
+        if (tbody) tbody.innerHTML = `<tr><td colspan="15" style="text-align:center; padding:10px;">🔒 Data ကြည့်ရန် Login ဝင်ပါ</td></tr>`;
+        const form = $("appointmentForm");
+        if (form) form.reset();
       }
 
       updateRoleUI();
@@ -913,7 +942,10 @@
         if (tgSnap.exists()) {
           const t = tgSnap.data();
           telegramSettings.botToken = t.botToken || "";
-          telegramSettings.chatId = t.chatId || "";
+          telegramSettings.mainChatId = t.mainChatId || "";
+          telegramSettings.threadAppt = t.threadAppt || "";
+          telegramSettings.threadAgent = t.threadAgent || "";
+          telegramSettings.threadCustomer = t.threadCustomer || "";
         }
 
         const spSnap = await getDoc(doc(db, "settings", "servicePricing"));
@@ -931,8 +963,12 @@
       if ($("servicesSetting")) $("servicesSetting").value = dropdownSettings.serviceTypes.join("\n");
       if ($("paymentsSetting")) $("paymentsSetting").value = dropdownSettings.paymentTypes.join("\n");
       if ($("locationsSetting")) $("locationsSetting").value = dropdownSettings.locations.join("\n");
+      
       if ($("tgToken")) $("tgToken").value = telegramSettings.botToken;
-      if ($("tgChatId")) $("tgChatId").value = telegramSettings.chatId;
+      if ($("tgMainChatId")) $("tgMainChatId").value = telegramSettings.mainChatId;
+      if ($("tgThreadAppt")) $("tgThreadAppt").value = telegramSettings.threadAppt;
+      if ($("tgThreadAgent")) $("tgThreadAgent").value = telegramSettings.threadAgent;
+      if ($("tgThreadCustomer")) $("tgThreadCustomer").value = telegramSettings.threadCustomer;
     }
 
     $("saveSettings").addEventListener("click", async () => {
@@ -960,7 +996,10 @@
 
       servicePricing = newPricing;
       telegramSettings.botToken = $("tgToken").value.trim();
-      telegramSettings.chatId = $("tgChatId").value.trim();
+      telegramSettings.mainChatId = $("tgMainChatId").value.trim();
+      telegramSettings.threadAppt = $("tgThreadAppt").value.trim();
+      telegramSettings.threadAgent = $("tgThreadAgent").value.trim();
+      telegramSettings.threadCustomer = $("tgThreadCustomer").value.trim();
 
       try {
         await setDoc(doc(db, "settings", "dropdowns"), dropdownSettings, { merge: true });
@@ -1101,6 +1140,7 @@
         appointmentDate: $("appointmentDate").value,
         appointmentTime: $("appointmentTime").value || null,
         name: $("name").value.trim(),
+        socialName: $("socialName").value.trim() || null,
         phone: $("phone").value.trim(),
         customerStatus: $("customerStatus").value,
         channel: $("channel").value || null,
@@ -1159,7 +1199,7 @@
           messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId;
           messageDiv.className = "message success";
 
-          await sendTelegramNotification(lastSavedData);
+          await sendMultiTelegramNotifications(lastSavedData);
 
           // reset but keep auto id fresh
           form.reset();
@@ -1177,41 +1217,88 @@
       }
     });
 
-    // ---------- TELEGRAM ----------
-    async function sendTelegramNotification(a) {
-      if (!telegramSettings.botToken || !telegramSettings.chatId) return;
-      const apptDT = `${a.appointmentDate || "-"}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
-
-      const lines = [
-        "📩 *New Appointment Saved*",
-        "",
-        `🧾 Invoice ID: ${a.invoiceId}`,
-        `🟡 Status: ${a.customerStatus || "-"}`,
-        `👤 Name: ${a.name}`,
-        `📞 Phone: ${a.phone}`,
-        `📍 Location: ${a.location}`,
-        `📅 Service Date: ${a.date}`,
-        `🕒 Appointment: ${apptDT}`,
-        `🧾 Service: ${a.serviceType}`,
-        `💳 Payment: ${a.paymentType}`,
-        `💰 Total: ${Number(a.price||0).toFixed(2)} THB`,
-        `💵 Deposit: ${Number(a.depositAmount||0).toFixed(2)} | Balance: ${Number(a.balanceAmount||0).toFixed(2)}`,
-        a.channel ? `📡 Channel: ${a.channel}` : "",
-        a.remark ? `📝 Remark: ${a.remark}` : ""
-      ].filter(Boolean);
-
+    // ---------- NEW: MULTI-TELEGRAM (TOPICS) ----------
+    async function sendToTg(chatId, threadId, text) {
       try {
+        const bodyData = { 
+          chat_id: chatId, 
+          text: text, 
+          parse_mode: "Markdown" 
+        };
+        // Topic ID (thread_id) ရှိရင် ထည့်ပေးမယ်
+        if (threadId) {
+          bodyData.message_thread_id = threadId;
+        }
+
         await fetch(`https://api.telegram.org/bot${telegramSettings.botToken}/sendMessage`, {
           method:"POST",
           headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({
-            chat_id: telegramSettings.chatId,
-            text: lines.join("\n"),
-            parse_mode: "Markdown"
-          })
+          body: JSON.stringify(bodyData)
         });
       } catch(e) {
-        console.error("Telegram error", e);
+        console.error("Telegram error for chat/topic " + chatId + "/" + threadId, e);
+      }
+    }
+
+    async function sendMultiTelegramNotifications(a) {
+      if (!telegramSettings.botToken || !telegramSettings.mainChatId) return;
+      const mainChat = telegramSettings.mainChatId;
+      const apptDT = `${a.appointmentDate || "-"}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
+
+      // 1. Appointment Topic (Full Data)
+      if (telegramSettings.threadAppt) {
+        const linesAppt = [
+          "📩 *New Appointment Saved*",
+          "",
+          `🧾 Invoice ID: ${a.invoiceId}`,
+          `🟡 Status: ${a.customerStatus || "-"}`,
+          `👤 Name: ${a.name}`,
+          a.socialName ? `🌐 Social Name: ${a.socialName}` : "",
+          `📞 Phone: ${a.phone}`,
+          `📍 Location: ${a.location}`,
+          `📅 Service Date: ${a.date}`,
+          `🕒 Appointment: ${apptDT}`,
+          `🧾 Service: ${a.serviceType}`,
+          `💳 Payment: ${a.paymentType}`,
+          `💰 Total: ${Number(a.price||0).toFixed(2)} THB`,
+          `
+ Deposit: ${Number(a.depositAmount||0).toFixed(2)} | Balance: ${Number(a.balanceAmount||0).toFixed(2)}`,
+          a.channel ? `📡 Channel: ${a.channel}` : "",
+          a.remark ? `📝 Remark: ${a.remark}` : ""
+        ].filter(Boolean);
+        await sendToTg(mainChat, telegramSettings.threadAppt, linesAppt.join("\n"));
+      }
+
+      // 2. Agent Topic
+      if (telegramSettings.threadAgent) {
+        const linesAgent = [
+          `🧾 Invoice ID: ${a.invoiceId}`,
+          `👤 Name: ${a.name}`,
+          `📞 Phone: ${a.phone}`,
+          `🧾 Service: ${a.serviceType}`,
+          `💵 Balance (ငွေကောက်): ${Number(a.balanceAmount||0).toFixed(2)}`,
+          a.remark ? `📝 Remark: ${a.remark}` : ""
+        ].filter(Boolean);
+        await sendToTg(mainChat, telegramSettings.threadAgent, linesAgent.join("\n"));
+      }
+
+      // 3. Customer Topic
+      if (telegramSettings.threadCustomer) {
+        const linesCust = [
+          `🧾 Invoice ID: ${a.invoiceId}`,
+          `👤 Name: ${a.name}`,
+          `📞 Phone: ${a.phone}`,
+          `📍 Location: ${a.location}`,
+          `📅 Service Date: ${a.date}`,
+          `🕒 Appointment: ${apptDT}`,
+          `🧾 Service: ${a.serviceType}`,
+          `💳 Payment: ${a.paymentType}`,
+          `💰 Total: ${Number(a.price||0).toFixed(2)}`,
+          `💵 Deposit: ${Number(a.depositAmount||0).toFixed(2)} | Balance(ပေးချေရန်ကျန်ငွေ): ${Number(a.balanceAmount||0).toFixed(2)}`,
+          a.channel ? `📡 Channel: ${a.channel}` : "",
+          a.remark ? `📝 Remark: ${a.remark}` : ""
+        ].filter(Boolean);
+        await sendToTg(mainChat, telegramSettings.threadCustomer, linesCust.join("\n"));
       }
     }
 
@@ -1224,15 +1311,11 @@
       $("dashboardMessage").textContent = "";
 
       try {
-        const snap = await getDocs(collection(db, "appointments"));
+        // NEW: Load only last 200 documents
+        const q = query(collection(db, "appointments"), orderBy("createdAt", "desc"), limit(200));
+        const snap = await getDocs(q);
         const list = [];
         snap.forEach(ds => list.push({ id: ds.id, ...ds.data() }));
-
-        list.sort((a,b) => {
-          const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-          const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-          return tb - ta;
-        });
 
         cachedAppointments = list;
         renderAppointmentsTable();
@@ -1265,7 +1348,7 @@
         let ok = true;
 
         if (searchText) {
-          const s = `${a.name||""} ${a.phone||""} ${a.invoiceId||a.id||""}`;
+          const s = `${a.name||""} ${a.socialName||""} ${a.phone||""} ${a.invoiceId||a.id||""}`;
           ok = s.toLowerCase().includes(searchText);
         }
         if (ok && filterService) ok = a.serviceType === filterService;
@@ -1308,7 +1391,10 @@
           <td>${a.date || ""}</td>
           <td>${apptDT || ""}</td>
           <td>${statusPill(a.customerStatus)}</td>
-          <td>${a.name || ""}</td>
+          <td>
+            ${a.name || ""}<br/>
+            <small style="color:var(--primary); font-weight:600;">${a.socialName || ""}</small>
+          </td>
           <td>${a.phone || ""}</td>
           <td><span class="tag">${a.serviceType || ""}</span></td>
           <td>${a.location || ""}</td>
@@ -1383,6 +1469,7 @@
       $("appointmentDate").value = a.appointmentDate || "";
       $("appointmentTime").value = a.appointmentTime || "";
       $("name").value = a.name || "";
+      $("socialName").value = a.socialName || "";
       $("phone").value = a.phone || "";
       $("customerStatus").value = a.customerStatus || "";
 
@@ -1422,7 +1509,7 @@
 
       const rows = [];
       rows.push([
-        "Invoice ID","Service Date","Appointment Date","Appointment Time","Status","Name","Phone",
+        "Invoice ID","Service Date","Appointment Date","Appointment Time","Status","Name", "Social Name", "Phone",
         "Channel","Location","Service Type","Payment Type","Total","Deposit","Balance",
         "Service Cost","Service Profit","Remark"
       ]);
@@ -1435,6 +1522,7 @@
           a.appointmentTime || "",
           a.customerStatus || "",
           a.name || "",
+          a.socialName || "",
           a.phone || "",
           a.channel || "",
           a.location || "",
