@@ -687,7 +687,15 @@
                 <input type="text" id="invoiceDocId" placeholder="TG-YYYYMMDD-XXXX" />
                 <small>Entry/Dashboard မှာ သုံးခဲ့တဲ့ Invoice ID ကို ထည့်ပါ</small>
               </div>
-              <div class="actions" style="justify-content:flex-start; margin-top:8px;">
+              <div class="field full-width" style="margin-top:10px;">
+                <label for="invoiceLanguage">Invoice Language</label>
+                <select id="invoiceLanguage">
+                  <option value="mm">Myanmar (မြန်မာ)</option>
+                  <option value="en">English (အင်္ဂလိပ်)</option>
+                  <option value="th">Thai (ไทย)</option>
+                </select>
+              </div>
+              <div class="actions" style="justify-content:flex-start; margin-top:12px;">
                 <button class="btn btn-secondary" id="loadInvoice">Load Invoice</button>
                 <button class="btn btn-primary" id="downloadInvoiceJpeg">Download JPEG</button>
               </div>
@@ -702,7 +710,7 @@
                   </div>
                   <div style="display:flex;flex-direction:column;gap:2px;">
                     <div class="invoice-brand">THAILAND GUIDE</div>
-                    <div class="invoice-sub">ထိုင်းလမ်းညွှန်</div>
+                    <div class="invoice-sub" id="invSubtitle">ထိုင်းလမ်းညွှန်</div>
                   </div>
                 </div>
 
@@ -711,19 +719,19 @@
                   <div id="invIssueDate">Issued: —</div>
                 </div>
 
-                <div class="invoice-section-title">Customer Info</div>
+                <div class="invoice-section-title" id="lblCustomerInfo">Customer Info</div>
                 <div class="invoice-grid" id="invCustomerInfo"></div>
 
-                <div class="invoice-section-title">Service Detail</div>
+                <div class="invoice-section-title" id="lblServiceInfo">Service Detail</div>
                 <div class="invoice-grid" id="invServiceInfo"></div>
 
                 <div class="invoice-total">
                   <div>
-                    <div style="font-weight:900;">စုစုပေါင်း (THB)</div>
+                    <div style="font-weight:900;" id="lblTotal">စုစုပေါင်း (THB)</div>
                     <div id="invDepositRow" style="font-size:13px; color:#374151; display:none; margin-top:4px;">
-                      (-) စရံပေးငွေ
+                      <span id="lblDeposit">(-) စရံပေးငွေ</span>
                     </div>
-                    <div style="margin-top:8px; font-weight:900;">
+                    <div style="margin-top:8px; font-weight:900;" id="lblBalance">
                       Customer ဆီမှကောက်ရန်ကျန်ငွေ
                     </div>
                   </div>
@@ -1960,6 +1968,27 @@
       document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
     });
 
+    const invoiceTranslations = {
+      mm: {
+        subtitle: "THAILAND GUIDE - ထိုင်းလမ်းညွှန်", customerInfo: "Customer Info", serviceDetail: "Service Detail",
+        name: "အမည်", phone: "ဖုန်းနံပါတ်", location: "ဝန်ဆောင်မှုယူမည့်နေရာ", apptDate: "ဝန်ဆောင်မှုရယူမည့်ရက် / အချိန်",
+        service: "ဝန်ဆောင်မှုအမျိုးအစား", payment: "ငွေပေးချေမှုအမျိုးအစား", remark: "မှတ်ချက်",
+        total: "စုစုပေါင်း (THB)", deposit: "(-) စရံပေးငွေ", balance: "Customer ဆီမှကောက်ရန်ကျန်ငွေ"
+      },
+      en: {
+        subtitle: "THAILAND GUIDE - ထိုင်းလမ်းညွှန်", customerInfo: "Customer Information", serviceDetail: "Service Details",
+        name: "Name", phone: "Phone Number", location: "Service Location", apptDate: "Appointment Date / Time",
+        service: "Service Type", payment: "Payment Method", remark: "Remark",
+        total: "Total Amount (THB)", deposit: "(-) Deposit", balance: "Remaining Balance"
+      },
+      th: {
+        subtitle: "THAILAND GUIDE - ไกด์ไทยแลนด์", customerInfo: "ข้อมูลลูกค้า", serviceDetail: "รายละเอียดบริการ",
+        name: "ชื่อ", phone: "เบอร์โทรศัพท์", location: "สถานที่รับบริการ", apptDate: "วันที่ / เวลานัดหมาย",
+        service: "ประเภทบริการ", payment: "วิธีชำระเงิน", remark: "หมายเหตุ",
+        total: "ยอดรวม (THB)", deposit: "(-) มัดจำ", balance: "ยอดคงเหลือที่ต้องชำระ"
+      }
+    };
+
     async function loadInvoice() {
       if (currentRole === "guest") return;
       const id = ($("invoiceDocId").value.trim() || lastSavedDocId || "").toUpperCase();
@@ -1980,12 +2009,22 @@
           else if (data.createdAt?.toMillis) createdAt = new Date(data.createdAt.toMillis());
         }
 
+        const lang = $("invoiceLanguage")?.value || "mm";
+        const t = invoiceTranslations[lang];
+
+        if($("invSubtitle")) $("invSubtitle").textContent = t.subtitle;
+        if($("lblCustomerInfo")) $("lblCustomerInfo").textContent = t.customerInfo;
+        if($("lblServiceInfo")) $("lblServiceInfo").textContent = t.serviceDetail;
+        if($("lblTotal")) $("lblTotal").textContent = t.total;
+        if($("lblDeposit")) $("lblDeposit").textContent = t.deposit;
+        if($("lblBalance")) $("lblBalance").textContent = t.balance;
+
         $("invRefText").textContent = `Invoice No: ${id}`; 
         $("invIssueDate").textContent = `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
         
-        $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">အမည်</span><br/><span class="invoice-value">${data.name || "-"}</span></div><div><span class="invoice-label">ဖုန်းနံပါတ်</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">ဝန်ဆောင်မှုယူမည့်နေရာ</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">ဝန်ဆောင်မှုရယူမည့်ရက် / အချိန်</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${data.appointmentTime ? ` ${data.appointmentTime}` : ""}</span></div>`;
+        $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${data.name || "-"}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${data.appointmentTime ? ` ${data.appointmentTime}` : ""}</span></div>`;
         
-        $("invServiceInfo").innerHTML = `<div><span class="invoice-label">ဝန်ဆောင်မှုအမျိုးအစား</span><br/><span class="invoice-value">${data.serviceType || "-"}</span></div><div><span class="invoice-label">ငွေပေးချေမှုအမျိုးအစား</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div><span class="invoice-label">မှတ်ချက်</span><br/><span class="invoice-value">${data.remark || "-"}</span></div><div><span class="invoice-label"></span><br/><span class="invoice-value"></span></div>`;
+        $("invServiceInfo").innerHTML = `<div><span class="invoice-label">${t.service}</span><br/><span class="invoice-value">${data.serviceType || "-"}</span></div><div><span class="invoice-label">${t.payment}</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div><span class="invoice-label">${t.remark}</span><br/><span class="invoice-value">${data.remark || "-"}</span></div><div><span class="invoice-label"></span><br/><span class="invoice-value"></span></div>`;
         
         const total = Number(data.price || 0); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
         $("invTotalAmount").textContent = total.toFixed(2); $("invBalanceAmount").textContent = balance.toFixed(2);
@@ -2001,6 +2040,13 @@
     }
 
     $("loadInvoice").addEventListener("click", loadInvoice);
+    
+    // Language ပြောင်းတာနဲ့ ချက်ချင်း Preview ပြောင်းပေးရန်
+    $("invoiceLanguage")?.addEventListener("change", () => {
+      if ($("invoiceDocId").value.trim()) {
+        loadInvoice();
+      }
+    });
     $("gotoInvoiceFromEntry").addEventListener("click", () => {
       if (lastSavedDocId) $("invoiceDocId").value = lastSavedDocId;
       document.querySelector('.tab-btn[data-tab="invoice"]').click(); if (lastSavedDocId) loadInvoice();
