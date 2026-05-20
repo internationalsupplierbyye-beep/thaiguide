@@ -49,7 +49,7 @@
       top: 0;
       z-index: 100;
       border-radius: 18px 18px 0 0;
-      flex-wrap: nowrap; /* <--- ဒီနေရာလေးကို nowrap လို့ ပြန်ပြောင်းပေးပါ */
+      flex-wrap: nowrap; 
     }
     .brand{display:flex;align-items:center;gap:10px}
     .brand-mark{
@@ -70,7 +70,7 @@
       display:flex;
       align-items:center;
       gap:10px;
-      flex-wrap: wrap; /* <--- ဒီနေရာကိုတော့ wrap အတိုင်းပဲ ဆက်ထားပါ */
+      flex-wrap: wrap; 
       justify-content:flex-end;
     }
     .tabs{display:flex;gap:6px;background:rgba(15,23,42,.05);padding:3px;border-radius:999px}
@@ -258,7 +258,6 @@
     }
     .summary-card.expiring-card .summary-value { color: #b91c1c; }
 
-    /* Highlights Row Animation */
     @keyframes highlightGlow {
       0% { background-color: #fef08a; transform: scale(1.01); }
       50% { background-color: #fef08a; }
@@ -314,7 +313,7 @@
     .invoice-total-amount{font-size:20px;font-weight:900}
     .chip{border-radius:999px;border:1px solid rgba(148,163,184,.7);padding:2px 7px;font-size:10px}
 
-    .settings-grid{ display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px 18px;margin-top:10px; }
+    .settings-grid{ display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px 18px;margin-top:10px; }
     .settings-block{ border-radius:12px;border:1px dashed rgba(148,163,184,.7); padding:10px 12px;background:#f9fafb; }
     .settings-block h4{margin:0 0 4px;font-size:13px}
     .pricing-row{ display:grid; grid-template-columns:minmax(0,1fr) 90px 90px; gap:4px 8px;align-items:center;font-size:12px;margin-bottom:4px; }
@@ -521,6 +520,12 @@
             <div class="field">
               <label for="serviceType">ဝန်ဆောင်မှုအမျိုးအစား</label>
               <select id="serviceType" required></select>
+            </div>
+            <div class="field">
+              <label for="servicePackage">Package / Region</label>
+              <select id="servicePackage">
+                <option value="">-- None --</option>
+              </select>
             </div>
 
             <div class="field">
@@ -765,7 +770,7 @@
           <div class="settings-grid">
             <div class="settings-block">
               <h4>Customer Status List</h4>
-              <textarea id="statusesSetting" rows="4"></textarea>
+              <textarea id="statusesSetting" rows="6"></textarea>
             </div>
             <div class="settings-block">
               <h4>Customer Channel List</h4>
@@ -776,6 +781,11 @@
               <textarea id="servicesSetting" rows="6"></textarea>
             </div>
             <div class="settings-block">
+              <h4>Service Package List (Optional)</h4>
+              <small>ဥပမာ: TM30 = BKK, REG (ခွဲရေးချင်ရင်သုံးပါ)</small>
+              <textarea id="packagesSetting" rows="6" placeholder="Service Name = Pkg1, Pkg2"></textarea>
+            </div>
+            <div class="settings-block">
               <h4>Payment Type List</h4>
               <textarea id="paymentsSetting" rows="6"></textarea>
             </div>
@@ -783,36 +793,40 @@
               <h4>Service Location List</h4>
               <textarea id="locationsSetting" rows="6"></textarea>
             </div>
+            
             <div class="settings-block">
               <h4>Service Pricing (Cost / Profit per Service)</h4>
-              <div id="servicePricingContainer"></div>
+              <div id="servicePricingContainer" style="max-height: 210px; overflow-y: auto; overflow-x: auto; padding-right: 6px;"></div>
             </div>
+            
             <div class="settings-block">
               <h4>Telegram Bot Notify (Topics)</h4>
               <small>(optional)</small>
-              <div class="field" style="margin-bottom:8px;">
-                <label>Bot Token</label>
-                <input type="text" id="tgToken" placeholder="123456789:ABC-YourBotToken" />
-              </div>
-              <div class="field" style="margin-bottom:8px;">
-                <label>Main Group Chat ID</label>
-                <input type="text" id="tgMainChatId" placeholder="-100xxxxxxxxxx" />
-              </div>
-              <div class="field" style="margin-bottom:8px;">
-                <label>Appointment Topic ID (အသစ်သွင်းလျှင်)</label>
-                <input type="number" id="tgThreadAppt" placeholder="e.g. 2" />
-              </div>
-              <div class="field" style="margin-bottom:8px;">
-                <label>Completed Topic ID (Status Completed ဖြစ်လျှင် ပို့ရန်)</label>
-                <input type="number" id="tgThreadCompleted" placeholder="e.g. 99" />
-              </div>
-              <div class="field" style="margin-bottom:8px;">
-                <label>Agent Topic ID</label>
-                <input type="number" id="tgThreadAgent" placeholder="e.g. 45" />
-              </div>
-              <div class="field" style="margin-bottom:8px;">
-                <label>Customer Topic ID</label>
-                <input type="number" id="tgThreadCustomer" placeholder="e.g. 89" />
+              <div style="max-height: 210px; overflow-y: auto; overflow-x: hidden; padding-right: 6px; margin-top: 8px;">
+                <div class="field" style="margin-bottom:8px;">
+                  <label>Bot Token</label>
+                  <input type="text" id="tgToken" placeholder="123456789:ABC-YourBotToken" />
+                </div>
+                <div class="field" style="margin-bottom:8px;">
+                  <label>Main Group Chat ID</label>
+                  <input type="text" id="tgMainChatId" placeholder="-100xxxxxxxxxx" />
+                </div>
+                <div class="field" style="margin-bottom:8px;">
+                  <label>Appointment Topic ID (အသစ်သွင်းလျှင်)</label>
+                  <input type="number" id="tgThreadAppt" placeholder="e.g. 2" />
+                </div>
+                <div class="field" style="margin-bottom:8px;">
+                  <label>Completed Topic ID (Status Completed ဖြစ်လျှင် ပို့ရန်)</label>
+                  <input type="number" id="tgThreadCompleted" placeholder="e.g. 99" />
+                </div>
+                <div class="field" style="margin-bottom:8px;">
+                  <label>Agent Topic ID</label>
+                  <input type="number" id="tgThreadAgent" placeholder="e.g. 45" />
+                </div>
+                <div class="field" style="margin-bottom:8px;">
+                  <label>Customer Topic ID</label>
+                  <input type="number" id="tgThreadCustomer" placeholder="e.g. 89" />
+                </div>
               </div>
             </div>
           </div>
@@ -912,13 +926,14 @@
     let currentUser = null;
     let currentRole = "guest"; 
     
-    let viewMode = "active"; // "active", "archive", "expiring"
+    let viewMode = "active"; 
     let highlightDocId = null;
 
     let dropdownSettings = {
       customerStatuses: ["Pending", "Confirm", "Cancel", "Completed"],
       customerChannels: ["Facebook Page","Messenger","Telegram","Line","Phone Call","Walk-in","Agent / Referral","Other"],
       serviceTypes: ["Bank Account Opening","Visa Service","TM30 / 90 Days Report","Money Exchange","Flight / Ticket","Other Service"],
+      servicePackages: {}, 
       paymentTypes: ["Cash","Bank Transfer","QR Payment","Deposit (Partial)","Deposit (50%)","Deposit (Custom)","Free of Charge"],
       locations: ["Chiang Mai Office","Bangkok Office","Online Service"]
     };
@@ -1108,7 +1123,6 @@
       });
     });
     
-    // --- Dashboard Tabs (Active vs Archive vs Expiring) UI Update ---
     function updateDashboardTabsUI() {
        const activeBtn = $("btnActiveTab");
        const archiveBtn = $("btnArchiveTab");
@@ -1122,7 +1136,7 @@
           if(activeBtn) { activeBtn.className = "btn btn-primary"; activeBtn.style.background = ""; activeBtn.style.color = ""; }
           $("dashboardTitleText").innerHTML = `<span>📊 Dashboard & Records</span> <span class="badge">Active</span>`;
        } else if (viewMode === "archive") {
-          if(archiveBtn) { archiveBtn.className = "btn btn-primary"; archiveBtn.style.background = ""; archiveBtn.style.color = ""; }
+          if(archiveBtn) { archiveBtn.className = "btn btn-primary"; activeBtn.style.background = ""; activeBtn.style.color = ""; }
           $("dashboardTitleText").innerHTML = `<span>📊 Dashboard & Records</span> <span class="badge">Archive</span>`;
        } else if (viewMode === "all") {
           if(allBtn) { allBtn.className = "btn btn-primary"; allBtn.style.background = ""; allBtn.style.color = ""; }
@@ -1132,7 +1146,6 @@
        }
     }
 
-    // Filter များအားလုံးကို အလိုလို ရှင်းလင်းပေးမည့် Function အသစ်
     function clearAllFilters() {
       if($("searchText")) $("searchText").value = "";
       if($("filterServiceType")) $("filterServiceType").value = "";
@@ -1143,19 +1156,19 @@
 
     $("btnActiveTab")?.addEventListener("click", () => {
       viewMode = "active"; highlightDocId = null; 
-      clearAllFilters(); // Tab ပြောင်းတိုင်း Filter များကို ဖျက်ပေးမည်
+      clearAllFilters(); 
       updateDashboardTabsUI(); renderAppointmentsTable();
     });
 
     $("btnArchiveTab")?.addEventListener("click", () => {
       viewMode = "archive"; highlightDocId = null; 
-      clearAllFilters(); // Tab ပြောင်းတိုင်း Filter များကို ဖျက်ပေးမည်
+      clearAllFilters(); 
       updateDashboardTabsUI(); renderAppointmentsTable();
     });
 
     $("btnAllTab")?.addEventListener("click", () => {
       viewMode = "all"; highlightDocId = null; 
-      clearAllFilters(); // Tab ပြောင်းတိုင်း Filter များကို ဖျက်ပေးမည်
+      clearAllFilters(); 
       updateDashboardTabsUI(); renderAppointmentsTable();
     });
 
@@ -1169,43 +1182,48 @@
       arr.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; select.appendChild(o); });
     }
 
+    function renderDropdowns() {
+      if($("customerStatus")) fillSelect($("customerStatus"), dropdownSettings.customerStatuses, false);
+      if($("filterStatus")) fillSelect($("filterStatus"), dropdownSettings.customerStatuses);
+      if($("channel")) fillSelect($("channel"), dropdownSettings.customerChannels);
+      if($("location")) fillSelect($("location"), dropdownSettings.locations);
+      if($("serviceType")) fillSelect($("serviceType"), dropdownSettings.serviceTypes);
+      if($("filterServiceType")) fillSelect($("filterServiceType"), dropdownSettings.serviceTypes);
+      if($("paymentType")) fillSelect($("paymentType"), dropdownSettings.paymentTypes);
+      
+      renderServicePricingEditor();
+      if(typeof updatePackageDropdown === "function") updatePackageDropdown();
+    }
+
     function renderServicePricingEditor() {
       const container = $("servicePricingContainer");
       if (!container) return;
       container.innerHTML = "";
-      dropdownSettings.serviceTypes.forEach(name => {
+      
+      const createRow = (key, label) => {
         const row = document.createElement("div");
-        row.className = "pricing-row";
-        const sp = servicePricing[name] || { cost: "", profit: "" };
+        row.style.display = "grid";
+        // Fixed label cut-off issue (T instead of TM30)
+        row.style.gridTemplateColumns = "minmax(90px, 1fr) 70px 70px 80px";
+        row.style.gap = "4px"; row.style.alignItems = "center"; row.style.marginBottom = "6px";
+        const sp = servicePricing[key] || { cost: "", profit: "", price: "" };
         row.innerHTML = `
-          <span title="${name}">${name}</span>
-          <input type="number" min="0" step="0.01" placeholder="Cost" data-sp-cost="${name}" value="${sp.cost ?? ""}">
-          <input type="number" min="0" step="0.01" placeholder="Profit" data-sp-profit="${name}" value="${sp.profit ?? ""}">
+          <span title="${label}" style="font-size:11px; font-weight:700; line-height:1.2;">${label}</span>
+          <input type="number" min="0" step="0.01" placeholder="Cost" data-sp-cost="${key}" value="${sp.cost ?? ""}" style="font-size:11px;padding:4px;">
+          <input type="number" min="0" step="0.01" placeholder="Profit" data-sp-profit="${key}" value="${sp.profit ?? ""}" style="font-size:11px;padding:4px;">
+          <input type="number" min="0" step="0.01" placeholder="Price" data-sp-price="${key}" value="${sp.price ?? ""}" style="font-size:11px;padding:4px;background:#eef2ff;border-color:#818cf8;">
         `;
         container.appendChild(row);
+      };
+
+      dropdownSettings.serviceTypes.forEach(sName => {
+        const pkgs = dropdownSettings.servicePackages[sName] || [];
+        if(pkgs.length > 0) {
+           pkgs.forEach(pName => createRow(`${sName}::${pName}`, `${sName} (${pName})`));
+        } else {
+           createRow(sName, sName);
+        }
       });
-    }
-
-    function renderDropdowns() {
-      fillSelect($("customerStatus"), dropdownSettings.customerStatuses, true);
-      fillSelect($("channel"), dropdownSettings.customerChannels, true);
-      fillSelect($("serviceType"), dropdownSettings.serviceTypes, true);
-      fillSelect($("paymentType"), dropdownSettings.paymentTypes, true);
-      fillSelect($("location"), dropdownSettings.locations, true);
-
-      const filterService = $("filterServiceType");
-      filterService.innerHTML = "";
-      const allService = document.createElement("option"); allService.value = ""; allService.textContent = "All";
-      filterService.appendChild(allService);
-      dropdownSettings.serviceTypes.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; filterService.appendChild(o); });
-      
-      const filterStatus = $("filterStatus");
-      filterStatus.innerHTML = "";
-      const allStatus = document.createElement("option"); allStatus.value = ""; allStatus.textContent = "All";
-      filterStatus.appendChild(allStatus);
-      dropdownSettings.customerStatuses.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; filterStatus.appendChild(o); });
-
-      renderServicePricingEditor();
     }
 
     async function loadSettingsFromFirestore() {
@@ -1213,11 +1231,12 @@
         const ddSnap = await getDoc(doc(db, "settings", "dropdowns"));
         if (ddSnap.exists()) {
           const d = ddSnap.data();
-          dropdownSettings.customerStatuses = d.customerStatuses || dropdownSettings.customerStatuses;
-          dropdownSettings.customerChannels = d.customerChannels || dropdownSettings.customerChannels;
-          dropdownSettings.serviceTypes = d.serviceTypes || dropdownSettings.serviceTypes;
-          dropdownSettings.paymentTypes = d.paymentTypes || dropdownSettings.paymentTypes;
-          dropdownSettings.locations = d.locations || dropdownSettings.locations;
+          dropdownSettings.customerStatuses = d.customerStatuses && d.customerStatuses.length ? d.customerStatuses : dropdownSettings.customerStatuses;
+          dropdownSettings.customerChannels = d.customerChannels && d.customerChannels.length ? d.customerChannels : dropdownSettings.customerChannels;
+          dropdownSettings.serviceTypes = d.serviceTypes && d.serviceTypes.length ? d.serviceTypes : dropdownSettings.serviceTypes;
+          dropdownSettings.servicePackages = d.servicePackages || {}; 
+          dropdownSettings.paymentTypes = d.paymentTypes && d.paymentTypes.length ? d.paymentTypes : dropdownSettings.paymentTypes;
+          dropdownSettings.locations = d.locations && d.locations.length ? d.locations : dropdownSettings.locations;
         }
 
         const tgSnap = await getDoc(doc(db, "settings", "telegram"));
@@ -1235,6 +1254,13 @@
       if ($("statusesSetting")) $("statusesSetting").value = dropdownSettings.customerStatuses.join("\n");
       if ($("channelsSetting")) $("channelsSetting").value = dropdownSettings.customerChannels.join("\n");
       if ($("servicesSetting")) $("servicesSetting").value = dropdownSettings.serviceTypes.join("\n");
+      if ($("packagesSetting")) {
+         let pkgText = "";
+         for(const [sName, pList] of Object.entries(dropdownSettings.servicePackages || {})) {
+            pkgText += `${sName} = ${pList.join(", ")}\n`;
+         }
+         $("packagesSetting").value = pkgText.trim();
+      }
       if ($("paymentsSetting")) $("paymentsSetting").value = dropdownSettings.paymentTypes.join("\n");
       if ($("locationsSetting")) $("locationsSetting").value = dropdownSettings.locations.join("\n");
       
@@ -1253,18 +1279,35 @@
       dropdownSettings.customerStatuses = $("statusesSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
       dropdownSettings.customerChannels = $("channelsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
       dropdownSettings.serviceTypes = $("servicesSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
+      
+      dropdownSettings.servicePackages = {};
+      const pkgLines = $("packagesSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
+      pkgLines.forEach(line => {
+         const parts = line.split("=");
+         if(parts.length === 2) {
+            const sName = parts[0].trim();
+            const pList = parts[1].split(",").map(p=>p.trim()).filter(Boolean);
+            if(sName && pList.length > 0) dropdownSettings.servicePackages[sName] = pList;
+         }
+      });
       dropdownSettings.paymentTypes = $("paymentsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
       dropdownSettings.locations = $("locationsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
 
       const newPricing = {};
-      dropdownSettings.serviceTypes.forEach(n => newPricing[n] = { cost: 0, profit: 0 });
       document.querySelectorAll("[data-sp-cost]").forEach(input => {
         const name = input.dataset.spCost; const val = parseFloat(input.value);
-        if (!isNaN(val)) { newPricing[name] = newPricing[name] || {}; newPricing[name].cost = val; }
+        newPricing[name] = newPricing[name] || { cost:0, profit:0, price:0 };
+        if (!isNaN(val)) newPricing[name].cost = val;
       });
       document.querySelectorAll("[data-sp-profit]").forEach(input => {
         const name = input.dataset.spProfit; const val = parseFloat(input.value);
-        if (!isNaN(val)) { newPricing[name] = newPricing[name] || {}; newPricing[name].profit = val; }
+        newPricing[name] = newPricing[name] || { cost:0, profit:0, price:0 };
+        if (!isNaN(val)) newPricing[name].profit = val;
+      });
+      document.querySelectorAll("[data-sp-price]").forEach(input => {
+        const name = input.dataset.spPrice; const val = parseFloat(input.value);
+        newPricing[name] = newPricing[name] || { cost:0, profit:0, price:0 };
+        if (!isNaN(val)) newPricing[name].price = val;
       });
       servicePricing = newPricing;
       
@@ -1292,6 +1335,31 @@
       const deposit = Number($("depositAmount").value || 0);
       $("balanceAmount").value = Math.max(total - deposit, 0).toFixed(2);
     }
+    
+    function updatePackageDropdown() {
+       const sName = $("serviceType").value;
+       const pkgSelect = $("servicePackage");
+       if(!pkgSelect) return;
+       const pkgs = dropdownSettings.servicePackages[sName] || [];
+       pkgSelect.innerHTML = '<option value="">-- None --</option>';
+       pkgs.forEach(p => {
+          const opt = document.createElement("option"); opt.value = opt.textContent = p; pkgSelect.appendChild(opt);
+       });
+       pkgSelect.disabled = pkgs.length === 0;
+    }
+    
+    function autoFillPrice() {
+        const sName = $("serviceType").value;
+        if(!sName) return;
+        const pName = $("servicePackage") ? $("servicePackage").value : "";
+        const key = (pName && pName !== "") ? `${sName}::${pName}` : sName;
+        const sp = servicePricing[key];
+        if(sp && sp.price) { $("price").value = sp.price; updateDepositUI(); }
+    }
+    
+    $("serviceType").addEventListener("change", () => { updatePackageDropdown(); autoFillPrice(); });
+    if($("servicePackage")) $("servicePackage").addEventListener("change", autoFillPrice);
+
     $("paymentType").addEventListener("change", updateDepositUI);
     $("price").addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", updateDepositUI);
@@ -1358,6 +1426,7 @@
         channel: $("channel").value || null, 
         location: $("location").value,
         serviceType: $("serviceType").value, 
+        servicePackage: $("servicePackage") ? $("servicePackage").value : null, 
         paymentType: $("paymentType").value, 
         price: total, 
         depositAmount: dep,
@@ -1371,7 +1440,8 @@
         messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။"; messageDiv.className = "message error"; return;
       }
 
-      const sp = servicePricing[data.serviceType] || {};
+      const spKey = (data.servicePackage && data.servicePackage !== "") ? `${data.serviceType}::${data.servicePackage}` : data.serviceType;
+      const sp = servicePricing[spKey] || servicePricing[data.serviceType] || {};
       data.serviceCost = typeof sp.cost === "number" ? sp.cost : 0;
       data.serviceProfit = typeof sp.profit === "number" ? sp.profit : (data.price - data.serviceCost);
 
@@ -1419,13 +1489,14 @@
       if (!telegramSettings.botToken || !telegramSettings.mainChatId) return;
       const mainChat = telegramSettings.mainChatId;
       const apptDT = `${a.appointmentDate || "-"}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
+      const sTypeStr = a.servicePackage ? `${a.serviceType} (${a.servicePackage})` : a.serviceType;
 
       if (telegramSettings.threadAppt) {
         const linesAppt = [
           "📩 *New Appointment Saved*", "",
           `🧾 Invoice ID: ${a.invoiceId}`, `🟡 Status: ${a.customerStatus || "-"}`, `👤 Name: ${a.name}`,
           a.socialName ? `🌐 Social Name: ${a.socialName}` : "", `📞 Phone: ${a.phone}`, `📍 Location: ${a.location}`,
-          `📅 Service Date: ${a.date}`, `🕒 Appointment: ${apptDT}`, `🧾 Service: ${a.serviceType}`,
+          `📅 Service Date: ${a.date}`, `🕒 Appointment: ${apptDT}`, `🧾 Service: ${sTypeStr}`,
           `💳 Payment: ${a.paymentType}`, `💰 Total: ${Number(a.price||0).toFixed(2)} THB`,
           `💵 Deposit: ${Number(a.depositAmount||0).toFixed(2)} | Balance: ${Number(a.balanceAmount||0).toFixed(2)}`,
           a.channel ? `📡 Channel: ${a.channel}` : "", a.remark ? `📝 Remark: ${a.remark}` : ""
@@ -1435,7 +1506,7 @@
 
       if (telegramSettings.threadAgent) {
         const linesAgent = [
-          `🧾 Invoice ID: ${a.invoiceId}`, `👤 Name: ${a.name}`, `📞 Phone: ${a.phone}`, `🧾 Service: ${a.serviceType}`,
+          `🧾 Invoice ID: ${a.invoiceId}`, `👤 Name: ${a.name}`, `📞 Phone: ${a.phone}`, `🧾 Service: ${sTypeStr}`,
           `💵 Balance (ငွေကောက်): ${Number(a.balanceAmount||0).toFixed(2)}`, a.remark ? `📝 Remark: ${a.remark}` : ""
         ].filter(Boolean);
         await sendToTg(mainChat, telegramSettings.threadAgent, linesAgent.join("\n"));
@@ -1444,7 +1515,7 @@
       if (telegramSettings.threadCustomer) {
         const linesCust = [
           `🧾 Invoice ID: ${a.invoiceId}`, `👤 Name: ${a.name}`, `📞 Phone: ${a.phone}`, `📍 Location: ${a.location}`,
-          `📅 Service Date: ${a.date}`, `🕒 Appointment: ${apptDT}`, `🧾 Service: ${a.serviceType}`,
+          `📅 Service Date: ${a.date}`, `🕒 Appointment: ${apptDT}`, `🧾 Service: ${sTypeStr}`,
           `💳 Payment: ${a.paymentType}`, `💰 Total: ${Number(a.price||0).toFixed(2)}`,
           `💵 Deposit: ${Number(a.depositAmount||0).toFixed(2)} | Balance(ပေးချေရန်ကျန်ငွေ): ${Number(a.balanceAmount||0).toFixed(2)}`,
           a.channel ? `📡 Channel: ${a.channel}` : "", a.remark ? `📝 Remark: ${a.remark}` : ""
@@ -1457,6 +1528,7 @@
       if (!telegramSettings.botToken || !telegramSettings.mainChatId || !telegramSettings.threadCompleted) return;
       const mainChat = telegramSettings.mainChatId;
       const apptDT = `${a.appointmentDate || "-"}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
+      const sTypeStr = a.servicePackage ? `${a.serviceType} (${a.servicePackage})` : a.serviceType;
 
       const lines = [
         "✅ *Service Completed*", "",
@@ -1467,7 +1539,7 @@
         `📍 Location: ${a.location}`,
         `📅 Service Date: ${a.date}`,
         `🕒 Appointment: ${apptDT}`,
-        `🧾 Service: ${a.serviceType}`,
+        `🧾 Service: ${sTypeStr}`,
         `💳 Payment: ${a.paymentType}`,
         `💰 Total: ${Number(a.price||0).toFixed(2)} THB`,
         `💵 Deposit: ${Number(a.depositAmount||0).toFixed(2)} | Balance: ${Number(a.balanceAmount||0).toFixed(2)}`,
@@ -1479,24 +1551,20 @@
     }
 
    $("pendingCardBtn").addEventListener("click", () => {
-      // Tab နှိပ်သည့် Action ကို မသုံးဘဲ View Mode ကို တိုက်ရိုက်ပြောင်းမည် (Filter မပျက်စေရန်)
       viewMode = "all";
       highlightDocId = null;
-      updateDashboardTabsUI(); // ခလုတ်အရောင်များကို All Records ဘက် ပြောင်းမည်
+      updateDashboardTabsUI(); 
 
-      // မနက်ဖြန် ရက်စွဲ တွက်ခြင်း
       const t = new Date();
       t.setDate(t.getDate() + 1);
       const tomorrowStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
 
-      // Search များကို ရှင်းလင်းပြီး မနက်ဖြန် ရက်စွဲကိုသာ တပ်မည်
       $("searchText").value = "";
       $("filterStatus").value = ""; 
       $("filterServiceType").value = "";
       $("filterApptFrom").value = tomorrowStr;
       $("filterApptTo").value = tomorrowStr;
       
-      // ဇယားကို Filter လုပ်မည်
       renderAppointmentsTable();
     });
 
@@ -1504,7 +1572,6 @@
       viewMode = "expiring";
       highlightDocId = null;
       
-      // Date တွေ Search တွေ ညိနေတာမျိုး မဖြစ်အောင် အရင်ဖျက်ပေးမည်
       if(typeof clearAllFilters === "function") {
          clearAllFilters();
       } else {
@@ -1580,7 +1647,6 @@
       const today = new Date();
       today.setHours(0,0,0,0);
       
-      // မနက်ဖြန် ရက်စွဲကို တွက်ထုတ်ခြင်း
       const tmr = new Date();
       tmr.setDate(tmr.getDate() + 1);
       const tomorrowStr = `${tmr.getFullYear()}-${String(tmr.getMonth() + 1).padStart(2, '0')}-${String(tmr.getDate()).padStart(2, '0')}`;
@@ -1596,12 +1662,10 @@
           totalProfit += profit;
         }
         
-        // မနက်ဖြန် Appointment ရှိသူအားလုံးကို ရေတွက်မည် (Cancel မှလွဲ၍ ကျန်တာအကုန်ပါမည်)
         if (a.appointmentDate === tomorrowStr && status !== "cancel") {
           pendingCount++;
         }
 
-        // Expiry Date Logic (Max 5 days past expiry) - Remove strict completed exclusion
         if (a.expiryDate && a.alertDays && status !== "cancel") {
           const expDate = new Date(a.expiryDate);
           const diffTime = expDate - today;
@@ -1630,7 +1694,6 @@
       const today = new Date();
       today.setHours(0,0,0,0);
 
-      // 1. Base Filter (Search & Date)
       const baseFiltered = cachedAppointments.filter(a => {
         let ok = true;
         if (searchText) ok = `${a.name||""} ${a.socialName||""} ${a.phone||""} ${a.invoiceId||a.id||""}`.toLowerCase().includes(searchText);
@@ -1644,10 +1707,8 @@
         return ok;
       });
 
-      // Update Summary Cards using ALL matches (so sales totals are correct regardless of active tab)
       updateSummaryCards(baseFiltered);
 
-      // 2. View Mode Filter (Active vs Archive vs Expiring)
       const finalFiltered = baseFiltered.filter(a => {
          const s = (a.customerStatus || "").toLowerCase();
          const isArchive = (s === "completed" || s === "done" || s === "cancel");
@@ -1689,7 +1750,6 @@
           statusOptions += `<option value="${s_opt}" ${a.customerStatus === s_opt ? 'selected' : ''}>${s_opt}</option>`;
         });
 
-        // Expiry UI Logic
         let expHtml = "";
         if (a.expiryDate) {
            let isExpiringAlert = false;
@@ -1703,10 +1763,8 @@
            expHtml = `<br/><small style="color:${color};font-weight:${fontWeight};">Exp: ${a.expiryDate}</small>`;
         }
 
-        // Highlight Row check
         const isHighlighted = (id === highlightDocId);
 
-        // Name Column Logic (Expiring View vs Normal)
         let nameHtml = "";
         if (viewMode === "expiring") {
            const tabTag = isArchive ? `<span class="tag" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;font-size:9px;">[Archive]</span>` : `<span class="tag" style="background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;font-size:9px;">[Active]</span>`;
@@ -1739,7 +1797,7 @@
           </td>
           <td>${nameHtml}</td>
           <td>${a.phone || ""}</td>
-          <td><span class="tag">${a.serviceType || ""}</span></td>
+          <td><span class="tag">${a.serviceType || ""} ${a.servicePackage ? `<br><small style="opacity:0.8">(${a.servicePackage})</small>` : ""}</span></td>
           <td>${a.location || ""}</td>
           <td>${a.paymentType || ""}</td>
           <td>${a.price != null ? Number(a.price).toFixed(2) : ""}</td>
@@ -1757,7 +1815,6 @@
         `;
         body.appendChild(tr);
 
-        // Auto-scroll to highlighted row
         if(isHighlighted) {
            setTimeout(() => tr.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
         }
@@ -1779,7 +1836,7 @@
                 await sendCompletedTelegram(cachedAppointments[idx]);
               }
             }
-            renderAppointmentsTable(); // Re-render to sort it out of tab if needed
+            renderAppointmentsTable(); 
           } catch(err) {
             alert("Status Update Error: " + err.message + "\n\n(Firebase Rule တွင် Update လုပ်ခွင့်ပေးထားရန် လိုအပ်ပါသည်)");
             e.target.value = oldVal;
@@ -1791,14 +1848,12 @@
           $("invoiceDocId").value = id; document.querySelector('.tab-btn[data-tab="invoice"]').click(); loadInvoice();
         });
         
-        // Jump Link (Expiring View Only)
         const jumpLink = tr.querySelector(".jump-link");
         if(jumpLink) {
            jumpLink.addEventListener("click", () => {
               const targetTab = jumpLink.dataset.targettab;
               highlightDocId = jumpLink.dataset.jumpid;
               
-              // Reset Search Filters before jumping so the row is guaranteed to show
               $("searchText").value = "";
               $("filterServiceType").value = "";
               $("filterStatus").value = "";
@@ -1810,7 +1865,6 @@
            });
         }
 
-        // History Modal Link (Normal View)
         const histLink = tr.querySelector(".history-link");
         if(histLink) {
           histLink.addEventListener("click", () => showCustomerHistory(histLink.dataset.phone, histLink.dataset.name));
@@ -1860,7 +1914,17 @@
       ensureOption($("channel"), a.channel); ensureOption($("location"), a.location); ensureOption($("serviceType"), a.serviceType); ensureOption($("paymentType"), a.paymentType);
 
       $("customerStatus").value = "Pending"; 
-      $("channel").value = a.channel || ""; $("location").value = a.location || ""; $("serviceType").value = a.serviceType || "";
+      $("channel").value = a.channel || ""; $("location").value = a.location || ""; 
+      
+      $("serviceType").value = a.serviceType || "";
+      if (typeof updatePackageDropdown === "function") updatePackageDropdown();
+      if (a.servicePackage) {
+         ensureOption($("servicePackage"), a.servicePackage);
+         $("servicePackage").value = a.servicePackage;
+      } else {
+         if($("servicePackage")) $("servicePackage").value = "";
+      }
+
       $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
       $("remark").value = a.remark || ""; updateDepositUI();
 
@@ -1899,13 +1963,23 @@
         }
         
         list.forEach(a => {
+           const status = a.customerStatus || "Pending";
+           const sLower = status.toLowerCase();
+           let pillClass = "status-pending";
+           
+           if (sLower === "confirm") pillClass = "status-confirm";
+           else if (sLower === "cancel") pillClass = "status-pill style='background:#fee2e2;color:#b91c1c;border-color:#fecaca;'";
+           else if (sLower === "completed" || sLower === "done") pillClass = "status-pill style='background:#dcfce7;color:#15803d;border-color:#bbf7d0;'";
+           
+           const finalPill = pillClass.startsWith("status-pill") ? `<span class=${pillClass}>${status}</span>` : `<span class="status-pill ${pillClass}">${status}</span>`;
+
            tbody.innerHTML += `
              <tr>
                <td>${a.date || "-"}</td>
-               <td><span class="tag">${a.serviceType || "-"}</span></td>
+               <td><span class="tag">${a.serviceType || "-"} ${a.servicePackage ? `(${a.servicePackage})` : ""}</span></td>
                <td>${a.location || "-"}</td>
                <td style="font-weight:700;">${Number(a.price || 0).toFixed(2)}</td>
-               <td>${statusPill(a.customerStatus)}</td>
+               <td>${finalPill}</td>
              </tr>
            `;
         });
@@ -1942,7 +2016,17 @@
       ensureOption($("channel"), a.channel); ensureOption($("location"), a.location); ensureOption($("serviceType"), a.serviceType); ensureOption($("paymentType"), a.paymentType);
 
       $("customerStatus").value = a.customerStatus || ""; 
-      $("channel").value = a.channel || ""; $("location").value = a.location || ""; $("serviceType").value = a.serviceType || "";
+      $("channel").value = a.channel || ""; $("location").value = a.location || ""; 
+
+      $("serviceType").value = a.serviceType || "";
+      if (typeof updatePackageDropdown === "function") updatePackageDropdown();
+      if (a.servicePackage) {
+         ensureOption($("servicePackage"), a.servicePackage);
+         $("servicePackage").value = a.servicePackage;
+      } else {
+         if($("servicePackage")) $("servicePackage").value = "";
+      }
+
       $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
       $("remark").value = a.remark || ""; updateDepositUI();
 
@@ -1960,7 +2044,8 @@
       if (!canEditDelete || !lastFilteredAppointments.length) return alert("Export လုပ်မယ့် data မရှိပါ။");
       const rows = [["Invoice ID","Service Date","Appointment Date","Appointment Time","Expiry Date","Alert Days","Status","Name", "Social Name", "Phone","Channel","Location","Service Type","Payment Type","Total","Deposit","Balance","Service Cost","Service Profit","Remark"]];
       lastFilteredAppointments.forEach(a => {
-        rows.push([(a.invoiceId || a.id || "").toUpperCase(), a.date || "", a.appointmentDate || "", a.appointmentTime || "", a.expiryDate || "", a.alertDays || "", a.customerStatus || "", a.name || "", a.socialName || "", a.phone || "", a.channel || "", a.location || "", a.serviceType || "", a.paymentType || "", a.price != null ? a.price : "", a.depositAmount != null ? a.depositAmount : "", a.balanceAmount != null ? a.balanceAmount : "", a.serviceCost != null ? a.serviceCost : "", a.serviceProfit != null ? a.serviceProfit : "", a.remark || ""]);
+        const sType = a.servicePackage ? `${a.serviceType} (${a.servicePackage})` : a.serviceType;
+        rows.push([(a.invoiceId || a.id || "").toUpperCase(), a.date || "", a.appointmentDate || "", a.appointmentTime || "", a.expiryDate || "", a.alertDays || "", a.customerStatus || "", a.name || "", a.socialName || "", a.phone || "", a.channel || "", a.location || "", sType || "", a.paymentType || "", a.price != null ? a.price : "", a.depositAmount != null ? a.depositAmount : "", a.balanceAmount != null ? a.balanceAmount : "", a.serviceCost != null ? a.serviceCost : "", a.serviceProfit != null ? a.serviceProfit : "", a.remark || ""]);
       });
       const csv = rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",")).join("\r\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" }); const url = URL.createObjectURL(blob);
@@ -2024,7 +2109,8 @@
         
         $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${data.name || "-"}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${data.appointmentTime ? ` ${data.appointmentTime}` : ""}</span></div>`;
         
-        $("invServiceInfo").innerHTML = `<div><span class="invoice-label">${t.service}</span><br/><span class="invoice-value">${data.serviceType || "-"}</span></div><div><span class="invoice-label">${t.payment}</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div><span class="invoice-label">${t.remark}</span><br/><span class="invoice-value">${data.remark || "-"}</span></div><div><span class="invoice-label"></span><br/><span class="invoice-value"></span></div>`;
+        const sTypeStr = data.servicePackage ? `${data.serviceType} (${data.servicePackage})` : (data.serviceType || "-");
+        $("invServiceInfo").innerHTML = `<div><span class="invoice-label">${t.service}</span><br/><span class="invoice-value">${sTypeStr}</span></div><div><span class="invoice-label">${t.payment}</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div><span class="invoice-label">${t.remark}</span><br/><span class="invoice-value">${data.remark || "-"}</span></div><div><span class="invoice-label"></span><br/><span class="invoice-value"></span></div>`;
         
         const total = Number(data.price || 0); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
         $("invTotalAmount").textContent = total.toFixed(2); $("invBalanceAmount").textContent = balance.toFixed(2);
@@ -2041,7 +2127,6 @@
 
     $("loadInvoice").addEventListener("click", loadInvoice);
     
-    // Language ပြောင်းတာနဲ့ ချက်ချင်း Preview ပြောင်းပေးရန်
     $("invoiceLanguage")?.addEventListener("change", () => {
       if ($("invoiceDocId").value.trim()) {
         loadInvoice();
