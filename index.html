@@ -356,19 +356,21 @@
       body { padding: 0; }
       .app-shell { border-radius: 0; min-height: 100vh; overflow-x: hidden; }
       header {
-        flex-direction: column; 
-        align-items: stretch;
-        padding: 12px 16px;
+        flex-direction: column !important; 
+        align-items: stretch !important;
+        padding: 12px 16px !important;
         position: relative; 
-        white-space: normal; 
+        white-space: normal !important; 
+        height: auto !important;
       }
-      .brand { justify-content: center; margin-bottom: 12px; }
+      .brand { justify-content: center; margin-bottom: 8px; }
       .header-right { 
-        flex-direction: column; 
+        flex-direction: column !important; 
+        align-items: stretch !important;
         justify-content: center; 
-        width: 100%; 
+        width: 100% !important; 
         gap: 12px; 
-        flex-wrap: wrap; 
+        flex-wrap: wrap !important; 
       }
       .tabs { 
         width: 100%; 
@@ -377,14 +379,14 @@
         padding-bottom: 8px; 
       }
       .auth-box { 
-        justify-content: center; 
-        width: 100%; 
+        justify-content: center !important; 
+        width: 100% !important; 
         background: #020617; 
         padding: 12px; 
         border-radius: 12px;
-        flex-wrap: wrap;
+        flex-wrap: wrap !important;
       }
-      .auth-box input { width: 48%; min-width: 110px; margin-bottom: 6px; }
+      .auth-box input { flex: 1 1 45% !important; min-width: 0 !important; margin-bottom: 6px; }
       .summary-grid { grid-template-columns: 1fr 1fr; }
       form { grid-template-columns: 1fr; }
       .invoice-controls, .invoice-card { flex: 1 1 100%; max-width: 100%; }
@@ -570,9 +572,10 @@
               <div class="panel-desc">
                 ✅ သတ်မှတ်ထားသော Role အလိုက် အချက်အလက်များကို ခွဲခြားကြည့်ရှု/စီမံနိုင်ပါသည်။
               </div>
-              <div style="display:flex; gap:6px; background:#f1f5f9; padding:4px; border-radius:10px; border:1px solid #e2e8f0; margin-top:12px; width:fit-content;">
+              <div style="display:flex; gap:6px; background:#f1f5f9; padding:4px; border-radius:10px; border:1px solid #e2e8f0; margin-top:12px; width:fit-content; flex-wrap:wrap;">
                 <button class="btn btn-primary" id="btnActiveTab" style="padding:6px 14px; font-size:12px; border-radius:8px;">Active / Upcoming</button>
-                <button class="btn" id="btnArchiveTab" style="background:transparent; color:#475569; padding:6px 14px; font-size:12px; border-radius:8px; box-shadow:none;">Archive (Completed/Cancel)</button>
+                <button class="btn" id="btnArchiveTab" style="background:transparent; color:#475569; padding:6px 14px; font-size:12px; border-radius:8px; box-shadow:none;">Archive</button>
+                <button class="btn" id="btnAllTab" style="background:transparent; color:#475569; padding:6px 14px; font-size:12px; border-radius:8px; box-shadow:none;">All Records</button>
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap; align-items:center;">
@@ -594,8 +597,8 @@
               <div class="summary-title">Estimated Profit (THB)<br/><small style="text-transform:none;font-weight:normal;">* Completed Only</small></div>
               <div class="summary-value" id="sumProfit">0.00</div>
             </div>
-            <div class="summary-card pending-card" id="pendingCardBtn" title="Click to filter Pending tasks">
-              <div class="summary-title">Pending Tasks<br/><small style="text-transform:none;font-weight:normal;">* Click to view</small></div>
+            <div class="summary-card pending-card" id="pendingCardBtn" title="Click to view tomorrow's appointments">
+              <div class="summary-title">Appointment Tasks<br/><small style="text-transform:none;font-weight:normal;">* Tomorrow's Appt</small></div>
               <div class="summary-value" id="sumPending">0</div>
             </div>
             <div class="summary-card expiring-card" id="expiringCardBtn" title="Customers whose visa is expiring soon">
@@ -1100,52 +1103,53 @@
     
     // --- Dashboard Tabs (Active vs Archive vs Expiring) UI Update ---
     function updateDashboardTabsUI() {
+       const activeBtn = $("btnActiveTab");
+       const archiveBtn = $("btnArchiveTab");
+       const allBtn = $("btnAllTab");
+
+       if(activeBtn) { activeBtn.className = "btn"; activeBtn.style.background = "transparent"; activeBtn.style.color = "#475569"; }
+       if(archiveBtn) { archiveBtn.className = "btn"; archiveBtn.style.background = "transparent"; archiveBtn.style.color = "#475569"; }
+       if(allBtn) { allBtn.className = "btn"; allBtn.style.background = "transparent"; allBtn.style.color = "#475569"; }
+
        if (viewMode === "active") {
-          $("btnActiveTab").className = "btn btn-primary";
-          $("btnActiveTab").style.background = "";
-          $("btnActiveTab").style.color = "";
-          $("btnArchiveTab").className = "btn";
-          $("btnArchiveTab").style.background = "transparent";
-          $("btnArchiveTab").style.color = "#475569";
-          $("dashboardTitleText").innerHTML = `<span>📊 Dashboard & Records</span> <span class="badge">Filter • Search • Action</span>`;
+          if(activeBtn) { activeBtn.className = "btn btn-primary"; activeBtn.style.background = ""; activeBtn.style.color = ""; }
+          $("dashboardTitleText").innerHTML = `<span>📊 Dashboard & Records</span> <span class="badge">Active</span>`;
        } else if (viewMode === "archive") {
-          $("btnArchiveTab").className = "btn btn-primary";
-          $("btnArchiveTab").style.background = "";
-          $("btnArchiveTab").style.color = "";
-          $("btnActiveTab").className = "btn";
-          $("btnActiveTab").style.background = "transparent";
-          $("btnActiveTab").style.color = "#475569";
-          $("dashboardTitleText").innerHTML = `<span>📊 Dashboard & Records</span> <span class="badge">Filter • Search • Action</span>`;
+          if(archiveBtn) { archiveBtn.className = "btn btn-primary"; archiveBtn.style.background = ""; archiveBtn.style.color = ""; }
+          $("dashboardTitleText").innerHTML = `<span>📊 Dashboard & Records</span> <span class="badge">Archive</span>`;
+       } else if (viewMode === "all") {
+          if(allBtn) { allBtn.className = "btn btn-primary"; allBtn.style.background = ""; allBtn.style.color = ""; }
+          $("dashboardTitleText").innerHTML = `<span>📊 Dashboard & Records</span> <span class="badge">All Records</span>`;
        } else if (viewMode === "expiring") {
-          $("btnActiveTab").className = "btn";
-          $("btnActiveTab").style.background = "transparent";
-          $("btnActiveTab").style.color = "#475569";
-          $("btnArchiveTab").className = "btn";
-          $("btnArchiveTab").style.background = "transparent";
-          $("btnArchiveTab").style.color = "#475569";
           $("dashboardTitleText").innerHTML = `<span>🚨 Global Expiring Alerts</span> <span class="badge" style="background:#fee2e2;color:#dc2626;border-color:#fca5a5;">Attention Required</span>`;
        }
     }
 
-    $("btnActiveTab").addEventListener("click", () => {
-      viewMode = "active";
-      highlightDocId = null;
-      updateDashboardTabsUI();
-      renderAppointmentsTable();
+    // Filter များအားလုံးကို အလိုလို ရှင်းလင်းပေးမည့် Function အသစ်
+    function clearAllFilters() {
+      if($("searchText")) $("searchText").value = "";
+      if($("filterServiceType")) $("filterServiceType").value = "";
+      if($("filterStatus")) $("filterStatus").value = "";
+      if($("filterApptFrom")) $("filterApptFrom").value = "";
+      if($("filterApptTo")) $("filterApptTo").value = "";
+    }
+
+    $("btnActiveTab")?.addEventListener("click", () => {
+      viewMode = "active"; highlightDocId = null; 
+      clearAllFilters(); // Tab ပြောင်းတိုင်း Filter များကို ဖျက်ပေးမည်
+      updateDashboardTabsUI(); renderAppointmentsTable();
     });
 
-    $("btnArchiveTab").addEventListener("click", () => {
-      viewMode = "archive";
-      highlightDocId = null;
-      updateDashboardTabsUI();
-      renderAppointmentsTable();
+    $("btnArchiveTab")?.addEventListener("click", () => {
+      viewMode = "archive"; highlightDocId = null; 
+      clearAllFilters(); // Tab ပြောင်းတိုင်း Filter များကို ဖျက်ပေးမည်
+      updateDashboardTabsUI(); renderAppointmentsTable();
     });
 
-    $("expiringCardBtn").addEventListener("click", () => {
-      viewMode = "expiring";
-      highlightDocId = null;
-      updateDashboardTabsUI();
-      renderAppointmentsTable();
+    $("btnAllTab")?.addEventListener("click", () => {
+      viewMode = "all"; highlightDocId = null; 
+      clearAllFilters(); // Tab ပြောင်းတိုင်း Filter များကို ဖျက်ပေးမည်
+      updateDashboardTabsUI(); renderAppointmentsTable();
     });
 
     function fillSelect(select, arr, addEmpty = true) {
@@ -1467,9 +1471,45 @@
       await sendToTg(mainChat, telegramSettings.threadCompleted, lines.join("\n"));
     }
 
-    $("pendingCardBtn").addEventListener("click", () => {
-      $("filterStatus").value = "Pending";
-      $("applyFilter").click();
+   $("pendingCardBtn").addEventListener("click", () => {
+      // Tab နှိပ်သည့် Action ကို မသုံးဘဲ View Mode ကို တိုက်ရိုက်ပြောင်းမည် (Filter မပျက်စေရန်)
+      viewMode = "all";
+      highlightDocId = null;
+      updateDashboardTabsUI(); // ခလုတ်အရောင်များကို All Records ဘက် ပြောင်းမည်
+
+      // မနက်ဖြန် ရက်စွဲ တွက်ခြင်း
+      const t = new Date();
+      t.setDate(t.getDate() + 1);
+      const tomorrowStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+
+      // Search များကို ရှင်းလင်းပြီး မနက်ဖြန် ရက်စွဲကိုသာ တပ်မည်
+      $("searchText").value = "";
+      $("filterStatus").value = ""; 
+      $("filterServiceType").value = "";
+      $("filterApptFrom").value = tomorrowStr;
+      $("filterApptTo").value = tomorrowStr;
+      
+      // ဇယားကို Filter လုပ်မည်
+      renderAppointmentsTable();
+    });
+
+	$("expiringCardBtn").addEventListener("click", () => {
+      viewMode = "expiring";
+      highlightDocId = null;
+      
+      // Date တွေ Search တွေ ညိနေတာမျိုး မဖြစ်အောင် အရင်ဖျက်ပေးမည်
+      if(typeof clearAllFilters === "function") {
+         clearAllFilters();
+      } else {
+         $("searchText").value = "";
+         $("filterServiceType").value = "";
+         $("filterStatus").value = "";
+         $("filterApptFrom").value = "";
+         $("filterApptTo").value = "";
+      }
+      
+      updateDashboardTabsUI();
+      renderAppointmentsTable();
     });
 
     async function loadAppointments(isLoadMore = false) {
@@ -1532,6 +1572,11 @@
 
       const today = new Date();
       today.setHours(0,0,0,0);
+      
+      // မနက်ဖြန် ရက်စွဲကို တွက်ထုတ်ခြင်း
+      const tmr = new Date();
+      tmr.setDate(tmr.getDate() + 1);
+      const tomorrowStr = `${tmr.getFullYear()}-${String(tmr.getMonth() + 1).padStart(2, '0')}-${String(tmr.getDate()).padStart(2, '0')}`;
 
       baseFilteredData.forEach(a => {
         const status = (a.customerStatus || "").toLowerCase();
@@ -1543,7 +1588,9 @@
             : (a.price != null && a.serviceCost != null) ? Number(a.price - a.serviceCost) : 0;
           totalProfit += profit;
         }
-        if (status === "pending") {
+        
+        // မနက်ဖြန် Appointment ရှိသူအားလုံးကို ရေတွက်မည် (Cancel မှလွဲ၍ ကျန်တာအကုန်ပါမည်)
+        if (a.appointmentDate === tomorrowStr && status !== "cancel") {
           pendingCount++;
         }
 
@@ -1608,6 +1655,7 @@
          if (viewMode === "active") return !isArchive;
          if (viewMode === "archive") return isArchive;
          if (viewMode === "expiring") return isExpiring;
+         if (viewMode === "all") return true; 
          return true;
       });
 
