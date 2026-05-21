@@ -421,6 +421,7 @@
           <button class="tab-btn" data-tab="invoice"><span class="icon">🧾</span> Invoice</button>
           <button class="tab-btn system-manage-only" data-tab="settings" id="settingsTabBtn"><span class="icon">⚙️</span> Settings</button>
           <button class="tab-btn system-manage-only" data-tab="users" id="usersTabBtn"><span class="icon">👥</span> Users</button>
+	  <button class="tab-btn system-manage-only" data-tab="logs" id="logsTabBtn"><span class="icon">🕵️</span> Tracker Logs</button>
         </div>
 
         <div class="auth-box">
@@ -878,6 +879,32 @@
         </div>
       </section>
     </main>
+	<section id="tab-logs" class="tab-panel system-manage-only" style="display:none;">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title"><span>🕵️ Search Tracker Logs</span> <span class="badge">Live History</span></div>
+              <div class="panel-desc">Tracker Link မှတစ်ဆင့် Customer သို့မဟုတ် Agent များ ဝင်ရောက်ရှာဖွေထားသော မှတ်တမ်းများ။</div>
+            </div>
+            <button class="btn btn-secondary" id="reloadLogsBtn">Reload Logs</button>
+          </div>
+
+          <div style="max-height: 450px; overflow:auto; border-radius:10px; border:1px solid #e5e7eb;">
+            <table>
+              <thead>
+                <tr>
+                  <th>အချိန် (Date & Time)</th>
+                  <th>ရှာဖွေခဲ့သော စာသား (Keyword)</th>
+                  <th>အသုံးပြုခဲ့သော Browser / Device (User Agent)</th>
+                </tr>
+              </thead>
+              <tbody id="logsTableBody">
+                <tr><td colspan="3" style="text-align:center;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     
     <div id="historyModal" class="modal-overlay hidden">
       <div class="modal-content">
@@ -1082,6 +1109,10 @@
       if (settingsPanel) settingsPanel.style.display = canManageSystem ? "" : "none";
       if (usersTabBtn) usersTabBtn.style.display = canManageSystem ? "" : "none";
       if (usersPanel) usersPanel.style.display = canManageSystem ? "" : "none";
+      const logsTabBtn = $("logsTabBtn");
+      const logsPanel = $("tab-logs");
+      if (logsTabBtn) logsTabBtn.style.display = canManageSystem ? "" : "none";
+      if (logsPanel) logsPanel.style.display = canManageSystem ? "" : "none";
 
       if (entryTabBtn) entryTabBtn.style.display = canEntry ? "" : "none";
       if ($("exportCsv")) $("exportCsv").style.display = canEditDelete ? "" : "none";
@@ -2179,6 +2210,45 @@
 
     $("usersTabBtn")?.addEventListener("click", loadUsersList);
     $("reloadUsersBtn")?.addEventListener("click", loadUsersList);
+    // === Tracker Logs ဆွဲထုတ်မည့် Function ===
+    async function loadTrackerLogs() {
+      if (currentRole !== "admin") return;
+      const tbody = $("logsTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Loading logs...</td></tr>`;
+      
+      try {
+        const q = query(collection(db, "search_logs"), orderBy("timestamp", "desc"), limit(100));
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+          tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">ရှာဖွေမှု မှတ်တမ်း မရှိသေးပါ။</td></tr>`;
+          return;
+        }
+        
+        tbody.innerHTML = "";
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const timeStr = d.timestamp && d.timestamp.toDate ? d.timestamp.toDate().toLocaleString() : "Unknown Time";
+          const keyword = d.searchedKeyword || "-";
+          const agent = d.userAgent || "-";
+          
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td style="white-space:nowrap;">${timeStr}</td>
+            <td style="font-weight:bold; color:var(--primary);">${keyword}</td>
+            <td style="font-size:11px; color:var(--muted); white-space:normal; max-width:300px;">${agent}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:red;">Error loading logs: ${e.message}</td></tr>`;
+        console.error(e);
+      }
+    }
+
+    if ($("logsTabBtn")) $("logsTabBtn").addEventListener("click", loadTrackerLogs);
+    if ($("reloadLogsBtn")) $("reloadLogsBtn").addEventListener("click", loadTrackerLogs);
 
     $("createNewAccBtn")?.addEventListener("click", async () => {
       if (currentRole !== "admin") return;
