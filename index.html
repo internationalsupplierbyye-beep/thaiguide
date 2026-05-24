@@ -786,13 +786,6 @@
               <small>ဥပမာ: TM30 = BKK, REG (ခွဲရေးချင်ရင်သုံးပါ)</small>
               <textarea id="packagesSetting" rows="6" placeholder="Service Name = Pkg1, Pkg2"></textarea>
             </div>
-            
-            <div class="settings-block">
-              <h4>Required Documents per Service</h4>
-              <small>ဥပမာ: TM30(ဧည့်စာရင်း) = Passport Bio Page, Passport VISA Page</small>
-              <textarea id="docsSetting" rows="6" placeholder="Service Name = Doc 1, Doc 2"></textarea>
-            </div>
-
             <div class="settings-block">
               <h4>Payment Type List</h4>
               <textarea id="paymentsSetting" rows="6"></textarea>
@@ -968,7 +961,6 @@
       customerChannels: ["Facebook Page","Messenger","Telegram","Line","Phone Call","Walk-in","Agent / Referral","Other"],
       serviceTypes: ["Bank Account Opening","Visa Service","TM30 / 90 Days Report","Money Exchange","Flight / Ticket","Other Service"],
       servicePackages: {}, 
-      serviceDocuments: {},
       paymentTypes: ["Cash","Bank Transfer","QR Payment","Deposit (Partial)","Deposit (50%)","Deposit (Custom)","Free of Charge"],
       locations: ["Chiang Mai Office","Bangkok Office","Online Service"]
     };
@@ -1039,7 +1031,6 @@
 
         $("authStatus").textContent = `Logged in as ${user.email} (${currentRole.toUpperCase()})`;
         $("loginBtn").disabled = true;
-        $("loginBtn").textContent = "Login";
         $("loginEmail").disabled = true;
         $("loginPassword").disabled = true;
         $("logoutBtn").style.display = "inline-flex";
@@ -1060,16 +1051,13 @@
         if ($("loadMoreBtn")) $("loadMoreBtn").style.display = "none";
       }
 
-      try { updateRoleUI(); } catch (e) { console.error("Update Role UI Error:", e); }
+      updateRoleUI();
       
       if (user) {
-        try { await loadSettingsFromFirestore(); } catch(e) { console.error("Settings Load Error:", e); }
-        try { await loadAppointments(); } catch(e) { console.error("Appointments Load Error:", e); }
-        
+        await loadSettingsFromFirestore();
+        await loadAppointments(); 
         if (!$("date").value) $("date").value = todayISO();
-        if ($("autoInvoiceId").checked && !editingDocId) {
-            try { await ensureInvoiceIdAuto(); } catch(e) { console.error("Invoice Auto Gen Error:", e); }
-        }
+        if ($("autoInvoiceId").checked && !editingDocId) await ensureInvoiceIdAuto();
       }
     });
 
@@ -1216,16 +1204,13 @@
     });
 
     function fillSelect(select, arr, addEmpty = true) {
-      if(!select) return;
       select.innerHTML = "";
       if (addEmpty) {
         const opt = document.createElement("option");
         opt.value = ""; opt.textContent = "-- Select --";
         select.appendChild(opt);
       }
-      if(Array.isArray(arr)) {
-          arr.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; select.appendChild(o); });
-      }
+      arr.forEach(v => { const o = document.createElement("option"); o.value = o.textContent = v; select.appendChild(o); });
     }
 
     function renderDropdowns() {
@@ -1249,6 +1234,7 @@
       const createRow = (key, label) => {
         const row = document.createElement("div");
         row.style.display = "grid";
+        // Fixed label cut-off issue (T instead of TM30)
         row.style.gridTemplateColumns = "minmax(90px, 1fr) 70px 70px 80px";
         row.style.gap = "4px"; row.style.alignItems = "center"; row.style.marginBottom = "6px";
         const sp = servicePricing[key] || { cost: "", profit: "", price: "" };
@@ -1261,16 +1247,14 @@
         container.appendChild(row);
       };
 
-      if(Array.isArray(dropdownSettings.serviceTypes)) {
-          dropdownSettings.serviceTypes.forEach(sName => {
-            const pkgs = dropdownSettings.servicePackages[sName] || [];
-            if(pkgs.length > 0) {
-               pkgs.forEach(pName => createRow(`${sName}::${pName}`, `${sName} (${pName})`));
-            } else {
-               createRow(sName, sName);
-            }
-          });
-      }
+      dropdownSettings.serviceTypes.forEach(sName => {
+        const pkgs = dropdownSettings.servicePackages[sName] || [];
+        if(pkgs.length > 0) {
+           pkgs.forEach(pName => createRow(`${sName}::${pName}`, `${sName} (${pName})`));
+        } else {
+           createRow(sName, sName);
+        }
+      });
     }
 
     async function loadSettingsFromFirestore() {
@@ -1282,7 +1266,6 @@
           dropdownSettings.customerChannels = d.customerChannels && d.customerChannels.length ? d.customerChannels : dropdownSettings.customerChannels;
           dropdownSettings.serviceTypes = d.serviceTypes && d.serviceTypes.length ? d.serviceTypes : dropdownSettings.serviceTypes;
           dropdownSettings.servicePackages = d.servicePackages || {}; 
-          dropdownSettings.serviceDocuments = d.serviceDocuments || {};
           dropdownSettings.paymentTypes = d.paymentTypes && d.paymentTypes.length ? d.paymentTypes : dropdownSettings.paymentTypes;
           dropdownSettings.locations = d.locations && d.locations.length ? d.locations : dropdownSettings.locations;
         }
@@ -1299,34 +1282,24 @@
 
       renderDropdowns();
 
-      if ($("statusesSetting")) $("statusesSetting").value = (dropdownSettings.customerStatuses || []).join("\n");
-      if ($("channelsSetting")) $("channelsSetting").value = (dropdownSettings.customerChannels || []).join("\n");
-      if ($("servicesSetting")) $("servicesSetting").value = (dropdownSettings.serviceTypes || []).join("\n");
-      
+      if ($("statusesSetting")) $("statusesSetting").value = dropdownSettings.customerStatuses.join("\n");
+      if ($("channelsSetting")) $("channelsSetting").value = dropdownSettings.customerChannels.join("\n");
+      if ($("servicesSetting")) $("servicesSetting").value = dropdownSettings.serviceTypes.join("\n");
       if ($("packagesSetting")) {
          let pkgText = "";
          for(const [sName, pList] of Object.entries(dropdownSettings.servicePackages || {})) {
-            pkgText += `${sName} = ${(pList || []).join(", ")}\n`;
+            pkgText += `${sName} = ${pList.join(", ")}\n`;
          }
          $("packagesSetting").value = pkgText.trim();
       }
-
-      if ($("docsSetting")) {
-         let docText = "";
-         for(const [sName, dList] of Object.entries(dropdownSettings.serviceDocuments || {})) {
-            docText += `${sName} = ${(dList || []).join(", ")}\n`;
-         }
-         $("docsSetting").value = docText.trim();
-      }
-
-      if ($("paymentsSetting")) $("paymentsSetting").value = (dropdownSettings.paymentTypes || []).join("\n");
-      if ($("locationsSetting")) $("locationsSetting").value = (dropdownSettings.locations || []).join("\n");
+      if ($("paymentsSetting")) $("paymentsSetting").value = dropdownSettings.paymentTypes.join("\n");
+      if ($("locationsSetting")) $("locationsSetting").value = dropdownSettings.locations.join("\n");
       
-      if ($("tgToken")) $("tgToken").value = telegramSettings.botToken || "";
-      if ($("tgMainChatId")) $("tgMainChatId").value = telegramSettings.mainChatId || "";
-      if ($("tgThreadAppt")) $("tgThreadAppt").value = telegramSettings.threadAppt || "";
-      if ($("tgThreadAgent")) $("tgThreadAgent").value = telegramSettings.threadAgent || "";
-      if ($("tgThreadCustomer")) $("tgThreadCustomer").value = telegramSettings.threadCustomer || "";
+      if ($("tgToken")) $("tgToken").value = telegramSettings.botToken;
+      if ($("tgMainChatId")) $("tgMainChatId").value = telegramSettings.mainChatId;
+      if ($("tgThreadAppt")) $("tgThreadAppt").value = telegramSettings.threadAppt;
+      if ($("tgThreadAgent")) $("tgThreadAgent").value = telegramSettings.threadAgent;
+      if ($("tgThreadCustomer")) $("tgThreadCustomer").value = telegramSettings.threadCustomer;
       if ($("tgThreadCompleted")) $("tgThreadCompleted").value = telegramSettings.threadCompleted || "";
     }
 
@@ -1348,18 +1321,6 @@
             if(sName && pList.length > 0) dropdownSettings.servicePackages[sName] = pList;
          }
       });
-
-      dropdownSettings.serviceDocuments = {};
-      const docLines = $("docsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
-      docLines.forEach(line => {
-         const parts = line.split("=");
-         if(parts.length === 2) {
-            const sName = parts[0].trim();
-            const dList = parts[1].split(",").map(p=>p.trim()).filter(Boolean);
-            if(sName && dList.length > 0) dropdownSettings.serviceDocuments[sName] = dList;
-         }
-      });
-
       dropdownSettings.paymentTypes = $("paymentsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
       dropdownSettings.locations = $("locationsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
 
@@ -1398,16 +1359,16 @@
     });
 
     const timeInput = $("appointmentTime");
-    ["click","focus"].forEach(evt=>{ timeInput?.addEventListener(evt, () => { if (typeof timeInput.showPicker === "function") timeInput.showPicker(); }); });
+    ["click","focus"].forEach(evt=>{ timeInput.addEventListener(evt, () => { if (typeof timeInput.showPicker === "function") timeInput.showPicker(); }); });
 
     function updateDepositUI() {
-      const total = Number($("price")?.value || 0);
-      const deposit = Number($("depositAmount")?.value || 0);
-      if($("balanceAmount")) $("balanceAmount").value = Math.max(total - deposit, 0).toFixed(2);
+      const total = Number($("price").value || 0);
+      const deposit = Number($("depositAmount").value || 0);
+      $("balanceAmount").value = Math.max(total - deposit, 0).toFixed(2);
     }
     
     function updatePackageDropdown() {
-       const sName = $("serviceType")?.value;
+       const sName = $("serviceType").value;
        const pkgSelect = $("servicePackage");
        if(!pkgSelect) return;
        const pkgs = dropdownSettings.servicePackages[sName] || [];
@@ -1419,136 +1380,131 @@
     }
     
     function autoFillPrice() {
-        const sName = $("serviceType")?.value;
+        const sName = $("serviceType").value;
         if(!sName) return;
         const pName = $("servicePackage") ? $("servicePackage").value : "";
         const key = (pName && pName !== "") ? `${sName}::${pName}` : sName;
         const sp = servicePricing[key];
-        if(sp && sp.price) { if($("price")) $("price").value = sp.price; updateDepositUI(); }
+        if(sp && sp.price) { $("price").value = sp.price; updateDepositUI(); }
     }
     
-    $("serviceType")?.addEventListener("change", () => { updatePackageDropdown(); autoFillPrice(); });
+    $("serviceType").addEventListener("change", () => { updatePackageDropdown(); autoFillPrice(); });
     if($("servicePackage")) $("servicePackage").addEventListener("change", autoFillPrice);
 
-    $("paymentType")?.addEventListener("change", updateDepositUI);
-    $("price")?.addEventListener("input", updateDepositUI);
-    $("depositAmount")?.addEventListener("input", updateDepositUI);
+    $("paymentType").addEventListener("change", updateDepositUI);
+    $("price").addEventListener("input", updateDepositUI);
+    $("depositAmount").addEventListener("input", updateDepositUI);
 
     function applyInvoiceIdMode(){
-      if(!$("autoInvoiceId")) return;
       const auto = $("autoInvoiceId").checked;
       const isEditing = !!editingDocId;
       if (isEditing){
-        if($("invoiceId")) $("invoiceId").disabled = true; $("autoInvoiceId").disabled = true; if($("regenInvoiceId")) $("regenInvoiceId").disabled = true; return;
+        $("invoiceId").disabled = true; $("autoInvoiceId").disabled = true; $("regenInvoiceId").disabled = true; return;
       }
-      $("autoInvoiceId").disabled = false; if($("regenInvoiceId")) $("regenInvoiceId").disabled = false;
-      if (auto){ if($("invoiceId")) $("invoiceId").disabled = true; } else { if($("invoiceId")) { $("invoiceId").disabled = false; $("invoiceId").focus(); } }
+      $("autoInvoiceId").disabled = false; $("regenInvoiceId").disabled = false;
+      if (auto){ $("invoiceId").disabled = true; } else { $("invoiceId").disabled = false; $("invoiceId").focus(); }
     }
 
     async function ensureInvoiceIdAuto(){
-      if (currentRole === "guest" || editingDocId || !$("autoInvoiceId")?.checked) return;
-      if($("invoiceId")) $("invoiceId").value = await generateUniqueInvoiceId();
+      if (currentRole === "guest" || editingDocId || !$("autoInvoiceId").checked) return;
+      $("invoiceId").value = await generateUniqueInvoiceId();
     }
 
-    $("autoInvoiceId")?.addEventListener("change", async () => {
+    $("autoInvoiceId").addEventListener("change", async () => {
       applyInvoiceIdMode();
-      if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); else if (!editingDocId) { if($("invoiceId")) $("invoiceId").value = ""; }
+      if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); else if (!editingDocId) $("invoiceId").value = "";
     });
-    $("regenInvoiceId")?.addEventListener("click", async () => { if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); });
-    $("date")?.addEventListener("change", async () => { if ($("autoInvoiceId")?.checked && !editingDocId && currentUser) await ensureInvoiceIdAuto(); });
+    $("regenInvoiceId").addEventListener("click", async () => { if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); });
+    $("date").addEventListener("change", async () => { if ($("autoInvoiceId").checked && !editingDocId && currentUser) await ensureInvoiceIdAuto(); });
 
     const form = $("appointmentForm");
     const messageDiv = $("message");
 
-    $("btnCancelEdit")?.addEventListener("click", async () => {
-      editingDocId = null; if($("invoiceId")) $("invoiceId").disabled = false; if($("saveBtnText")) $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
-      if(messageDiv) messageDiv.textContent = ""; if(form) form.reset(); if (!$("date").value) $("date").value = todayISO();
-      updateDepositUI(); applyInvoiceIdMode(); if ($("autoInvoiceId")?.checked) await ensureInvoiceIdAuto();
+    $("btnCancelEdit").addEventListener("click", async () => {
+      editingDocId = null; $("invoiceId").disabled = false; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
+      messageDiv.textContent = ""; form.reset(); if (!$("date").value) $("date").value = todayISO();
+      updateDepositUI(); applyInvoiceIdMode(); if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto();
     });
 
-    if(form) {
-        form.addEventListener("reset", async () => {
-          if (!$("date").value) $("date").value = todayISO(); updateDepositUI();
-          editingDocId = null; if($("saveBtnText")) $("saveBtnText").textContent = "Save to Firebase"; if($("btnCancelEdit")) $("btnCancelEdit").style.display = "none";
-          applyInvoiceIdMode(); if ($("autoInvoiceId")?.checked && currentUser) await ensureInvoiceIdAuto();
-        });
+    form.addEventListener("reset", async () => {
+      if (!$("date").value) $("date").value = todayISO(); updateDepositUI();
+      editingDocId = null; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
+      applyInvoiceIdMode(); if ($("autoInvoiceId").checked && currentUser) await ensureInvoiceIdAuto();
+    });
 
-        form.addEventListener("submit", async (e) => {
-          e.preventDefault(); 
-          if (currentRole === "guest" || currentRole === "finance") return;
-          if(messageDiv) { messageDiv.textContent = ""; messageDiv.className = "message"; }
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault(); 
+      if (currentRole === "guest" || currentRole === "finance") return;
+      messageDiv.textContent = ""; messageDiv.className = "message";
 
-          let invoiceId = $("invoiceId")?.value.trim().toUpperCase() || "";
-          if ($("autoInvoiceId")?.checked && !editingDocId && !invoiceId){
-            invoiceId = await generateUniqueInvoiceId(); if($("invoiceId")) $("invoiceId").value = invoiceId;
+      let invoiceId = $("invoiceId").value.trim().toUpperCase();
+      if ($("autoInvoiceId").checked && !editingDocId && !invoiceId){
+        invoiceId = await generateUniqueInvoiceId(); $("invoiceId").value = invoiceId;
+      }
+
+      const total = Number($("price").value || 0); const dep = Number($("depositAmount").value || 0);
+      const data = {
+        invoiceId, 
+        date: $("date").value, 
+        appointmentDate: $("appointmentDate").value, 
+        appointmentTime: $("appointmentTime").value || null,
+        expiryDate: $("expiryDate").value || null,
+        alertDays: $("alertDays").value || 30,
+        name: $("name").value.trim(), 
+        socialName: $("socialName").value.trim() || null, 
+        phone: $("phone").value.trim(),
+        customerStatus: $("customerStatus").value, 
+        channel: $("channel").value || null, 
+        location: $("location").value,
+        serviceType: $("serviceType").value, 
+        servicePackage: $("servicePackage") ? $("servicePackage").value : null, 
+        paymentType: $("paymentType").value, 
+        price: total, 
+        depositAmount: dep,
+        balanceAmount: Math.max(total - dep, 0), 
+        remark: $("remark").value.trim() || null,
+        createdAt: serverTimestamp(), 
+        createdBy: currentUser ? currentUser.email : null
+      };
+
+      if (!invoiceId || !data.date || !data.appointmentDate || !data.name || !data.phone || !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
+        messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။"; messageDiv.className = "message error"; return;
+      }
+
+      const spKey = (data.servicePackage && data.servicePackage !== "") ? `${data.serviceType}::${data.servicePackage}` : data.serviceType;
+      const sp = servicePricing[spKey] || servicePricing[data.serviceType] || {};
+      data.serviceCost = typeof sp.cost === "number" ? sp.cost : 0;
+      data.serviceProfit = typeof sp.profit === "number" ? sp.profit : (data.price - data.serviceCost);
+
+      let oldStatus = editingDocId ? (cachedAppointments.find(x => x.id === editingDocId)?.customerStatus) : null;
+
+      try {
+        if (editingDocId && editingDocId === invoiceId) {
+          const canEditDelete = currentRole === "admin" || currentRole === "manager";
+          if(!canEditDelete) throw new Error("Permission denied to edit.");
+          await setDoc(doc(db, "appointments", editingDocId), data, { merge: true });
+          lastSavedDocId = editingDocId; lastSavedData = { ...data, id: editingDocId };
+          messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; messageDiv.className = "message success";
+          editingDocId = null; $("invoiceId").disabled = false; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
+          form.reset(); updateDepositUI(); await loadAppointments(); 
+        } else {
+          if ((await getDoc(doc(db, "appointments", invoiceId))).exists()) {
+            messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – New ID ထုတ်ပါ (Auto) သို့ Manual ပြောင်းပါ။"; messageDiv.className = "message error"; return;
           }
+          await setDoc(doc(db, "appointments", invoiceId), data);
+          lastSavedDocId = invoiceId; lastSavedData = { ...data, id: invoiceId };
+          messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId; messageDiv.className = "message success";
+          await sendMultiTelegramNotifications(lastSavedData);
+          form.reset(); if (!$("date").value) $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
+          if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); await loadAppointments(); 
+        }
 
-          const total = Number($("price")?.value || 0); const dep = Number($("depositAmount")?.value || 0);
-          const data = {
-            invoiceId, 
-            date: $("date")?.value || "", 
-            appointmentDate: $("appointmentDate")?.value || "", 
-            appointmentTime: $("appointmentTime")?.value || null,
-            expiryDate: $("expiryDate")?.value || null,
-            alertDays: $("alertDays")?.value || 30,
-            name: $("name")?.value.trim() || "", 
-            socialName: $("socialName")?.value.trim() || null, 
-            phone: $("phone")?.value.trim() || "",
-            customerStatus: $("customerStatus")?.value || "", 
-            channel: $("channel")?.value || null, 
-            location: $("location")?.value || "",
-            serviceType: $("serviceType")?.value || "", 
-            servicePackage: $("servicePackage") ? $("servicePackage").value : null, 
-            paymentType: $("paymentType")?.value || "", 
-            price: total, 
-            depositAmount: dep,
-            balanceAmount: Math.max(total - dep, 0), 
-            remark: $("remark")?.value.trim() || null,
-            createdAt: serverTimestamp(), 
-            createdBy: currentUser ? currentUser.email : null
-          };
+        if (data.customerStatus === "Completed" && oldStatus !== "Completed") {
+          await sendCompletedTelegram(data);
+        }
 
-          if (!invoiceId || !data.date || !data.appointmentDate || !data.name || !data.phone || !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
-            if(messageDiv) { messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။"; messageDiv.className = "message error"; }
-            return;
-          }
-
-          const spKey = (data.servicePackage && data.servicePackage !== "") ? `${data.serviceType}::${data.servicePackage}` : data.serviceType;
-          const sp = servicePricing[spKey] || servicePricing[data.serviceType] || {};
-          data.serviceCost = typeof sp.cost === "number" ? sp.cost : 0;
-          data.serviceProfit = typeof sp.profit === "number" ? sp.profit : (data.price - data.serviceCost);
-
-          let oldStatus = editingDocId ? (cachedAppointments.find(x => x.id === editingDocId)?.customerStatus) : null;
-
-          try {
-            if (editingDocId && editingDocId === invoiceId) {
-              const canEditDelete = currentRole === "admin" || currentRole === "manager";
-              if(!canEditDelete) throw new Error("Permission denied to edit.");
-              await setDoc(doc(db, "appointments", editingDocId), data, { merge: true });
-              lastSavedDocId = editingDocId; lastSavedData = { ...data, id: editingDocId };
-              if(messageDiv) { messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; messageDiv.className = "message success"; }
-              editingDocId = null; if($("invoiceId")) $("invoiceId").disabled = false; if($("saveBtnText")) $("saveBtnText").textContent = "Save to Firebase"; if($("btnCancelEdit")) $("btnCancelEdit").style.display = "none";
-              form.reset(); updateDepositUI(); await loadAppointments(); 
-            } else {
-              if ((await getDoc(doc(db, "appointments", invoiceId))).exists()) {
-                if(messageDiv) { messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – New ID ထုတ်ပါ (Auto) သို့ Manual ပြောင်းပါ။"; messageDiv.className = "message error"; }
-                return;
-              }
-              await setDoc(doc(db, "appointments", invoiceId), data);
-              lastSavedDocId = invoiceId; lastSavedData = { ...data, id: invoiceId };
-              if(messageDiv) { messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId; messageDiv.className = "message success"; }
-              await sendMultiTelegramNotifications(lastSavedData);
-              form.reset(); if (!$("date").value) $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
-              if ($("autoInvoiceId")?.checked) await ensureInvoiceIdAuto(); await loadAppointments(); 
-            }
-
-            if (data.customerStatus === "Completed" && oldStatus !== "Completed") {
-              await sendCompletedTelegram(data);
-            }
-
-          } catch (err) { if(messageDiv) { messageDiv.textContent = "❌ Error saving data: " + err.message; messageDiv.className = "message error"; } }
-        });
-    }
+      } catch (err) { messageDiv.textContent = "❌ Error saving data: " + err.message; messageDiv.className = "message error"; }
+    });
 
     async function sendToTg(chatId, threadId, text) {
       try {
@@ -1625,7 +1581,7 @@
       await sendToTg(mainChat, telegramSettings.threadCompleted, lines.join("\n"));
     }
 
-   $("pendingCardBtn")?.addEventListener("click", () => {
+   $("pendingCardBtn").addEventListener("click", () => {
       viewMode = "all";
       highlightDocId = null;
       updateDashboardTabsUI(); 
@@ -1634,27 +1590,27 @@
       t.setDate(t.getDate() + 1);
       const tomorrowStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
 
-      if($("searchText")) $("searchText").value = "";
-      if($("filterStatus")) $("filterStatus").value = ""; 
-      if($("filterServiceType")) $("filterServiceType").value = "";
-      if($("filterApptFrom")) $("filterApptFrom").value = tomorrowStr;
-      if($("filterApptTo")) $("filterApptTo").value = tomorrowStr;
+      $("searchText").value = "";
+      $("filterStatus").value = ""; 
+      $("filterServiceType").value = "";
+      $("filterApptFrom").value = tomorrowStr;
+      $("filterApptTo").value = tomorrowStr;
       
       renderAppointmentsTable();
     });
 
-	$("expiringCardBtn")?.addEventListener("click", () => {
+	$("expiringCardBtn").addEventListener("click", () => {
       viewMode = "expiring";
       highlightDocId = null;
       
       if(typeof clearAllFilters === "function") {
          clearAllFilters();
       } else {
-         if($("searchText")) $("searchText").value = "";
-         if($("filterServiceType")) $("filterServiceType").value = "";
-         if($("filterStatus")) $("filterStatus").value = "";
-         if($("filterApptFrom")) $("filterApptFrom").value = "";
-         if($("filterApptTo")) $("filterApptTo").value = "";
+         $("searchText").value = "";
+         $("filterServiceType").value = "";
+         $("filterStatus").value = "";
+         $("filterApptFrom").value = "";
+         $("filterApptTo").value = "";
       }
       
       updateDashboardTabsUI();
@@ -1667,8 +1623,8 @@
       const loadBtn = $("loadMoreBtn");
       
       if (!isLoadMore) {
-        if(body) body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Loading...</td></tr>`;
-        if($("dashboardMessage")) $("dashboardMessage").textContent = "";
+        body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Loading...</td></tr>`;
+        $("dashboardMessage").textContent = "";
         cachedAppointments = [];
         lastVisibleDoc = null;
       } else {
@@ -1698,17 +1654,17 @@
           if (loadBtn) loadBtn.style.display = (snap.docs.length === fetchLimit) ? "inline-block" : "none";
         } else {
           if (loadBtn) loadBtn.style.display = "none";
-          if (!isLoadMore && body) body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
+          if (!isLoadMore) body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
         }
       } catch(e) { 
-        console.error("Load Apps Error:", e);
-        if(!isLoadMore && body) body.innerHTML = `<tr><td colspan="15" style="text-align:center;color:#b91c1c;">Error loading: ${e.message}</td></tr>`; 
+        console.error(e);
+        if(!isLoadMore) body.innerHTML = `<tr><td colspan="15" style="text-align:center;color:#b91c1c;">Error loading: ${e.message}</td></tr>`; 
       }
       
       if (loadBtn && loadBtn.style.display !== "none") loadBtn.textContent = "Load More (နောက်ထပ်ခေါ်ရန်)";
     }
 
-    $("loadMoreBtn")?.addEventListener("click", () => {
+    $("loadMoreBtn").addEventListener("click", () => {
        loadAppointments(true);
     });
 
@@ -1759,15 +1715,12 @@
     }
 
     function renderAppointmentsTable() {
-      const body = $("appointmentsTableBody"); 
-      if(!body) return;
-      body.innerHTML = "";
-      
-      const searchText = $("searchText")?.value.trim().toLowerCase() || "";
-      const filterService = $("filterServiceType")?.value || "";
-      const filterStatus = $("filterStatus")?.value || "";
-      const apptFrom = $("filterApptFrom")?.value || "";
-      const apptTo = $("filterApptTo")?.value || "";
+      const body = $("appointmentsTableBody"); body.innerHTML = "";
+      const searchText = $("searchText").value.trim().toLowerCase();
+      const filterService = $("filterServiceType").value;
+      const filterStatus = $("filterStatus").value;
+      const apptFrom = $("filterApptFrom").value;
+      const apptTo = $("filterApptTo").value;
 
       const today = new Date();
       today.setHours(0,0,0,0);
@@ -1824,7 +1777,7 @@
         const isArchive = (s === "completed" || s === "done" || s === "cancel");
 
         let statusOptions = "";
-        (dropdownSettings.customerStatuses || []).forEach(s_opt => {
+        dropdownSettings.customerStatuses.forEach(s_opt => {
           statusOptions += `<option value="${s_opt}" ${a.customerStatus === s_opt ? 'selected' : ''}>${s_opt}</option>`;
         });
 
@@ -1897,7 +1850,7 @@
            setTimeout(() => tr.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
         }
 
-        tr.querySelector(".status-select")?.addEventListener("change", async (e) => {
+        tr.querySelector(".status-select").addEventListener("change", async (e) => {
           const newVal = e.target.value;
           const docId = e.target.dataset.statusid;
           const oldVal = e.target.dataset.oldstatus;
@@ -1922,10 +1875,8 @@
           e.target.disabled = false;
         });
 
-        tr.querySelector("[data-docid]")?.addEventListener("click", () => {
-          if($("invoiceDocId")) $("invoiceDocId").value = id; 
-          document.querySelector('.tab-btn[data-tab="invoice"]')?.click(); 
-          loadInvoice();
+        tr.querySelector("[data-docid]").addEventListener("click", () => {
+          $("invoiceDocId").value = id; document.querySelector('.tab-btn[data-tab="invoice"]').click(); loadInvoice();
         });
         
         const jumpLink = tr.querySelector(".jump-link");
@@ -1934,14 +1885,14 @@
               const targetTab = jumpLink.dataset.targettab;
               highlightDocId = jumpLink.dataset.jumpid;
               
-              if($("searchText")) $("searchText").value = "";
-              if($("filterServiceType")) $("filterServiceType").value = "";
-              if($("filterStatus")) $("filterStatus").value = "";
-              if($("filterApptFrom")) $("filterApptFrom").value = "";
-              if($("filterApptTo")) $("filterApptTo").value = "";
+              $("searchText").value = "";
+              $("filterServiceType").value = "";
+              $("filterStatus").value = "";
+              $("filterApptFrom").value = "";
+              $("filterApptTo").value = "";
               
-              if (targetTab === "active") $("btnActiveTab")?.click();
-              else $("btnArchiveTab")?.click();
+              if (targetTab === "active") $("btnActiveTab").click();
+              else $("btnArchiveTab").click();
            });
         }
 
@@ -1962,66 +1913,67 @@
         if (delBtn) delBtn.addEventListener("click", async () => {
           if (!canEditDelete) return;
           if (!confirm(`Delete this order?\n\nInvoice ID: ${id}`)) return;
-          if($("dashboardMessage")) { $("dashboardMessage").textContent = "Deleting..."; $("dashboardMessage").className = "message"; }
+          $("dashboardMessage").textContent = "Deleting..."; $("dashboardMessage").className = "message";
           try {
             await deleteDoc(doc(db, "appointments", id));
-            if($("dashboardMessage")) { $("dashboardMessage").textContent = "✅ Deleted: " + id; $("dashboardMessage").className = "message success"; }
+            $("dashboardMessage").textContent = "✅ Deleted: " + id; $("dashboardMessage").className = "message success";
             await loadAppointments(); 
-          } catch(e) { if($("dashboardMessage")) { $("dashboardMessage").textContent = "❌ Delete failed: " + e.message; $("dashboardMessage").className = "message error"; } }
+          } catch(e) { $("dashboardMessage").textContent = "❌ Delete failed: " + e.message; $("dashboardMessage").className = "message error"; }
         });
       });
-      try { updateRoleUI(); } catch(e) { console.error("UI update err", e); }
+      updateRoleUI();
     }
     
     function duplicateAppointment(a) {
       editingDocId = null; 
-      if($("invoiceId")) $("invoiceId").disabled = false;
-      if($("autoInvoiceId")) $("autoInvoiceId").checked = true;
+      $("invoiceId").disabled = false;
+      $("autoInvoiceId").checked = true;
       applyInvoiceIdMode();
       if (currentUser) ensureInvoiceIdAuto();
 
-      if($("date")) $("date").value = todayISO(); 
-      if($("appointmentDate")) $("appointmentDate").value = a.appointmentDate || ""; 
-      if($("appointmentTime")) $("appointmentTime").value = a.appointmentTime || "";
-      if($("expiryDate")) $("expiryDate").value = a.expiryDate || "";
-      if($("alertDays")) $("alertDays").value = a.alertDays || "30";
+      $("date").value = todayISO(); 
+      $("appointmentDate").value = a.appointmentDate || ""; 
+      $("appointmentTime").value = a.appointmentTime || "";
+      $("expiryDate").value = a.expiryDate || "";
+      $("alertDays").value = a.alertDays || "30";
 
-      if($("name")) $("name").value = a.name || ""; 
-      if($("socialName")) $("socialName").value = a.socialName || ""; 
-      if($("phone")) $("phone").value = a.phone || ""; 
+      $("name").value = a.name || ""; 
+      $("socialName").value = a.socialName || ""; 
+      $("phone").value = a.phone || ""; 
 
       ensureOption($("customerStatus"), "Pending");
       ensureOption($("channel"), a.channel); ensureOption($("location"), a.location); ensureOption($("serviceType"), a.serviceType); ensureOption($("paymentType"), a.paymentType);
 
-      if($("customerStatus")) $("customerStatus").value = "Pending"; 
-      if($("channel")) $("channel").value = a.channel || ""; if($("location")) $("location").value = a.location || ""; 
+      $("customerStatus").value = "Pending"; 
+      $("channel").value = a.channel || ""; $("location").value = a.location || ""; 
       
-      if($("serviceType")) $("serviceType").value = a.serviceType || "";
+      $("serviceType").value = a.serviceType || "";
       if (typeof updatePackageDropdown === "function") updatePackageDropdown();
       if (a.servicePackage) {
          ensureOption($("servicePackage"), a.servicePackage);
-         if($("servicePackage")) $("servicePackage").value = a.servicePackage;
+         $("servicePackage").value = a.servicePackage;
       } else {
          if($("servicePackage")) $("servicePackage").value = "";
       }
 
-      if($("paymentType")) $("paymentType").value = a.paymentType || ""; if($("price")) $("price").value = a.price != null ? a.price : ""; if($("depositAmount")) $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
-      if($("remark")) $("remark").value = a.remark || ""; updateDepositUI();
+      $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
+      $("remark").value = a.remark || ""; updateDepositUI();
 
-      if($("saveBtnText")) $("saveBtnText").textContent = "Save to Firebase"; 
-      if($("btnCancelEdit")) $("btnCancelEdit").style.display = "none";
+      $("saveBtnText").textContent = "Save to Firebase"; 
+      $("btnCancelEdit").style.display = "none";
       
       const msg = $("message"); 
-      if(msg) { msg.textContent = "Duplicate Mode: Review and Save as New."; msg.className = "message success"; }
-      document.querySelector('.tab-btn[data-tab="entry"]')?.click();
+      msg.textContent = "Duplicate Mode: Review and Save as New."; 
+      msg.className = "message success";
+      document.querySelector('.tab-btn[data-tab="entry"]').click();
     }
 
     async function showCustomerHistory(phone, name) {
       if(!phone) return;
-      if($("historyModal")) $("historyModal").classList.remove("hidden");
-      if($("historyModalTitle")) $("historyModalTitle").textContent = `${name} (${phone}) - History`;
+      $("historyModal").classList.remove("hidden");
+      $("historyModalTitle").textContent = `${name} (${phone}) - History`;
       const tbody = $("historyTableBody");
-      if(tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Loading history from database...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Loading history from database...</td></tr>`;
       
       try {
         const q = query(collection(db, "appointments"), where("phone", "==", phone));
@@ -2035,46 +1987,44 @@
            return timeB - timeA;
         });
         
-        if(tbody) {
-            tbody.innerHTML = "";
-            if(list.length === 0) {
-               tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">မှတ်တမ်း မရှိပါ။</td></tr>`;
-               return;
-            }
-            
-            list.forEach(a => {
-               const status = a.customerStatus || "Pending";
-               const sLower = status.toLowerCase();
-               let pillClass = "status-pending";
-               
-               if (sLower === "confirm") pillClass = "status-confirm";
-               else if (sLower === "cancel") pillClass = "status-pill style='background:#fee2e2;color:#b91c1c;border-color:#fecaca;'";
-               else if (sLower === "completed" || sLower === "done") pillClass = "status-pill style='background:#dcfce7;color:#15803d;border-color:#bbf7d0;'";
-               
-               const finalPill = pillClass.startsWith("status-pill") ? `<span class=${pillClass}>${status}</span>` : `<span class="status-pill ${pillClass}">${status}</span>`;
-
-               tbody.innerHTML += `
-                 <tr>
-                   <td>${a.date || "-"}</td>
-                   <td><span class="tag">${a.serviceType || "-"} ${a.servicePackage ? `(${a.servicePackage})` : ""}</span></td>
-                   <td>${a.location || "-"}</td>
-                   <td style="font-weight:700;">${Number(a.price || 0).toFixed(2)}</td>
-                   <td>${finalPill}</td>
-                 </tr>
-               `;
-            });
+        tbody.innerHTML = "";
+        if(list.length === 0) {
+           tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">မှတ်တမ်း မရှိပါ။</td></tr>`;
+           return;
         }
+        
+        list.forEach(a => {
+           const status = a.customerStatus || "Pending";
+           const sLower = status.toLowerCase();
+           let pillClass = "status-pending";
+           
+           if (sLower === "confirm") pillClass = "status-confirm";
+           else if (sLower === "cancel") pillClass = "status-pill style='background:#fee2e2;color:#b91c1c;border-color:#fecaca;'";
+           else if (sLower === "completed" || sLower === "done") pillClass = "status-pill style='background:#dcfce7;color:#15803d;border-color:#bbf7d0;'";
+           
+           const finalPill = pillClass.startsWith("status-pill") ? `<span class=${pillClass}>${status}</span>` : `<span class="status-pill ${pillClass}">${status}</span>`;
+
+           tbody.innerHTML += `
+             <tr>
+               <td>${a.date || "-"}</td>
+               <td><span class="tag">${a.serviceType || "-"} ${a.servicePackage ? `(${a.servicePackage})` : ""}</span></td>
+               <td>${a.location || "-"}</td>
+               <td style="font-weight:700;">${Number(a.price || 0).toFixed(2)}</td>
+               <td>${finalPill}</td>
+             </tr>
+           `;
+        });
       } catch(e) {
-        if(tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">Error loading: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">Error loading: ${e.message}</td></tr>`;
       }
     }
     
-    $("closeHistoryModal")?.addEventListener("click", () => {
+    $("closeHistoryModal").addEventListener("click", () => {
       $("historyModal").classList.add("hidden");
     });
 
     function ensureOption(select, value) {
-      if (!select || !value) return;
+      if (!value) return;
       if (!Array.from(select.options).some(o => o.value === value)) {
         const opt = document.createElement("option"); opt.value = opt.textContent = value; select.appendChild(opt);
       }
@@ -2083,44 +2033,44 @@
 
     function startEditAppointment(a) {
       editingDocId = (a.invoiceId || a.id || "").toUpperCase();
-      if($("invoiceId")) { $("invoiceId").value = editingDocId; $("invoiceId").disabled = true; }
+      $("invoiceId").value = editingDocId; $("invoiceId").disabled = true;
 
-      if($("date")) $("date").value = a.date || ""; 
-      if($("appointmentDate")) $("appointmentDate").value = a.appointmentDate || ""; 
-      if($("appointmentTime")) $("appointmentTime").value = a.appointmentTime || "";
-      if($("expiryDate")) $("expiryDate").value = a.expiryDate || "";
-      if($("alertDays")) $("alertDays").value = a.alertDays || "30";
+      $("date").value = a.date || ""; 
+      $("appointmentDate").value = a.appointmentDate || ""; 
+      $("appointmentTime").value = a.appointmentTime || "";
+      $("expiryDate").value = a.expiryDate || "";
+      $("alertDays").value = a.alertDays || "30";
 
-      if($("name")) $("name").value = a.name || ""; if($("socialName")) $("socialName").value = a.socialName || ""; if($("phone")) $("phone").value = a.phone || ""; 
+      $("name").value = a.name || ""; $("socialName").value = a.socialName || ""; $("phone").value = a.phone || ""; 
 
       ensureOption($("customerStatus"), a.customerStatus);
       ensureOption($("channel"), a.channel); ensureOption($("location"), a.location); ensureOption($("serviceType"), a.serviceType); ensureOption($("paymentType"), a.paymentType);
 
-      if($("customerStatus")) $("customerStatus").value = a.customerStatus || ""; 
-      if($("channel")) $("channel").value = a.channel || ""; if($("location")) $("location").value = a.location || ""; 
+      $("customerStatus").value = a.customerStatus || ""; 
+      $("channel").value = a.channel || ""; $("location").value = a.location || ""; 
 
-      if($("serviceType")) $("serviceType").value = a.serviceType || "";
+      $("serviceType").value = a.serviceType || "";
       if (typeof updatePackageDropdown === "function") updatePackageDropdown();
       if (a.servicePackage) {
          ensureOption($("servicePackage"), a.servicePackage);
-         if($("servicePackage")) $("servicePackage").value = a.servicePackage;
+         $("servicePackage").value = a.servicePackage;
       } else {
          if($("servicePackage")) $("servicePackage").value = "";
       }
 
-      if($("paymentType")) $("paymentType").value = a.paymentType || ""; if($("price")) $("price").value = a.price != null ? a.price : ""; if($("depositAmount")) $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
-      if($("remark")) $("remark").value = a.remark || ""; updateDepositUI();
+      $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
+      $("remark").value = a.remark || ""; updateDepositUI();
 
       const canEditDelete = currentRole === "admin" || currentRole === "manager";
-      if($("saveBtnText")) $("saveBtnText").textContent = "Update Appointment"; if($("btnCancelEdit")) $("btnCancelEdit").style.display = canEditDelete ? "inline-flex" : "none";
+      $("saveBtnText").textContent = "Update Appointment"; $("btnCancelEdit").style.display = canEditDelete ? "inline-flex" : "none";
       applyInvoiceIdMode();
-      const msg = $("message"); if(msg) { msg.textContent = "Edit Mode: Invoice " + editingDocId; msg.className = "message"; }
-      document.querySelector('.tab-btn[data-tab="entry"]')?.click();
+      const msg = $("message"); msg.textContent = "Edit Mode: Invoice " + editingDocId; msg.className = "message";
+      document.querySelector('.tab-btn[data-tab="entry"]').click();
     }
 
-    $("reloadAppointments")?.addEventListener("click", () => loadAppointments(false));
-    $("applyFilter")?.addEventListener("click", renderAppointmentsTable);
-    $("exportCsv")?.addEventListener("click", () => {
+    $("reloadAppointments").addEventListener("click", () => loadAppointments(false));
+    $("applyFilter").addEventListener("click", renderAppointmentsTable);
+    $("exportCsv").addEventListener("click", () => {
       const canEditDelete = currentRole === "admin" || currentRole === "manager";
       if (!canEditDelete || !lastFilteredAppointments.length) return alert("Export လုပ်မယ့် data မရှိပါ။");
       const rows = [["Invoice ID","Service Date","Appointment Date","Appointment Time","Expiry Date","Alert Days","Status","Name", "Social Name", "Phone","Channel","Location","Service Type","Payment Type","Total","Deposit","Balance","Service Cost","Service Profit","Remark"]];
@@ -2157,9 +2107,9 @@
 
     async function loadInvoice() {
       if (currentRole === "guest") return;
-      const id = ($("invoiceDocId")?.value.trim() || lastSavedDocId || "").toUpperCase();
-      const msg = $("invoiceMessage"); if(msg) { msg.textContent = ""; msg.className = "message"; }
-      if (!id) { if(msg) { msg.textContent = "Invoice ID ထည့်ပါ (သို့) Dashboard မှ Invoice ကိုနှိပ်ပါ"; msg.className = "message error"; } return; }
+      const id = ($("invoiceDocId").value.trim() || lastSavedDocId || "").toUpperCase();
+      const msg = $("invoiceMessage"); msg.textContent = ""; msg.className = "message";
+      if (!id) { msg.textContent = "Invoice ID ထည့်ပါ (သို့) Dashboard မှ Invoice ကိုနှိပ်ပါ"; msg.className = "message error"; return; }
 
       try {
         let data = cachedAppointments.find(x => (x.invoiceId || x.id || "").toUpperCase() === id);
@@ -2167,7 +2117,7 @@
 
         if (!data) {
           const snap = await getDoc(doc(db, "appointments", id));
-          if (!snap.exists()) { if(msg) { msg.textContent = "အဲ့ဒီ Invoice ID နဲ့ Appointment မတွေ့ပါ"; msg.className = "message error"; } return; }
+          if (!snap.exists()) { msg.textContent = "အဲ့ဒီ Invoice ID နဲ့ Appointment မတွေ့ပါ"; msg.className = "message error"; return; }
           data = snap.data();
           if (data.createdAt?.toDate) createdAt = data.createdAt.toDate();
         } else {
@@ -2185,54 +2135,53 @@
         if($("lblDeposit")) $("lblDeposit").textContent = t.deposit;
         if($("lblBalance")) $("lblBalance").textContent = t.balance;
 
-        if($("invRefText")) $("invRefText").textContent = `Invoice No: ${id}`; 
-        if($("invIssueDate")) $("invIssueDate").textContent = `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
+        $("invRefText").textContent = `Invoice No: ${id}`; 
+        $("invIssueDate").textContent = `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
         
-        if($("invCustomerInfo")) $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${data.name || "-"}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${data.appointmentTime ? ` ${data.appointmentTime}` : ""}</span></div>`;
+        $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${data.name || "-"}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${data.appointmentTime ? ` ${data.appointmentTime}` : ""}</span></div>`;
         
         const sTypeStr = data.servicePackage ? `${data.serviceType} (${data.servicePackage})` : (data.serviceType || "-");
-        if($("invServiceInfo")) $("invServiceInfo").innerHTML = `<div><span class="invoice-label">${t.service}</span><br/><span class="invoice-value">${sTypeStr}</span></div><div><span class="invoice-label">${t.payment}</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div><span class="invoice-label">${t.remark}</span><br/><span class="invoice-value">${data.remark || "-"}</span></div><div><span class="invoice-label"></span><br/><span class="invoice-value"></span></div>`;
+        $("invServiceInfo").innerHTML = `<div><span class="invoice-label">${t.service}</span><br/><span class="invoice-value">${sTypeStr}</span></div><div><span class="invoice-label">${t.payment}</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div><span class="invoice-label">${t.remark}</span><br/><span class="invoice-value">${data.remark || "-"}</span></div><div><span class="invoice-label"></span><br/><span class="invoice-value"></span></div>`;
         
         const total = Number(data.price || 0); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
-        if($("invTotalAmount")) $("invTotalAmount").textContent = total.toFixed(2); if($("invBalanceAmount")) $("invBalanceAmount").textContent = balance.toFixed(2);
+        $("invTotalAmount").textContent = total.toFixed(2); $("invBalanceAmount").textContent = balance.toFixed(2);
         
         if (deposit > 0) { 
-          if($("invDepositRow")) $("invDepositRow").style.display = "block"; if($("invDepositAmount")) { $("invDepositAmount").style.display = "block"; $("invDepositAmount").textContent = "-" + deposit.toFixed(2); }
+          $("invDepositRow").style.display = "block"; $("invDepositAmount").style.display = "block"; $("invDepositAmount").textContent = "-" + deposit.toFixed(2); 
         } else { 
-          if($("invDepositRow")) $("invDepositRow").style.display = "none"; if($("invDepositAmount")) $("invDepositAmount").style.display = "none"; 
+          $("invDepositRow").style.display = "none"; $("invDepositAmount").style.display = "none"; 
         }
         
-        if(msg) { msg.textContent = "✅ Invoice loaded."; msg.className = "message success"; }
-      } catch(e) { if(msg) { msg.textContent = "❌ Error loading invoice: " + e.message; msg.className = "message error"; } }
+        msg.textContent = "✅ Invoice loaded."; msg.className = "message success";
+      } catch(e) { msg.textContent = "❌ Error loading invoice: " + e.message; msg.className = "message error"; }
     }
 
-    $("loadInvoice")?.addEventListener("click", loadInvoice);
+    $("loadInvoice").addEventListener("click", loadInvoice);
     
     $("invoiceLanguage")?.addEventListener("change", () => {
-      if ($("invoiceDocId")?.value.trim()) {
+      if ($("invoiceDocId").value.trim()) {
         loadInvoice();
       }
     });
-    $("gotoInvoiceFromEntry")?.addEventListener("click", () => {
-      if (lastSavedDocId && $("invoiceDocId")) $("invoiceDocId").value = lastSavedDocId;
-      document.querySelector('.tab-btn[data-tab="invoice"]')?.click(); if (lastSavedDocId) loadInvoice();
+    $("gotoInvoiceFromEntry").addEventListener("click", () => {
+      if (lastSavedDocId) $("invoiceDocId").value = lastSavedDocId;
+      document.querySelector('.tab-btn[data-tab="invoice"]').click(); if (lastSavedDocId) loadInvoice();
     });
 
-    $("downloadInvoiceJpeg")?.addEventListener("click", async () => {
+    $("downloadInvoiceJpeg").addEventListener("click", async () => {
       if (currentRole === "guest") return;
-      const card = $("invoiceCard"); const msg = $("invoiceMessage"); if(msg) { msg.textContent = "Rendering JPEG..."; msg.className = "message"; }
+      const card = $("invoiceCard"); const msg = $("invoiceMessage"); msg.textContent = "Rendering JPEG..."; msg.className = "message";
       try {
         const canvas = await html2canvas(card, { scale: 3, useCORS: true }); const link = document.createElement("a");
-        link.download = "invoice-" + (($("invoiceDocId")?.value.trim() || "preview").toUpperCase()) + ".jpg";
+        link.download = "invoice-" + (($("invoiceDocId").value.trim() || "preview").toUpperCase()) + ".jpg";
         link.href = canvas.toDataURL("image/jpeg", 0.92); link.click();
-        if(msg) { msg.textContent = "✅ JPEG Downloaded."; msg.className = "message success"; }
-      } catch(e) { if(msg) { msg.textContent = "❌ Error generating JPEG: " + e.message; msg.className = "message error"; } }
+        msg.textContent = "✅ JPEG Downloaded."; msg.className = "message success";
+      } catch(e) { msg.textContent = "❌ Error generating JPEG: " + e.message; msg.className = "message error"; }
     });
 
     async function loadUsersList() {
       if (currentRole !== "admin") return;
-      const tbody = $("usersTableBody"); if(!tbody) return;
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Loading...</td></tr>`;
+      const tbody = $("usersTableBody"); tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Loading...</td></tr>`;
       
       try {
         const snap = await getDocs(collection(db, "users")); tbody.innerHTML = "";
@@ -2261,7 +2210,7 @@
 
     $("usersTabBtn")?.addEventListener("click", loadUsersList);
     $("reloadUsersBtn")?.addEventListener("click", loadUsersList);
-    
+    // === Tracker Logs ဆွဲထုတ်မည့် Function ===
     async function loadTrackerLogs() {
       if (currentRole !== "admin") return;
       const tbody = $("logsTableBody");
@@ -2329,7 +2278,7 @@
       $("createNewAccBtn").disabled = false;
     });
 
-    try { updateAuthUI(); renderDropdowns(); if($("date")) $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode(); } catch(e) { console.error("Init Error", e); }
+    updateAuthUI(); renderDropdowns(); $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
 
   </script>
 </body>
