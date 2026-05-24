@@ -786,6 +786,13 @@
               <small>ဥပမာ: TM30 = BKK, REG (ခွဲရေးချင်ရင်သုံးပါ)</small>
               <textarea id="packagesSetting" rows="6" placeholder="Service Name = Pkg1, Pkg2"></textarea>
             </div>
+            
+            <div class="settings-block">
+              <h4>Required Documents per Service</h4>
+              <small>ဥပမာ: TM30(ဧည့်စာရင်း) = Passport Bio Page, Passport VISA Page</small>
+              <textarea id="docsSetting" rows="6" placeholder="Service Name = Doc 1, Doc 2"></textarea>
+            </div>
+
             <div class="settings-block">
               <h4>Payment Type List</h4>
               <textarea id="paymentsSetting" rows="6"></textarea>
@@ -1292,6 +1299,17 @@
          }
          $("packagesSetting").value = pkgText.trim();
       }
+      
+      // ဒါလေးက အသစ်ထပ်ထည့်တဲ့ Code ပါ (Firebase ကနေ Document List ဆွဲယူတာပါ)
+      dropdownSettings.serviceDocuments = d.serviceDocuments || {};
+      if ($("docsSetting")) {
+         let docText = "";
+         for(const [sName, dList] of Object.entries(dropdownSettings.serviceDocuments || {})) {
+            docText += `${sName} = ${dList.join(", ")}\n`;
+         }
+         $("docsSetting").value = docText.trim();
+      }
+
       if ($("paymentsSetting")) $("paymentsSetting").value = dropdownSettings.paymentTypes.join("\n");
       if ($("locationsSetting")) $("locationsSetting").value = dropdownSettings.locations.join("\n");
       
@@ -1321,6 +1339,19 @@
             if(sName && pList.length > 0) dropdownSettings.servicePackages[sName] = pList;
          }
       });
+
+      // ဒါလေးက အသစ်ထပ်ထည့်တဲ့ Code ပါ (Textarea က စာတွေကို Firebase ထဲ Save တာပါ)
+      dropdownSettings.serviceDocuments = {};
+      const docLines = $("docsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
+      docLines.forEach(line => {
+         const parts = line.split("=");
+         if(parts.length === 2) {
+            const sName = parts[0].trim();
+            const dList = parts[1].split(",").map(p=>p.trim()).filter(Boolean);
+            if(sName && dList.length > 0) dropdownSettings.serviceDocuments[sName] = dList;
+         }
+      });
+
       dropdownSettings.paymentTypes = $("paymentsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
       dropdownSettings.locations = $("locationsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
 
@@ -1507,14 +1538,28 @@
     });
 
     async function sendToTg(chatId, threadId, text) {
-      try {
-        const bodyData = { chat_id: chatId, text: text, parse_mode: "Markdown" };
-        if (threadId) bodyData.message_thread_id = threadId;
-        await fetch(`https://api.telegram.org/bot${telegramSettings.botToken}/sendMessage`, {
-          method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(bodyData)
-        });
-      } catch(e) { console.error("Telegram error", e); }
+  try {
+    const bodyData = { chat_id: chatId, text: text, parse_mode: "Markdown" };
+    if (threadId) bodyData.message_thread_id = threadId;
+    
+    const response = await fetch(`https://api.telegram.org/bot${telegramSettings.botToken}/sendMessage`, {
+      method: "POST", 
+      headers: { "Content-Type": "application/json" }, 
+      body: JSON.stringify(bodyData)
+    });
+
+    const resData = await response.json();
+    
+    // Telegram API က အောင်မြင်ကြောင်း မပြရင် Error Message ကို Alert ပြပေးပါမယ်
+    if (!response.ok) {
+      console.error("Telegram API Error:", resData);
+      alert("Telegram သို့ပို့ရာတွင် အမှားအယွင်းရှိပါသည်:\n" + resData.description);
     }
+  } catch(e) { 
+    console.error("Telegram connection error", e); 
+    alert("Telegram Connection Error:\n" + e.message);
+  }
+}
 
     async function sendMultiTelegramNotifications(a) {
       if (!telegramSettings.botToken || !telegramSettings.mainChatId) return;
