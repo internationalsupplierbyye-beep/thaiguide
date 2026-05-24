@@ -769,6 +769,18 @@
           </div>
 
           <div class="settings-grid">
+            
+            <div class="settings-block" style="grid-column: 1 / -1;">
+              <h4>Service Package List (Optional)</h4>
+              <small>ဥပမာ: TM30 = BKK, REG (ခွဲရေးချင်ရင်သုံးပါ)</small>
+              <textarea id="packagesSetting" rows="10" placeholder="Service Name = Pkg1, Pkg2" style="width: 100%; font-size:14px; padding:10px;"></textarea>
+            </div>
+
+            <div class="settings-block" style="grid-column: 1 / -1;">
+              <h4>Service Pricing (Cost / Profit per Service)</h4>
+              <div id="servicePricingContainer" style="max-height: 150px; overflow-y: auto; overflow-x: auto; padding-right: 6px;"></div>
+            </div>
+
             <div class="settings-block">
               <h4>Customer Status List</h4>
               <textarea id="statusesSetting" rows="6"></textarea>
@@ -782,22 +794,12 @@
               <textarea id="servicesSetting" rows="6"></textarea>
             </div>
             <div class="settings-block">
-              <h4>Service Package List (Optional)</h4>
-              <small>ဥပမာ: TM30 = BKK, REG (ခွဲရေးချင်ရင်သုံးပါ)</small>
-              <textarea id="packagesSetting" rows="6" placeholder="Service Name = Pkg1, Pkg2"></textarea>
-            </div>
-            <div class="settings-block">
               <h4>Payment Type List</h4>
               <textarea id="paymentsSetting" rows="6"></textarea>
             </div>
             <div class="settings-block">
               <h4>Service Location List</h4>
               <textarea id="locationsSetting" rows="6"></textarea>
-            </div>
-            
-            <div class="settings-block">
-              <h4>Service Pricing (Cost / Profit per Service)</h4>
-              <div id="servicePricingContainer" style="max-height: 210px; overflow-y: auto; overflow-x: auto; padding-right: 6px;"></div>
             </div>
             
             <div class="settings-block">
@@ -830,8 +832,9 @@
                 </div>
               </div>
             </div>
-          </div>
-          <div id="settingsMessage" class="message"></div>
+
+          </div> <div id="settingsMessage" class="message"></div>
+          
         </div>
       </section>
 
@@ -1234,15 +1237,19 @@
       const createRow = (key, label) => {
         const row = document.createElement("div");
         row.style.display = "grid";
-        // Fixed label cut-off issue (T instead of TM30)
-        row.style.gridTemplateColumns = "minmax(90px, 1fr) 70px 70px 80px";
-        row.style.gap = "4px"; row.style.alignItems = "center"; row.style.marginBottom = "6px";
+        // Column အကျယ်တွေကို တိုးပေးလိုက်ပါတယ်
+        // 1fr အစား 350px လို့ ပုံသေပေးလိုက်တဲ့အတွက် အရမ်းမကျဲတော့ဘဲ တစ်ဝက်လောက်မှာ ပြန်ကပ်သွားပါမယ်
+        row.style.gridTemplateColumns = "350px 100px 100px 110px";
+        row.style.justifyContent = "start"; // ဘယ်ဘက်ကို ကပ်နေစေရန်
+        row.style.gap = "8px"; row.style.alignItems = "center"; row.style.marginBottom = "8px";
         const sp = servicePricing[key] || { cost: "", profit: "", price: "" };
+        
+        // Font Size တွေကို 11px ကနေ 13px ထိ ကြီးပေးပြီး Padding တိုးထားပါတယ်
         row.innerHTML = `
-          <span title="${label}" style="font-size:11px; font-weight:700; line-height:1.2;">${label}</span>
-          <input type="number" min="0" step="0.01" placeholder="Cost" data-sp-cost="${key}" value="${sp.cost ?? ""}" style="font-size:11px;padding:4px;">
-          <input type="number" min="0" step="0.01" placeholder="Profit" data-sp-profit="${key}" value="${sp.profit ?? ""}" style="font-size:11px;padding:4px;">
-          <input type="number" min="0" step="0.01" placeholder="Price" data-sp-price="${key}" value="${sp.price ?? ""}" style="font-size:11px;padding:4px;background:#eef2ff;border-color:#818cf8;">
+          <span title="${label}" style="font-size:13px; font-weight:700; line-height:1.4;">${label}</span>
+          <input type="number" min="0" step="0.01" placeholder="Cost" data-sp-cost="${key}" value="${sp.cost ?? ""}" style="font-size:13px;padding:6px 8px;">
+          <input type="number" min="0" step="0.01" placeholder="Profit" data-sp-profit="${key}" value="${sp.profit ?? ""}" style="font-size:13px;padding:6px 8px;">
+          <input type="number" min="0" step="0.01" placeholder="Price" data-sp-price="${key}" value="${sp.price ?? ""}" style="font-size:13px;padding:6px 8px;background:#eef2ff;border-color:#818cf8;">
         `;
         container.appendChild(row);
       };
@@ -1462,9 +1469,7 @@
         price: total, 
         depositAmount: dep,
         balanceAmount: Math.max(total - dep, 0), 
-        remark: $("remark").value.trim() || null,
-        createdAt: serverTimestamp(), 
-        createdBy: currentUser ? currentUser.email : null
+        remark: $("remark").value.trim() || null
       };
 
       if (!invoiceId || !data.date || !data.appointmentDate || !data.name || !data.phone || !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
@@ -1491,6 +1496,8 @@
           if ((await getDoc(doc(db, "appointments", invoiceId))).exists()) {
             messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – New ID ထုတ်ပါ (Auto) သို့ Manual ပြောင်းပါ။"; messageDiv.className = "message error"; return;
           }
+          data.createdAt = serverTimestamp();
+          data.createdBy = currentUser ? currentUser.email : null;
           await setDoc(doc(db, "appointments", invoiceId), data);
           lastSavedDocId = invoiceId; lastSavedData = { ...data, id: invoiceId };
           messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId; messageDiv.className = "message success";
@@ -1736,6 +1743,15 @@
           if (apptTo && d > apptTo) ok = false;
         }
         return ok;
+      });
+
+      baseFiltered.sort((a, b) => {
+        if (a.date !== b.date) {
+          return (b.date || "").localeCompare(a.date || ""); 
+        }
+        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return timeB - timeA; 
       });
 
       updateSummaryCards(baseFiltered);
