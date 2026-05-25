@@ -534,8 +534,13 @@
               <select id="paymentType" required></select>
             </div>
 
+            <div class="field" id="costFieldWrapper">
+  <label for="cost">Cost (အရင်း - THB)</label>
+  <input type="number" id="cost" min="0" step="0.01" placeholder="0.00" />
+</div>
+
             <div class="field">
-              <label for="price">စုစုပေါင်း ဈေးနှုန်း (THB)</label>
+              <label for="price">Total Price (ရောင်းဈေး - THB)</label>
               <input type="number" id="price" min="0" step="0.01" placeholder="0.00" required />
             </div>
 
@@ -661,7 +666,7 @@
                   <th>Appt / Expiry</th>
                   <th>Status (Change)</th>
                   <th>Customer</th>
-                  <th>Phone</th>
+                  <th>Phone / Channel</th>
                   <th>Service</th>
                   <th>Location</th>
                   <th>Payment</th>
@@ -1164,6 +1169,11 @@
       document.querySelectorAll(".profit-card").forEach(el => {
         el.style.display = canViewProfit ? "" : "none";
       });
+      
+      // Cost ထည့်သည့်အကွက်ကို Admin/Manager မှလွဲ၍ ဖျောက်ထားရန်
+      if ($("costFieldWrapper")) {
+        $("costFieldWrapper").style.display = canViewProfit ? "flex" : "none";
+      }
 
       document.querySelectorAll(".profit-cell").forEach(td => {
         const real = td.dataset.profit || "";
@@ -1280,7 +1290,6 @@
       const createRow = (key, label) => {
         const row = document.createElement("div");
         row.style.display = "grid";
-        // Profit အကွက်ဖြုတ်လိုက်သဖြင့် ကော်လံ ၃ ခုသာထားပါမည်
         row.style.gridTemplateColumns = "350px 100px 110px";
         row.style.justifyContent = "start";
         row.style.gap = "8px"; 
@@ -1436,7 +1445,11 @@
         const pName = $("servicePackage") ? $("servicePackage").value : "";
         const key = (pName && pName !== "") ? `${sName}::${pName}` : sName;
         const sp = servicePricing[key];
-        if(sp && sp.price) { $("price").value = sp.price; updateDepositUI(); }
+        if(sp) {
+           if(sp.cost !== undefined) $("cost").value = sp.cost;
+           if(sp.price !== undefined) $("price").value = sp.price; 
+           updateDepositUI(); 
+        }
     }
     
     $("serviceType").addEventListener("change", () => { updatePackageDropdown(); autoFillPrice(); });
@@ -1644,13 +1657,8 @@
         messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။"; messageDiv.className = "message error"; return;
       }
 
-      const spKey = (data.servicePackage && data.servicePackage !== "") ? `${data.serviceType}::${data.servicePackage}` : data.serviceType;
-      const sp = servicePricing[spKey] || servicePricing[data.serviceType] || {};
-      
-      // Cost မထည့်ထားလျှင် ၀ (သုည) ဟု ယူဆမည်
-      data.serviceCost = typeof sp.cost === "number" ? sp.cost : 0;
-      
-      // 🟢 အမြတ် (Profit) ကို ရောင်းဈေး (data.price) ထဲမှ အရင်း (data.serviceCost) နုတ်၍ Auto တွက်ချက်မည်
+      // 🟢 Entry Form ထဲတွင် လက်တွေ့ရိုက်ထည့်လိုက်သော Cost (အရင်း) နှင့် Price (ရောင်းဈေး) ကို တိုက်ရိုက်ယူပြီး Profit ကို အလိုအလျောက် တွက်ချက်မည်
+      data.serviceCost = Number($("cost").value || 0);
       data.serviceProfit = data.price - data.serviceCost;
 
       let oldStatus = editingDocId ? (cachedAppointments.find(x => x.id === editingDocId)?.customerStatus) : null;
@@ -2025,8 +2033,19 @@
         const apptDT = `${a.appointmentDate || ""}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
         const id = (a.invoiceId || a.id || "").toUpperCase();
 
-        const s = (a.customerStatus || "").toLowerCase();
+        const s = (a.customerStatus || "").toLowerCase(); 
         const isArchive = (s === "completed" || s === "done" || s === "cancel");
+
+        let apptHtml = apptDT || "-";
+        if (a.appointmentDate && s !== "completed" && s !== "cancel") {
+          const tmr = new Date(today);
+          tmr.setDate(tmr.getDate() + 1);
+          const tomorrowStr = `${tmr.getFullYear()}-${String(tmr.getMonth()+1).padStart(2,'0')}-${String(tmr.getDate()).padStart(2,'0')}`;
+          
+          if (a.appointmentDate <= tomorrowStr) { 
+             apptHtml = `<span style="color:#dc2626; font-weight:800;">${apptDT}</span>`;
+          }
+        }
 
         let statusOptions = "";
         dropdownSettings.customerStatuses.forEach(s_opt => {
@@ -2054,12 +2073,12 @@
            nameHtml = `
              <span class="jump-link" style="cursor:pointer; color:var(--error); font-weight:800; text-decoration:underline;" data-jumpid="${id}" data-targettab="${isArchive ? 'archive' : 'active'}" title="Jump to original tab">📍 ${a.name || "-"}</span> <br/>
              <div style="margin: 2px 0;">${tabTag}</div>
-             <small style="color:var(--muted); font-weight:600;">${a.socialName || ""}</small>
+             <small title="${a.socialName ? 'Social: ' + a.socialName : ""}" style="color:var(--muted); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 140px;">${a.socialName ? 'Social: ' + a.socialName : ""}</small>
            `;
         } else {
            nameHtml = `
-             <span class="history-link" style="cursor:pointer; color:var(--primary); font-weight:700; text-decoration:underline;" data-phone="${a.phone}" data-name="${a.name}">${a.name || "-"}</span><br/>
-             <small style="color:var(--muted); font-weight:600;">${a.socialName || ""}</small>
+             <span class="history-link" style="cursor:pointer; color:var(--primary); font-weight:700; text-decoration:underline;" data-phone="${a.phone}" data-name="${a.name}" title="${a.name || "-"}">${a.name || "-"}</span><br/>
+             <small title="${a.socialName ? 'Social: ' + a.socialName : ""}" style="color:var(--muted); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 140px;">${a.socialName ? 'Social: ' + a.socialName : ""}</small>
            `;
         }
         
@@ -2085,22 +2104,30 @@
             ${docsLinkHtml}
           </td>
           <td>${a.date || ""}</td>
-          <td>${apptDT || "-"}${expHtml}</td>
+          <td>${apptHtml}${expHtml}</td>
           <td>
             <select class="status-select ${(a.customerStatus||'').toLowerCase()}" data-statusid="${id}" data-oldstatus="${a.customerStatus}">
               ${statusOptions}
             </select>
           </td>
           <td>${nameHtml}</td>
-          <td>${a.phone || ""}</td>
-          <td><span class="tag">${a.serviceType || ""} ${a.servicePackage ? `<br><small style="opacity:0.8">(${a.servicePackage})</small>` : ""}</span></td>
-          <td>${a.location || ""}</td>
+          <td>
+            <span title="${a.phone || ""}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 120px;">${a.phone || ""}</span>
+            <small title="${a.channel ? 'Via: ' + a.channel : ""}" style="color:var(--muted); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 120px;">${a.channel ? 'Via: ' + a.channel : ""}</small>
+          </td>
+          <td>
+            <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start; max-width: 130px;">
+              <span class="tag" title="${a.serviceType || ""}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; display:block; text-align:left;">${a.serviceType || ""}</span>
+              ${a.servicePackage ? `<span title="${a.servicePackage}" style="font-size:11px; color:#475569; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; display:block;">${a.servicePackage}</span>` : ""}
+            </div>
+          </td>
+          <td title="${a.location || ""}"><div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100px;">${a.location || ""}</div></td>
           <td>${a.paymentType || ""}</td>
           <td>${a.price != null ? Number(a.price).toFixed(2) : ""}</td>
           <td>${dep}</td>
           <td>${bal}</td>
           <td class="profit-cell" data-profit="${profitText}">${displayProfit}</td>
-          <td>${a.remark || "-"}</td>
+          <td title="${a.remark || "-"}"><div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px;">${a.remark || "-"}</div></td>
           <td>
             <div style="display:flex; gap:4px; flex-wrap:wrap;">
                <button class="btn btn-outline action-dup" style="padding:4px 8px;font-size:11px;" data-dupid="${id}">Duplicate</button>
@@ -2317,7 +2344,7 @@
          if($("servicePackage")) $("servicePackage").value = "";
       }
 
-      $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
+      $("paymentType").value = a.paymentType || ""; $("cost").value = a.serviceCost != null ? a.serviceCost : ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
       $("remark").value = a.remark || ""; updateDepositUI();
 
       $("saveBtnText").textContent = "Save to Firebase"; 
