@@ -800,7 +800,7 @@
             </div>
 
             <div class="settings-block" style="grid-column: 1 / -1;">
-              <h4>Service Pricing (Cost / Profit per Service)</h4>
+              <h4>Service Pricing (Cost / Default Price)</h4>
               <div id="servicePricingContainer" style="max-height: 100px; overflow-y: auto; overflow-x: auto; padding-right: 6px;"></div>
             </div>
 
@@ -1280,17 +1280,17 @@
       const createRow = (key, label) => {
         const row = document.createElement("div");
         row.style.display = "grid";
-        row.style.gridTemplateColumns = "350px 100px 100px 110px";
+        // Profit အကွက်ဖြုတ်လိုက်သဖြင့် ကော်လံ ၃ ခုသာထားပါမည်
+        row.style.gridTemplateColumns = "350px 100px 110px";
         row.style.justifyContent = "start";
         row.style.gap = "8px"; 
         row.style.alignItems = "center"; 
         row.style.marginBottom = "8px";
-        const sp = servicePricing[key] || { cost: "", profit: "", price: "" };
+        const sp = servicePricing[key] || { cost: "", price: "" };
         row.innerHTML = `
           <span title="${label}" style="font-size:13px; font-weight:700; line-height:1.4;">${label}</span>
           <input type="number" min="0" step="0.01" placeholder="Cost" data-sp-cost="${key}" value="${sp.cost ?? ""}" style="font-size:13px;padding:6px 8px;">
-          <input type="number" min="0" step="0.01" placeholder="Profit" data-sp-profit="${key}" value="${sp.profit ?? ""}" style="font-size:13px;padding:6px 8px;">
-          <input type="number" min="0" step="0.01" placeholder="Price" data-sp-price="${key}" value="${sp.price ?? ""}" style="font-size:13px;padding:6px 8px;background:#eef2ff;border-color:#818cf8;">
+          <input type="number" min="0" step="0.01" placeholder="Default Price" data-sp-price="${key}" value="${sp.price ?? ""}" style="font-size:13px;padding:6px 8px;background:#eef2ff;border-color:#818cf8;">
         `;
         container.appendChild(row);
       };
@@ -1379,17 +1379,12 @@
       const newPricing = {};
       document.querySelectorAll("[data-sp-cost]").forEach(input => {
         const name = input.dataset.spCost; const val = parseFloat(input.value);
-        newPricing[name] = newPricing[name] || { cost:0, profit:0, price:0 };
+        newPricing[name] = newPricing[name] || { cost:0, price:0 };
         if (!isNaN(val)) newPricing[name].cost = val;
-      });
-      document.querySelectorAll("[data-sp-profit]").forEach(input => {
-        const name = input.dataset.spProfit; const val = parseFloat(input.value);
-        newPricing[name] = newPricing[name] || { cost:0, profit:0, price:0 };
-        if (!isNaN(val)) newPricing[name].profit = val;
       });
       document.querySelectorAll("[data-sp-price]").forEach(input => {
         const name = input.dataset.spPrice; const val = parseFloat(input.value);
-        newPricing[name] = newPricing[name] || { cost:0, profit:0, price:0 };
+        newPricing[name] = newPricing[name] || { cost:0, price:0 };
         if (!isNaN(val)) newPricing[name].price = val;
       });
       servicePricing = newPricing;
@@ -1651,8 +1646,12 @@
 
       const spKey = (data.servicePackage && data.servicePackage !== "") ? `${data.serviceType}::${data.servicePackage}` : data.serviceType;
       const sp = servicePricing[spKey] || servicePricing[data.serviceType] || {};
+      
+      // Cost မထည့်ထားလျှင် ၀ (သုည) ဟု ယူဆမည်
       data.serviceCost = typeof sp.cost === "number" ? sp.cost : 0;
-      data.serviceProfit = typeof sp.profit === "number" ? sp.profit : (data.price - data.serviceCost);
+      
+      // 🟢 အမြတ် (Profit) ကို ရောင်းဈေး (data.price) ထဲမှ အရင်း (data.serviceCost) နုတ်၍ Auto တွက်ချက်မည်
+      data.serviceProfit = data.price - data.serviceCost;
 
       let oldStatus = editingDocId ? (cachedAppointments.find(x => x.id === editingDocId)?.customerStatus) : null;
 
