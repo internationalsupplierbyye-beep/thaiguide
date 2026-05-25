@@ -555,6 +555,14 @@
               <label for="remark">မှတ်ချက်</label>
               <textarea id="remark" placeholder="အထူးသတိပြုရမည့်အချက်များ / internal note..."></textarea>
             </div>
+            
+            <div class="field full-width">
+              <label for="customerFiles">Customer Documents (Photos / PDFs)</label>
+              <input type="file" id="customerFiles" multiple accept="image/*,application/pdf" style="padding: 10px; background: #fff; border-radius: 9px; border: 1px solid #d4d4d8;" />
+              <small>ပုံများ သို့မဟုတ် PDF ဖိုင်များကို တစ်ပြိုင်နက်တည်း အများကြီး ရွေးချယ်တင်နိုင်ပါသည်။ (Google Drive နှင့် Telegram သို့ ရောက်သွားပါမည်)</small>
+              
+              <div id="existingFilesContainer" style="margin-top: 8px;"></div>
+            </div>
 
             <div class="actions">
               <button type="button" class="btn btn-outline" id="gotoInvoiceFromEntry">Preview Invoice</button>
@@ -762,23 +770,32 @@
         <div class="panel-card">
           <div class="panel-header">
             <div>
-              <div class="panel-title"><span>⚙️ Global Settings</span> <span class="badge">Dropdown + Pricing + Telegram</span></div>
-              <div class="panel-desc">Dropdown Option Name တွေ၊ Service Pricing တွေကို ဒီနေရာကနေ ပြင်နိုင်ပါတယ်။</div>
+              <div class="panel-title"><span>⚙️ Global Settings</span> <span class="badge">Dropdown + Pricing + Telegram + Drive</span></div>
+              <div class="panel-desc">System အတွက် လိုအပ်သော ဆက်တင်အားလုံးကို ဤနေရာမှ ပြင်ဆင်နိုင်ပါသည်။</div>
             </div>
             <button class="btn btn-secondary" id="saveSettings">Save Settings</button>
           </div>
 
           <div class="settings-grid">
             
+            <div class="settings-block full-width" style="grid-column: 1 / -1; border-color: var(--primary);">
+              <h4 style="color: var(--primary);">Google Drive Integration</h4>
+              <div class="field" style="margin-bottom:8px;">
+                <label>Google Apps Script Web App URL</label>
+                <input type="text" id="settingGasUrl" placeholder="https://script.google.com/macros/s/..../exec" style="width: 100%; font-family: monospace; font-size: 13px;" />
+                <small>မှတ်ချက် - Code ထဲတွင် သွားပြင်ရန်မလိုတော့ဘဲ ဤနေရာတွင်သာ တစ်ကြိမ်ထည့်ပြီး Save လုပ်ထားပါ။</small>
+              </div>
+            </div>
+
             <div class="settings-block" style="grid-column: 1 / -1;">
               <h4>Service Package List (Optional)</h4>
               <small>ဥပမာ: TM30 = BKK, REG (ခွဲရေးချင်ရင်သုံးပါ)</small>
-              <textarea id="packagesSetting" rows="10" placeholder="Service Name = Pkg1, Pkg2" style="width: 100%; font-size:14px; padding:10px;"></textarea>
+              <textarea id="packagesSetting" rows="5" placeholder="Service Name = Pkg1, Pkg2" style="width: 100%; font-size:14px; padding:10px;"></textarea>
             </div>
 
             <div class="settings-block" style="grid-column: 1 / -1;">
               <h4>Service Pricing (Cost / Profit per Service)</h4>
-              <div id="servicePricingContainer" style="max-height: 150px; overflow-y: auto; overflow-x: auto; padding-right: 6px;"></div>
+              <div id="servicePricingContainer" style="max-height: 100px; overflow-y: auto; overflow-x: auto; padding-right: 6px;"></div>
             </div>
 
             <div class="settings-block">
@@ -805,7 +822,7 @@
             <div class="settings-block">
               <h4>Telegram Bot Notify (Topics)</h4>
               <small>(optional)</small>
-              <div style="max-height: 210px; overflow-y: auto; overflow-x: hidden; padding-right: 6px; margin-top: 8px;">
+              <div style="max-height: 250px; overflow-y: auto; overflow-x: hidden; padding-right: 6px; margin-top: 8px;">
                 <div class="field" style="margin-bottom:8px;">
                   <label>Bot Token</label>
                   <input type="text" id="tgToken" placeholder="123456789:ABC-YourBotToken" />
@@ -830,11 +847,16 @@
                   <label>Customer Topic ID</label>
                   <input type="number" id="tgThreadCustomer" placeholder="e.g. 89" />
                 </div>
+                <div class="field" style="margin-bottom:8px;">
+                  <label>Document (ပုံ/PDF) ပို့ရန် Topic ID</label>
+                  <input type="number" id="tgThreadDoc" placeholder="e.g. 100" />
+                </div>
               </div>
             </div>
 
-          </div> <div id="settingsMessage" class="message"></div>
+          </div>
           
+          <div id="settingsMessage" class="message"></div>
         </div>
       </section>
 
@@ -923,6 +945,18 @@
         </div>
       </div>
     </div>
+
+    <div id="docsModal" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width: 800px; height: 90vh;">
+        <div class="modal-header">
+          <h3 id="docsModalTitle">Customer Documents</h3>
+          <button class="close-btn" id="closeDocsModal">&times;</button>
+        </div>
+        <div class="modal-body" id="docsModalBody" style="background:#f1f5f9; padding: 15px;">
+          </div>
+      </div>
+    </div>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -969,7 +1003,8 @@
     };
 
     let servicePricing = {};
-    let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "" };
+    // ✅ URL အသစ်သိမ်းဖို့ gasUrl ကိုပါ ထည့်ထားပါတယ်
+    let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "" };
 
     let cachedAppointments = [];
     let lastFilteredAppointments = [];
@@ -1237,14 +1272,12 @@
       const createRow = (key, label) => {
         const row = document.createElement("div");
         row.style.display = "grid";
-        // Column အကျယ်တွေကို တိုးပေးလိုက်ပါတယ်
-        // 1fr အစား 350px လို့ ပုံသေပေးလိုက်တဲ့အတွက် အရမ်းမကျဲတော့ဘဲ တစ်ဝက်လောက်မှာ ပြန်ကပ်သွားပါမယ်
         row.style.gridTemplateColumns = "350px 100px 100px 110px";
-        row.style.justifyContent = "start"; // ဘယ်ဘက်ကို ကပ်နေစေရန်
-        row.style.gap = "8px"; row.style.alignItems = "center"; row.style.marginBottom = "8px";
+        row.style.justifyContent = "start";
+        row.style.gap = "8px"; 
+        row.style.alignItems = "center"; 
+        row.style.marginBottom = "8px";
         const sp = servicePricing[key] || { cost: "", profit: "", price: "" };
-        
-        // Font Size တွေကို 11px ကနေ 13px ထိ ကြီးပေးပြီး Padding တိုးထားပါတယ်
         row.innerHTML = `
           <span title="${label}" style="font-size:13px; font-weight:700; line-height:1.4;">${label}</span>
           <input type="number" min="0" step="0.01" placeholder="Cost" data-sp-cost="${key}" value="${sp.cost ?? ""}" style="font-size:13px;padding:6px 8px;">
@@ -1302,12 +1335,16 @@
       if ($("paymentsSetting")) $("paymentsSetting").value = dropdownSettings.paymentTypes.join("\n");
       if ($("locationsSetting")) $("locationsSetting").value = dropdownSettings.locations.join("\n");
       
+      // ✅ URL အသစ် မျက်နှာပြင်မှာ ပြန်ပေါ်အောင် ထည့်ပေးခြင်း
+      if ($("settingGasUrl")) $("settingGasUrl").value = telegramSettings.gasUrl || "";
+
       if ($("tgToken")) $("tgToken").value = telegramSettings.botToken;
       if ($("tgMainChatId")) $("tgMainChatId").value = telegramSettings.mainChatId;
       if ($("tgThreadAppt")) $("tgThreadAppt").value = telegramSettings.threadAppt;
       if ($("tgThreadAgent")) $("tgThreadAgent").value = telegramSettings.threadAgent;
       if ($("tgThreadCustomer")) $("tgThreadCustomer").value = telegramSettings.threadCustomer;
       if ($("tgThreadCompleted")) $("tgThreadCompleted").value = telegramSettings.threadCompleted || "";
+      if ($("tgThreadDoc")) $("tgThreadDoc").value = telegramSettings.threadDoc || "";
     }
 
     $("saveSettings").addEventListener("click", async () => {
@@ -1349,19 +1386,23 @@
       });
       servicePricing = newPricing;
       
+      // ✅ URL အသစ်ကို ယူပြီး သိမ်းပေးခြင်း
+      telegramSettings.gasUrl = $("settingGasUrl").value.trim();
+
       telegramSettings.botToken = $("tgToken").value.trim();
       telegramSettings.mainChatId = $("tgMainChatId").value.trim();
       telegramSettings.threadAppt = $("tgThreadAppt").value.trim();
       telegramSettings.threadAgent = $("tgThreadAgent").value.trim();
       telegramSettings.threadCustomer = $("tgThreadCustomer").value.trim();
       telegramSettings.threadCompleted = $("tgThreadCompleted").value.trim();
+      telegramSettings.threadDoc = $("tgThreadDoc").value.trim();
 
       try {
         await setDoc(doc(db, "settings", "dropdowns"), dropdownSettings, { merge: true });
         await setDoc(doc(db, "settings", "telegram"), telegramSettings, { merge: true });
         await setDoc(doc(db, "settings", "servicePricing"), { services: servicePricing }, { merge: true });
         renderDropdowns();
-        msg.textContent = "✅ Settings saved."; msg.className = "message success";
+        msg.textContent = "✅ Settings များကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။"; msg.className = "message success";
       } catch(e) { msg.textContent = "❌ Save failed: " + e.message; msg.className = "message error"; }
     });
 
@@ -1437,8 +1478,132 @@
       if (!$("date").value) $("date").value = todayISO(); updateDepositUI();
       editingDocId = null; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
       applyInvoiceIdMode(); if ($("autoInvoiceId").checked && currentUser) await ensureInvoiceIdAuto();
+      if($("existingFilesContainer")) $("existingFilesContainer").innerHTML = "";
     });
 
+    // --- ✅ Image Compression System ---
+    const compressImageIfNeed = (file) => new Promise((resolve, reject) => {
+      if (file.type === "application/pdf" || !file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve({
+          file: file,
+          base64: reader.result.split(',')[1],
+          mimeType: file.type,
+          filename: file.name
+        });
+        reader.onerror = error => reject(error);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+          } else {
+            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+          }
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          const base64Str = dataUrl.split(',')[1];
+
+          const bstr = atob(base64Str);
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while(n--){ u8arr[n] = bstr.charCodeAt(n); }
+          const newFilename = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+          const compressedFile = new File([u8arr], newFilename, {type: "image/jpeg"});
+
+          resolve({
+             file: compressedFile, // For Telegram
+             base64: base64Str,    // For Google Drive
+             mimeType: "image/jpeg",
+             filename: newFilename
+          });
+        };
+        img.onerror = error => reject(error);
+      };
+      reader.onerror = error => reject(error);
+    });
+
+    // --- ✅ Upload to Google Drive (Dynamic URL မှ ဖတ်မည်) ---
+    async function uploadToGoogleDrive(fileObj) {
+      // 🟢 Firebase Admin Settings ထဲက သိမ်းထားတဲ့ URL ကို လှမ်းယူပါမည်
+      const webAppUrl = telegramSettings.gasUrl;
+      
+      if (!webAppUrl || !webAppUrl.startsWith("https://script.google.com/")) {
+        throw new Error("Admin Settings -> Google Drive Integration ထဲတွင် URL ထည့်သွင်းထားခြင်း မရှိပါ။");
+      }
+
+      const response = await fetch(webAppUrl, {
+        method: "POST",
+        body: JSON.stringify({
+          filename: fileObj.filename,
+          mimeType: fileObj.mimeType,
+          base64: fileObj.base64
+        })
+      });
+
+      const text = await response.text();
+      let result;
+      try { 
+        result = JSON.parse(text); 
+      } catch(e) { 
+        throw new Error("GAS Script Error: Permission လိုအပ်နေခြင်း သို့မဟုတ် URL မှားယွင်းနေပါသည်။ (" + text.substring(0,40) + ")"); 
+      }
+
+      if (result.error) throw new Error("Drive API Error: " + result.error);
+      if (!result.url) throw new Error("ဖိုင်သိမ်းဆည်းမှု မအောင်မြင်ပါ (URL ပြန်မရပါ)။");
+
+      return result.url;
+    }
+
+    // --- ✅ Upload to Telegram ---
+    async function uploadToTelegramDocument(file, invoiceId) {
+      if (!telegramSettings.botToken || !telegramSettings.mainChatId) return null;
+      
+      const formData = new FormData();
+      formData.append("chat_id", telegramSettings.mainChatId);
+      
+      if (telegramSettings.threadDoc) {
+         formData.append("message_thread_id", telegramSettings.threadDoc);
+      } else if (telegramSettings.threadCustomer) {
+         formData.append("message_thread_id", telegramSettings.threadCustomer);
+      }
+
+      formData.append("caption", `📄 Document for Invoice: ${invoiceId}\n👤 Customer: ${$("name").value}`);
+      formData.append("document", file);
+
+      try {
+        const response = await fetch(`https://api.telegram.org/bot${telegramSettings.botToken}/sendDocument`, {
+          method: "POST",
+          body: formData
+        });
+        const result = await response.json();
+        return result.ok ? "Telegram Uploaded" : null;
+      } catch(e) { 
+        console.error("Telegram file upload error", e); 
+        return null; 
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // --- ✅ Form Submit & Sequential Upload ---
     form.addEventListener("submit", async (e) => {
       e.preventDefault(); 
       if (currentRole === "guest" || currentRole === "finance") return;
@@ -1484,23 +1649,65 @@
       let oldStatus = editingDocId ? (cachedAppointments.find(x => x.id === editingDocId)?.customerStatus) : null;
 
       try {
+        const fileInput = $("customerFiles");
+        let uploadedDriveLinks = [];
+
+        // ဖိုင်ပါလာပါက ပြီးတဲ့အထိ စောင့်တင်ပါမည်။
+        if (fileInput && fileInput.files.length > 0) {
+           $("saveBtn").disabled = true;
+           messageDiv.textContent = "⏳ ဖိုင်များကို Upload လုပ်နေပါသည်... ခဏစောင့်ပါ (မပိတ်လိုက်ပါနဲ့)"; 
+           messageDiv.className = "message";
+
+           const filesToUpload = Array.from(fileInput.files);
+           for (let i = 0; i < filesToUpload.length; i++) {
+             try {
+               const compressedObj = await compressImageIfNeed(filesToUpload[i]);
+               const driveLink = await uploadToGoogleDrive(compressedObj);
+               await uploadToTelegramDocument(compressedObj.file, invoiceId);
+               if (driveLink) uploadedDriveLinks.push(driveLink);
+             } catch (err) {
+               console.error("Upload error:", err);
+               alert(`ဖိုင် (အမှတ် ${i+1}) တင်ရာတွင် အမှားအယွင်းရှိပါသည်: ${err.message}`);
+             }
+           }
+        }
+
         if (editingDocId && editingDocId === invoiceId) {
           const canEditDelete = currentRole === "admin" || currentRole === "manager";
           if(!canEditDelete) throw new Error("Permission denied to edit.");
+          
+          if (uploadedDriveLinks.length > 0) {
+             let appt = cachedAppointments.find(x => x.id === editingDocId);
+             let existingLinks = (appt && appt.documentLinks) ? appt.documentLinks : [];
+             data.documentLinks = [...existingLinks, ...uploadedDriveLinks];
+          }
+
           await setDoc(doc(db, "appointments", editingDocId), data, { merge: true });
-          lastSavedDocId = editingDocId; lastSavedData = { ...data, id: editingDocId };
-          messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; messageDiv.className = "message success";
+          lastSavedDocId = editingDocId; 
+          lastSavedData = { ...data, id: editingDocId };
+          
+          messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; 
+          messageDiv.className = "message success";
+          
           editingDocId = null; $("invoiceId").disabled = false; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
           form.reset(); updateDepositUI(); await loadAppointments(); 
+
         } else {
           if ((await getDoc(doc(db, "appointments", invoiceId))).exists()) {
+            $("saveBtn").disabled = false;
             messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – New ID ထုတ်ပါ (Auto) သို့ Manual ပြောင်းပါ။"; messageDiv.className = "message error"; return;
           }
           data.createdAt = serverTimestamp();
           data.createdBy = currentUser ? currentUser.email : null;
+          data.documentLinks = uploadedDriveLinks;
+
           await setDoc(doc(db, "appointments", invoiceId), data);
-          lastSavedDocId = invoiceId; lastSavedData = { ...data, id: invoiceId };
-          messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId; messageDiv.className = "message success";
+          lastSavedDocId = invoiceId; 
+          lastSavedData = { ...data, id: invoiceId };
+          
+          messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId; 
+          messageDiv.className = "message success";
+          
           await sendMultiTelegramNotifications(lastSavedData);
           form.reset(); if (!$("date").value) $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
           if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); await loadAppointments(); 
@@ -1510,7 +1717,13 @@
           await sendCompletedTelegram(data);
         }
 
-      } catch (err) { messageDiv.textContent = "❌ Error saving data: " + err.message; messageDiv.className = "message error"; }
+        $("saveBtn").disabled = false;
+
+      } catch (err) { 
+        messageDiv.textContent = "❌ Error saving data: " + err.message; 
+        messageDiv.className = "message error"; 
+        $("saveBtn").disabled = false; 
+      }
     });
 
     async function sendToTg(chatId, threadId, text) {
@@ -1826,14 +2039,27 @@
              <small style="color:var(--muted); font-weight:600;">${a.socialName || ""}</small>
            `;
         }
+        
+        let docsLinkHtml = "";
+        if (a.documentLinks && a.documentLinks.length > 0) {
+          docsLinkHtml = `<div style="margin-top:6px;">
+             <button class="btn btn-outline view-docs-btn" style="padding:4px 10px; font-size:11px; background:#ecfdf5; border-color:#a7f3d0; color:#059669; border-radius:6px; font-weight:bold; cursor:pointer;" type="button">
+               📁 View Docs (${a.documentLinks.length})
+             </button>
+           </div>`;
+        }
 
         const tr = document.createElement("tr");
         if(isHighlighted) tr.className = "highlighted-row";
 
         tr.innerHTML = `
           <td>
-            <div style="font-weight:700;">${id}</div>
-            <button class="btn btn-outline" style="padding:2px 8px;font-size:10px;margin-top:4px;" data-docid="${id}">🧾 Invoice</button>
+            <div style="font-weight:700; margin-bottom: 4px;">${id}</div>
+            <div style="display: flex; gap: 4px; align-items: center;">
+              <button class="btn btn-secondary action-edit" style="padding: 2px 8px; font-size: 10px; ${canEditDelete ? "" : "display:none;"}" data-editid="${id}">✏️ Edit</button>
+              <button class="btn btn-outline" style="padding: 2px 8px; font-size: 10px;" data-docid="${id}">🧾 Invoice</button>
+            </div>
+            ${docsLinkHtml}
           </td>
           <td>${a.date || ""}</td>
           <td>${apptDT || "-"}${expHtml}</td>
@@ -1854,7 +2080,6 @@
           <td>${a.remark || "-"}</td>
           <td>
             <div style="display:flex; gap:4px; flex-wrap:wrap;">
-               <button class="btn btn-secondary action-edit" style="padding:4px 8px;font-size:11px;${canEditDelete?"":"display:none;"}" data-editid="${id}">Edit</button>
                <button class="btn btn-outline action-dup" style="padding:4px 8px;font-size:11px;" data-dupid="${id}">Duplicate</button>
                <button class="btn btn-danger action-del" style="padding:4px 8px;font-size:11px;${canEditDelete?"":"display:none;"}" data-delid="${id}">Delete</button>
             </div>
@@ -1864,6 +2089,101 @@
 
         if(isHighlighted) {
            setTimeout(() => tr.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+        }
+
+        const docsBtn = tr.querySelector(".view-docs-btn");
+        if (docsBtn) {
+          docsBtn.addEventListener("click", () => {
+            const modal = $("docsModal");
+            $("docsModalTitle").textContent = `Documents: ${id} (${a.name})`;
+            modal.classList.remove("hidden");
+            
+            let html = `<div style="text-align:right; margin-bottom:12px;">
+                          <button id="btnDownloadAllDocs" class="btn btn-primary" style="font-size:12px; padding:6px 12px; cursor:pointer;">
+                            ⬇️ အားလုံးကို Download ဆွဲမည် (${a.documentLinks.length})
+                          </button>
+                        </div>`;
+            
+            a.documentLinks.forEach((link, idx) => {
+               const previewUrl = link.replace(/\/view.*/, '/preview');
+               
+               const fileIdMatch = link.match(/\/d\/(.+?)\//);
+               let downloadBtn = "";
+               if(fileIdMatch && fileIdMatch[1]) {
+                   const dLink = `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
+                   downloadBtn = `<a href="${dLink}" style="font-size:11px; text-decoration:none; background:#ecfdf5; padding:4px 10px; border-radius:6px; border:1px solid #a7f3d0; color:#059669; font-weight:bold;">⬇️ Download</a>`;
+               }
+
+               html += `
+                 <div style="background:#fff; padding:12px; border-radius:8px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+                   <div style="font-weight:bold; margin-bottom:10px; color:var(--primary); display:flex; justify-content:space-between; align-items:center;">
+                     <span>📄 Document ${idx + 1}</span>
+                     <div style="display:flex; gap:6px;">
+                       ${downloadBtn}
+                       <a href="${link}" target="_blank" style="font-size:11px; text-decoration:none; background:#eef2ff; padding:4px 10px; border-radius:6px; border:1px solid #c7d2fe; color:#4f46e5; font-weight:bold;">🔗 Open</a>
+                       <button class="btn-delete-doc" data-idx="${idx}" style="font-size:11px; border:none; background:#fee2e2; padding:4px 10px; border-radius:6px; border:1px solid #fecaca; color:#dc2626; font-weight:bold; cursor:pointer;">🗑️ Delete</button>
+                     </div>
+                   </div>
+                   <iframe src="${previewUrl}" width="100%" height="550px" style="border:none; border-radius:6px; background:#f8fafc;"></iframe>
+                 </div>
+               `;
+            });
+            $("docsModalBody").innerHTML = html;
+
+            const btnDownloadAll = document.getElementById("btnDownloadAllDocs");
+            if(btnDownloadAll) {
+                btnDownloadAll.addEventListener("click", () => {
+                    let delay = 0;
+                    a.documentLinks.forEach((link) => {
+                        const match = link.match(/\/d\/(.+?)\//);
+                        if(match && match[1]) {
+                            setTimeout(() => {
+                                const iframe = document.createElement("iframe");
+                                iframe.style.display = "none";
+                                iframe.src = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+                                document.body.appendChild(iframe);
+                                setTimeout(() => { document.body.removeChild(iframe); }, 3000);
+                            }, delay);
+                            delay += 1200; 
+                        }
+                    });
+                });
+            }
+
+            const delBtns = document.querySelectorAll(".btn-delete-doc");
+            delBtns.forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    const canEditDelete = currentRole === "admin" || currentRole === "manager";
+                    if (!canEditDelete) {
+                        alert("သင့်တွင် ဖိုင်ဖျက်ခွင့် မရှိပါ။ Admin သို့မဟုတ် Manager ကို ဆက်သွယ်ပါ။"); return;
+                    }
+                    if(!confirm("ဒီဖိုင်ကို System ထဲကနေ ဖျက်ပစ်ရန် သေချာပါသလား?")) return;
+                    
+                    const idxToRemove = parseInt(e.target.dataset.idx);
+                    e.target.textContent = "⏳ Deleting...";
+                    e.target.disabled = true;
+                    
+                    try {
+                        let newLinks = [...a.documentLinks];
+                        newLinks.splice(idxToRemove, 1);
+                        await updateDoc(doc(db, "appointments", id), { documentLinks: newLinks });
+                        
+                        const cacheIdx = cachedAppointments.findIndex(x => x.id === id);
+                        if(cacheIdx > -1) { cachedAppointments[cacheIdx].documentLinks = newLinks; }
+                        
+                        $("docsModal").classList.add("hidden");
+                        $("docsModalBody").innerHTML = "";
+                        $("dashboardMessage").textContent = "✅ ဖိုင်ကို အောင်မြင်စွာ ဖျက်ပစ်လိုက်ပါပြီ။"; 
+                        $("dashboardMessage").className = "message success";
+                        renderAppointmentsTable(); 
+                    } catch(err) {
+                        alert("ဖျက်ရာတွင် အမှားအယွင်းဖြစ်နေပါသည်: " + err.message);
+                        e.target.textContent = "🗑️ Delete"; e.target.disabled = false;
+                    }
+                });
+            });
+
+          });
         }
 
         tr.querySelector(".status-select").addEventListener("change", async (e) => {
@@ -2039,6 +2359,11 @@
       $("historyModal").classList.add("hidden");
     });
 
+    $("closeDocsModal").addEventListener("click", () => {
+      $("docsModal").classList.add("hidden");
+      $("docsModalBody").innerHTML = ""; 
+    });
+
     function ensureOption(select, value) {
       if (!value) return;
       if (!Array.from(select.options).some(o => o.value === value)) {
@@ -2050,6 +2375,18 @@
     function startEditAppointment(a) {
       editingDocId = (a.invoiceId || a.id || "").toUpperCase();
       $("invoiceId").value = editingDocId; $("invoiceId").disabled = true;
+
+      const filesDiv = $("existingFilesContainer");
+      if (filesDiv) {
+        filesDiv.innerHTML = "";
+        if (a.documentLinks && a.documentLinks.length > 0) {
+          let linksHtml = "<div style='font-size:12px; font-weight:bold; margin-bottom:4px; color:#475569;'>ယခင်တင်ထားသော ဖိုင်များ:</div>";
+          a.documentLinks.forEach((link, idx) => {
+             linksHtml += `<a href="${link}" target="_blank" style="display:inline-block; margin-right:10px; margin-bottom:6px; padding:4px 10px; background:#e0e7ff; color:#3730a3; border-radius:6px; text-decoration:none; font-size:11px; border:1px solid #c7d2fe;">📄 File ${idx + 1}</a>`;
+          });
+          filesDiv.innerHTML = linksHtml;
+        }
+      }
 
       $("date").value = a.date || ""; 
       $("appointmentDate").value = a.appointmentDate || ""; 
@@ -2226,7 +2563,7 @@
 
     $("usersTabBtn")?.addEventListener("click", loadUsersList);
     $("reloadUsersBtn")?.addEventListener("click", loadUsersList);
-    // === Tracker Logs ဆွဲထုတ်မည့် Function ===
+    
     async function loadTrackerLogs() {
       if (currentRole !== "admin") return;
       const tbody = $("logsTableBody");
