@@ -623,7 +623,7 @@
           <div class="toolbar">
             <div class="toolbar-group">
               <span>🔍 Search</span>
-              <input type="text" id="searchText" placeholder="Name / Phone / Invoice ID" />
+              <input type="text" id="searchText" placeholder="Name / Phone / Invoice ID" style="width:140px;" />
             </div>
             <div class="toolbar-group">
               <span>Service</span>
@@ -638,12 +638,18 @@
               </select>
             </div>
             <div class="toolbar-group">
-              <span>Appointment Date</span>
+              <span style="color:var(--primary); font-weight:bold;">Service Date</span>
+              <input type="date" id="filterServiceDateFrom" />
+              <span>→</span>
+              <input type="date" id="filterServiceDateTo" />
+            </div>
+            <div class="toolbar-group">
+              <span>Appt Date</span>
               <input type="date" id="filterApptFrom" />
               <span>→</span>
               <input type="date" id="filterApptTo" />
             </div>
-            <button class="btn btn-secondary" id="applyFilter">Apply Filter</button>
+            <button class="btn btn-secondary" id="applyFilter" style="background:#0f172a; color:#fff;">Apply Filter</button>
           </div>
 
           <div style="max-height: 450px; overflow:auto; border-radius:10px; border:1px solid #e5e7eb;">
@@ -1221,6 +1227,8 @@
       if($("filterStatus")) $("filterStatus").value = "";
       if($("filterApptFrom")) $("filterApptFrom").value = "";
       if($("filterApptTo")) $("filterApptTo").value = "";
+      if($("filterServiceDateFrom")) $("filterServiceDateFrom").value = ""; 
+      if($("filterServiceDateTo")) $("filterServiceDateTo").value = ""; 
     }
 
     $("btnActiveTab")?.addEventListener("click", () => {
@@ -1815,6 +1823,8 @@
       $("filterServiceType").value = "";
       $("filterApptFrom").value = tomorrowStr;
       $("filterApptTo").value = tomorrowStr;
+      $("filterServiceDateFrom").value = ""; 
+      $("filterServiceDateTo").value = "";
       
       renderAppointmentsTable();
     });
@@ -1936,11 +1946,15 @@
 
     function renderAppointmentsTable() {
       const body = $("appointmentsTableBody"); body.innerHTML = "";
-      const searchText = $("searchText").value.trim().toLowerCase();
-      const filterService = $("filterServiceType").value;
-      const filterStatus = $("filterStatus").value;
-      const apptFrom = $("filterApptFrom").value;
-      const apptTo = $("filterApptTo").value;
+      
+      // ? (Optional Chaining) ကို သုံးထားလို့ HTML ပျောက်သွားရင်တောင် Error မတက်တော့ပါ
+      const searchText = $("searchText")?.value.trim().toLowerCase() || "";
+      const filterService = $("filterServiceType")?.value || "";
+      const filterStatus = $("filterStatus")?.value || "";
+      const apptFrom = $("filterApptFrom")?.value || "";
+      const apptTo = $("filterApptTo")?.value || "";
+      const serviceDateFrom = $("filterServiceDateFrom")?.value || "";
+      const serviceDateTo = $("filterServiceDateTo")?.value || "";
 
       const today = new Date();
       today.setHours(0,0,0,0);
@@ -1950,11 +1964,21 @@
         if (searchText) ok = `${a.name||""} ${a.socialName||""} ${a.phone||""} ${a.invoiceId||a.id||""}`.toLowerCase().includes(searchText);
         if (ok && filterService) ok = a.serviceType === filterService;
         if (ok && filterStatus) ok = (a.customerStatus||"") === filterStatus;
+        
+        // Appointment Date Filter
         if (ok && (apptFrom || apptTo)) {
           const d = a.appointmentDate || "";
           if (apptFrom && d < apptFrom) ok = false;
           if (apptTo && d > apptTo) ok = false;
         }
+
+        // Service Date Filter
+        if (ok && (serviceDateFrom || serviceDateTo)) {
+          const sd = a.date || ""; 
+          if (serviceDateFrom && sd < serviceDateFrom) ok = false;
+          if (serviceDateTo && sd > serviceDateTo) ok = false;
+        }
+        
         return ok;
       });
 
@@ -2226,6 +2250,8 @@
               $("filterStatus").value = "";
               $("filterApptFrom").value = "";
               $("filterApptTo").value = "";
+              $("filterServiceDateFrom").value = ""; 
+              $("filterServiceDateTo").value = "";
               
               if (targetTab === "active") $("btnActiveTab").click();
               else $("btnArchiveTab").click();
