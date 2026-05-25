@@ -276,7 +276,9 @@
       background:#fff;border-radius:14px;border:1px solid #e5e7eb;
       padding:12px;
       box-shadow:0 10px 30px rgba(15,23,42,.25);
-      height:550px;
+      /* ✅ Remark စာရှည်ရင် အောက်ကစာတွေမပျောက်အောင် min-height သုံးပြီး auto height ပေးထားပါသည် */
+      min-height:550px;
+      height:auto;
       display:flex;align-items:stretch;justify-content:center;
       position:relative;overflow:hidden;
       z-index: 1; 
@@ -771,6 +773,9 @@
                     </div>
                   </div>
                 </div>
+                
+                <div id="invSystemRecord" data-html2canvas-ignore="true" style="margin-top: 15px; font-size: 11px; color: #9ca3af; text-align: center; border-top: 1px dashed #e5e7eb; padding-top: 8px;"></div>
+                
               </div>
             </div>
           </div>
@@ -884,6 +889,7 @@
           <div class="settings-block" style="margin-bottom: 16px;">
             <h4>Create New Account</h4>
             <div class="inline-row">
+              <input type="text" id="newAccName" placeholder="Display Name (e.g. Ye Lynn)" style="min-width:150px;" />
               <input type="email" id="newAccEmail" placeholder="staff@example.com" style="min-width:200px;" />
               <input type="password" id="newAccPwd" placeholder="Password (min 6 chars)" style="min-width:180px;" />
               <select id="newAccRole" style="min-width:120px;">
@@ -902,19 +908,19 @@
             <table>
               <thead>
                 <tr>
+                  <th>Display Name</th>
                   <th>Email (Account)</th>
                   <th>Role (ရာထူး)</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody id="usersTableBody">
-                <tr><td colspan="3" style="text-align:center;">Loading...</td></tr>
+                <tr><td colspan="4" style="text-align:center;">Loading...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </section>
-    </main>
 	<section id="tab-logs" class="tab-panel system-manage-only" style="display:none;">
         <div class="panel-card">
           <div class="panel-header">
@@ -1000,6 +1006,7 @@
 
     let currentUser = null;
     let currentRole = "guest"; 
+    let currentUserName = "System"; // ✅ System Display Name Track လုပ်ရန်
     
     let viewMode = "active"; 
     let highlightDocId = null;
@@ -1014,7 +1021,6 @@
     };
 
     let servicePricing = {};
-    // ✅ URL အသစ်သိမ်းဖို့ gasUrl ကိုပါ ထည့်ထားပါတယ်
     let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "" };
 
     let cachedAppointments = [];
@@ -1066,25 +1072,29 @@
 
       if (user) {
         let role = "staff"; 
+        let uName = user.email.split("@")[0]; // ✅ Default name
         try {
           const uDoc = await getDoc(doc(db, "users", user.email));
           if (uDoc.exists()) {
             const d = uDoc.data();
             const validRoles = ["admin", "manager", "supervisor", "finance", "staff"];
             if (validRoles.includes(d.role)) role = d.role;
+            if (d.name) uName = d.name; // ✅ Get user display name from DB
           } else {
              console.warn("User role not found in database.");
           }
         } catch(e) { console.error("role lookup error", e); }
         currentRole = role;
+        currentUserName = uName; // ✅ Store globally for tracker
 
-        $("authStatus").textContent = `Logged in as ${user.email} (${currentRole.toUpperCase()})`;
+        $("authStatus").textContent = `Logged in as ${uName} (${currentRole.toUpperCase()})`;
         $("loginBtn").disabled = true;
         $("loginEmail").disabled = true;
         $("loginPassword").disabled = true;
         $("logoutBtn").style.display = "inline-flex";
       } else {
         currentRole = "guest";
+        currentUserName = "System";
         $("authStatus").textContent = "Not signed in";
         $("loginBtn").disabled = false;
         $("loginBtn").textContent = "Login";
@@ -1170,7 +1180,6 @@
         el.style.display = canViewProfit ? "" : "none";
       });
       
-      // Cost ထည့်သည့်အကွက်ကို Admin/Manager မှလွဲ၍ ဖျောက်ထားရန်
       if ($("costFieldWrapper")) {
         $("costFieldWrapper").style.display = canViewProfit ? "flex" : "none";
       }
@@ -1352,7 +1361,6 @@
       if ($("paymentsSetting")) $("paymentsSetting").value = dropdownSettings.paymentTypes.join("\n");
       if ($("locationsSetting")) $("locationsSetting").value = dropdownSettings.locations.join("\n");
       
-      // ✅ URL အသစ် မျက်နှာပြင်မှာ ပြန်ပေါ်အောင် ထည့်ပေးခြင်း
       if ($("settingGasUrl")) $("settingGasUrl").value = telegramSettings.gasUrl || "";
 
       if ($("tgToken")) $("tgToken").value = telegramSettings.botToken;
@@ -1398,9 +1406,7 @@
       });
       servicePricing = newPricing;
       
-      // ✅ URL အသစ်ကို ယူပြီး သိမ်းပေးခြင်း
       telegramSettings.gasUrl = $("settingGasUrl").value.trim();
-
       telegramSettings.botToken = $("tgToken").value.trim();
       telegramSettings.mainChatId = $("tgMainChatId").value.trim();
       telegramSettings.threadAppt = $("tgThreadAppt").value.trim();
@@ -1497,7 +1503,6 @@
       if($("existingFilesContainer")) $("existingFilesContainer").innerHTML = "";
     });
 
-    // --- ✅ Image Compression System ---
     const compressImageIfNeed = (file) => new Promise((resolve, reject) => {
       if (file.type === "application/pdf" || !file.type.startsWith("image/")) {
         const reader = new FileReader();
@@ -1546,8 +1551,8 @@
           const compressedFile = new File([u8arr], newFilename, {type: "image/jpeg"});
 
           resolve({
-             file: compressedFile, // For Telegram
-             base64: base64Str,    // For Google Drive
+             file: compressedFile, 
+             base64: base64Str,    
              mimeType: "image/jpeg",
              filename: newFilename
           });
@@ -1557,9 +1562,7 @@
       reader.onerror = error => reject(error);
     });
 
-    // --- ✅ Upload to Google Drive (Dynamic URL မှ ဖတ်မည်) ---
     async function uploadToGoogleDrive(fileObj) {
-      // 🟢 Firebase Admin Settings ထဲက သိမ်းထားတဲ့ URL ကို လှမ်းယူပါမည်
       const webAppUrl = telegramSettings.gasUrl;
       
       if (!webAppUrl || !webAppUrl.startsWith("https://script.google.com/")) {
@@ -1589,7 +1592,6 @@
       return result.url;
     }
 
-    // --- ✅ Upload to Telegram ---
     async function uploadToTelegramDocument(file, invoiceId) {
       if (!telegramSettings.botToken || !telegramSettings.mainChatId) return null;
       
@@ -1618,8 +1620,6 @@
       }
     }
 
-    // -------------------------------------------------------------------------
-    // --- ✅ Form Submit & Sequential Upload ---
     form.addEventListener("submit", async (e) => {
       e.preventDefault(); 
       if (currentRole === "guest" || currentRole === "finance") return;
@@ -1657,7 +1657,6 @@
         messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။"; messageDiv.className = "message error"; return;
       }
 
-      // 🟢 Entry Form ထဲတွင် လက်တွေ့ရိုက်ထည့်လိုက်သော Cost (အရင်း) နှင့် Price (ရောင်းဈေး) ကို တိုက်ရိုက်ယူပြီး Profit ကို အလိုအလျောက် တွက်ချက်မည်
       data.serviceCost = Number($("cost").value || 0);
       data.serviceProfit = data.price - data.serviceCost;
 
@@ -1667,7 +1666,6 @@
         const fileInput = $("customerFiles");
         let uploadedDriveLinks = [];
 
-        // ဖိုင်ပါလာပါက ပြီးတဲ့အထိ စောင့်တင်ပါမည်။
         if (fileInput && fileInput.files.length > 0) {
            $("saveBtn").disabled = true;
            messageDiv.textContent = "⏳ ဖိုင်များကို Upload လုပ်နေပါသည်... ခဏစောင့်ပါ (မပိတ်လိုက်ပါနဲ့)"; 
@@ -1697,6 +1695,10 @@
              data.documentLinks = [...existingLinks, ...uploadedDriveLinks];
           }
 
+          // ✅ Updated Tracker မှတ်တမ်း
+          data.updatedAt = serverTimestamp();
+          data.updatedBy = currentUserName;
+
           await setDoc(doc(db, "appointments", editingDocId), data, { merge: true });
           lastSavedDocId = editingDocId; 
           lastSavedData = { ...data, id: editingDocId };
@@ -1712,8 +1714,11 @@
             $("saveBtn").disabled = false;
             messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – New ID ထုတ်ပါ (Auto) သို့ Manual ပြောင်းပါ။"; messageDiv.className = "message error"; return;
           }
+          // ✅ Tracker မှတ်တမ်းအသစ်
           data.createdAt = serverTimestamp();
-          data.createdBy = currentUser ? currentUser.email : null;
+          data.createdBy = currentUserName;
+          data.updatedAt = null;
+          data.updatedBy = null;
           data.documentLinks = uploadedDriveLinks;
 
           await setDoc(doc(db, "appointments", invoiceId), data);
@@ -1954,7 +1959,6 @@
     function renderAppointmentsTable() {
       const body = $("appointmentsTableBody"); body.innerHTML = "";
       
-      // ? (Optional Chaining) ကို သုံးထားလို့ HTML ပျောက်သွားရင်တောင် Error မတက်တော့ပါ
       const searchText = $("searchText")?.value.trim().toLowerCase() || "";
       const filterService = $("filterServiceType")?.value || "";
       const filterStatus = $("filterStatus")?.value || "";
@@ -1972,14 +1976,12 @@
         if (ok && filterService) ok = a.serviceType === filterService;
         if (ok && filterStatus) ok = (a.customerStatus||"") === filterStatus;
         
-        // Appointment Date Filter
         if (ok && (apptFrom || apptTo)) {
           const d = a.appointmentDate || "";
           if (apptFrom && d < apptFrom) ok = false;
           if (apptTo && d > apptTo) ok = false;
         }
 
-        // Service Date Filter
         if (ok && (serviceDateFrom || serviceDateTo)) {
           const sd = a.date || ""; 
           if (serviceDateFrom && sd < serviceDateFrom) ok = false;
@@ -2094,9 +2096,16 @@
         const tr = document.createElement("tr");
         if(isHighlighted) tr.className = "highlighted-row";
 
+        // ✅ Tooltip icon Tracker အချက်အလက် (Email ဖြစ်နေရင် @ နောက်ပိုင်းဖြတ်မည်)
+        const cName = a.createdBy ? (a.createdBy.includes('@') ? a.createdBy.split('@')[0] : a.createdBy) : 'System';
+        const uName = a.updatedBy ? (a.updatedBy.includes('@') ? a.updatedBy.split('@')[0] : a.updatedBy) : '';
+        const creatorInfo = `Created By: ${cName}${uName ? '\nUpdated By: ' + uName : ''}`;
+
         tr.innerHTML = `
           <td>
-            <div style="font-weight:700; margin-bottom: 4px;">${id}</div>
+            <div style="font-weight:700; margin-bottom: 4px;">
+              ${id} <span title="${creatorInfo}" style="cursor:help; font-size:12px; margin-left:4px;">ℹ️</span>
+            </div>
             <div style="display: flex; gap: 4px; align-items: center;">
               <button class="btn btn-secondary action-edit" style="padding: 2px 8px; font-size: 10px; ${canEditDelete ? "" : "display:none;"}" data-editid="${id}">✏️ Edit</button>
               <button class="btn btn-outline" style="padding: 2px 8px; font-size: 10px;" data-docid="${id}">🧾 Invoice</button>
@@ -2546,7 +2555,9 @@
         $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${data.name || "-"}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${data.appointmentTime ? ` ${data.appointmentTime}` : ""}</span></div>`;
         
         const sTypeStr = data.servicePackage ? `${data.serviceType} (${data.servicePackage})` : (data.serviceType || "-");
-        $("invServiceInfo").innerHTML = `<div><span class="invoice-label">${t.service}</span><br/><span class="invoice-value">${sTypeStr}</span></div><div><span class="invoice-label">${t.payment}</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div><span class="invoice-label">${t.remark}</span><br/><span class="invoice-value">${data.remark || "-"}</span></div><div><span class="invoice-label"></span><br/><span class="invoice-value"></span></div>`;
+        
+        // ✅ Remark ကို (2) ကော်လံစာအပြည့် နေရာယူအောင် `style="grid-column: 1 / -1;"` ဖြင့် ပြင်ဆင်ထားပါသည်
+        $("invServiceInfo").innerHTML = `<div><span class="invoice-label">${t.service}</span><br/><span class="invoice-value">${sTypeStr}</span></div><div><span class="invoice-label">${t.payment}</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div style="grid-column: 1 / -1;"><span class="invoice-label">${t.remark}</span><br/><span class="invoice-value" style="font-size: 12px; font-weight: 600; line-height: 1.5; display: inline-block; margin-top: 4px;">${data.remark || "-"}</span></div>`;
         
         const total = Number(data.price || 0); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
         $("invTotalAmount").textContent = total.toFixed(2); $("invBalanceAmount").textContent = balance.toFixed(2);
@@ -2555,6 +2566,17 @@
           $("invDepositRow").style.display = "block"; $("invDepositAmount").style.display = "block"; $("invDepositAmount").textContent = "-" + deposit.toFixed(2); 
         } else { 
           $("invDepositRow").style.display = "none"; $("invDepositAmount").style.display = "none"; 
+        }
+        
+        // ✅ Tracker မှတ်တမ်းကို Invoice အောက်ခြေမှာ ပြပေးမည် (Email ဖြစ်နေရင် @ နောက်ပိုင်းဖြတ်မည်)
+        if($("invSystemRecord")) {
+           let creatorName = data.createdBy ? (data.createdBy.includes('@') ? data.createdBy.split('@')[0] : data.createdBy) : 'System';
+           let recText = `Entry by: ${creatorName}`;
+           if(data.updatedBy) {
+               let updaterName = data.updatedBy.includes('@') ? data.updatedBy.split('@')[0] : data.updatedBy;
+               recText += ` | Last edit: ${updaterName}`;
+           }
+           $("invSystemRecord").textContent = recText;
         }
         
         msg.textContent = "✅ Invoice loaded."; msg.className = "message success";
@@ -2586,14 +2608,14 @@
 
     async function loadUsersList() {
       if (currentRole !== "admin") return;
-      const tbody = $("usersTableBody"); tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Loading...</td></tr>`;
+      const tbody = $("usersTableBody"); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>`;
       
       try {
         const snap = await getDocs(collection(db, "users")); tbody.innerHTML = "";
-        if(snap.empty) { tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">No users found.</td></tr>`; return; }
+        if(snap.empty) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No users found.</td></tr>`; return; }
 
         snap.forEach(docSnap => {
-          const email = docSnap.id; const role = docSnap.data().role;
+          const email = docSnap.id; const d = docSnap.data(); const role = d.role; const dName = d.name || "-";
           
           let roleColor = '#eef2ff'; let roleText = '#4f46e5';
           if (role === 'admin') { roleColor = '#fee2e2'; roleText = '#dc2626'; }
@@ -2602,7 +2624,7 @@
           else if (role === 'supervisor') { roleColor = '#e0e7ff'; roleText = '#4338ca'; }
 
           const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${email}</td><td><span class="tag" style="background:${roleColor}; color:${roleText}">${role.toUpperCase()}</span></td><td><button class="btn btn-outline system-manage-only" style="padding:4px 8px;font-size:11px;" data-deluser="${email}">Remove Access</button></td>`;
+          tr.innerHTML = `<td style="font-weight:700;">${dName}</td><td>${email}</td><td><span class="tag" style="background:${roleColor}; color:${roleText}">${role.toUpperCase()}</span></td><td><button class="btn btn-outline system-manage-only" style="padding:4px 8px;font-size:11px;" data-deluser="${email}">Remove Access</button></td>`;
           tbody.appendChild(tr);
 
           tr.querySelector(`[data-deluser="${email}"]`).addEventListener("click", async () => {
@@ -2610,7 +2632,7 @@
             try { await deleteDoc(doc(db, "users", email)); alert("ဝင်ရောက်ခွင့် ပိတ်လိုက်ပါပြီ။"); loadUsersList(); } catch(e) { alert("Error: " + e.message); }
           });
         });
-      } catch(e) { tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:red;">Error loading users</td></tr>`; }
+      } catch(e) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Error loading users</td></tr>`; }
     }
 
     $("usersTabBtn")?.addEventListener("click", loadUsersList);
@@ -2657,10 +2679,11 @@
 
     $("createNewAccBtn")?.addEventListener("click", async () => {
       if (currentRole !== "admin") return;
+      const name = $("newAccName").value.trim(); // ✅ Added Name Input
       const email = $("newAccEmail").value.trim(); const pwd = $("newAccPwd").value; const role = $("newAccRole").value;
       const msg = $("userManageMessage");
 
-      if(!email || !pwd) { msg.textContent = "Email နှင့် Password ကို ပြည့်စုံစွာ ထည့်ပါ။"; msg.className = "message error"; return; }
+      if(!email || !pwd || !name) { msg.textContent = "အမည်၊ Email နှင့် Password ကို ပြည့်စုံစွာ ထည့်ပါ။"; msg.className = "message error"; return; }
       if(pwd.length < 6) { msg.textContent = "Password အနည်းဆုံး ၆ လုံး ရှိရပါမည်။"; msg.className = "message error"; return; }
 
       msg.textContent = "Creating account..."; msg.className = "message"; $("createNewAccBtn").disabled = true;
@@ -2668,16 +2691,16 @@
       try {
         await createUserWithEmailAndPassword(secondaryAuth, email, pwd);
         await signOut(secondaryAuth);
-        await setDoc(doc(db, "users", email), { role: role });
-        msg.textContent = `✅ Account (${email}) အောင်မြင်စွာ ဖွင့်ပေးပြီးပါပြီ။`; msg.className = "message success";
-        $("newAccEmail").value = ""; $("newAccPwd").value = ""; loadUsersList();
+        await setDoc(doc(db, "users", email), { role: role, name: name }); // ✅ Saving Name
+        msg.textContent = `✅ Account (${name} / ${email}) အောင်မြင်စွာ ဖွင့်ပေးပြီးပါပြီ။`; msg.className = "message success";
+        $("newAccName").value = ""; $("newAccEmail").value = ""; $("newAccPwd").value = ""; loadUsersList();
       } catch(e) {
         if(e.code === 'auth/email-already-in-use') {
            try {
-             await setDoc(doc(db, "users", email), { role: role });
-             msg.textContent = `✅ ထို Email သည် ရှိပြီးသားဖြစ်၍ Role (${role}) သို့ ပြောင်းလဲသတ်မှတ်ပေးလိုက်ပါသည်။`; msg.className = "message success";
-             $("newAccEmail").value = ""; $("newAccPwd").value = ""; loadUsersList();
-           } catch(err) { msg.textContent = "❌ Role ပြောင်းလဲခြင်း မအောင်မြင်ပါ: " + err.message; msg.className = "message error"; }
+             await setDoc(doc(db, "users", email), { role: role, name: name });
+             msg.textContent = `✅ ထို Email သည် ရှိပြီးသားဖြစ်၍ အချက်အလက်များကို ပြောင်းလဲသတ်မှတ်ပေးလိုက်ပါသည်။`; msg.className = "message success";
+             $("newAccName").value = ""; $("newAccEmail").value = ""; $("newAccPwd").value = ""; loadUsersList();
+           } catch(err) { msg.textContent = "❌ ပြောင်းလဲခြင်း မအောင်မြင်ပါ: " + err.message; msg.className = "message error"; }
         } else { msg.textContent = "❌ အကောင့်ဖွင့်ခြင်း မအောင်မြင်ပါ: " + e.message; msg.className = "message error"; }
       }
       $("createNewAccBtn").disabled = false;
