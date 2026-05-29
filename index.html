@@ -494,7 +494,8 @@
 
             <div class="field">
               <label for="appointmentDate">ဝန်ဆောင်မှုရယူမည့်ရက်</label>
-              <input type="date" id="appointmentDate" required />
+              <input type="date" id="appointmentDate" />
+              <small>ရက်မသေချာသေးပါက မရွေးဘဲထားနိုင်သည်</small>
             </div>
 
             <div class="field">
@@ -1717,7 +1718,7 @@
         remark: $("remark").value.trim() || null
       };
 
-      if (!invoiceId || !data.date || !data.appointmentDate || !data.name || !data.phone || !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
+      if (!invoiceId || !data.date || !data.name || !data.phone || !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
         messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။"; messageDiv.className = "message error"; return;
       }
 
