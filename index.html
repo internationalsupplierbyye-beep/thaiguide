@@ -472,6 +472,7 @@
           </div>
 
           <form id="appointmentForm">
+            
             <div class="field">
               <label for="invoiceId">Invoice ID</label>
               <div class="inline-row">
@@ -493,28 +494,11 @@
             </div>
 
             <div class="field">
-              <label for="appointmentDate">ဝန်ဆောင်မှုရယူမည့်ရက်</label>
-              <input type="date" id="appointmentDate" />
-              <small>ရက်မသေချာသေးပါက မရွေးဘဲထားနိုင်သည်</small>
+              <label for="phone">ဖုန်းနံပါတ် <span style="color:#ea580c;">(အရင်ရိုက်ပါ)</span></label>
+              <input type="tel" id="phone" placeholder="0XXXXXXXXX" required />
+              <small>ဖောက်သည်ဟောင်းဆိုလျှင် အမည် Auto ဖြည့်ပေးမည်</small>
             </div>
 
-            <div class="field">
-              <label for="appointmentTime">ဝန်ဆောင်မှုယူရန်လာရမည့်အချိန်</label>
-              <input type="time" id="appointmentTime" step="300" />
-              <small>မရွေးလည်း Save ရပါတယ် (Optional)</small>
-            </div>
-            
-            <div class="field">
-              <label for="expiryDate">Expiry Date (သက်တမ်းကုန်မည့်ရက်)</label>
-              <input type="date" id="expiryDate" />
-              <small>Visa / MOU ကဲ့သို့ သက်တမ်းကုန်မည့် ဝန်ဆောင်မှုများအတွက်</small>
-            </div>
-            
-            <div class="field">
-              <label for="alertDays">Alert Before (Days)</label>
-              <input type="number" id="alertDays" value="30" min="1" />
-              <small>သက်တမ်းမကုန်ခင် ဘယ်နှရက်အလိုမှာ သတိပေးရမလဲ</small>
-            </div>
             <div class="field">
               <label for="name">အမည်</label>
               <input type="text" id="name" placeholder="Customer Name" required />
@@ -526,8 +510,8 @@
             </div>
 
             <div class="field">
-              <label for="phone">ဖုန်းနံပါတ်</label>
-              <input type="tel" id="phone" placeholder="0XXXXXXXXX" required />
+              <label for="channel">Customer Channel</label>
+              <select id="channel"></select>
             </div>
 
             <div class="field">
@@ -536,19 +520,10 @@
             </div>
 
             <div class="field">
-              <label for="channel">Customer Channel</label>
-              <select id="channel"></select>
-            </div>
-
-            <div class="field">
-              <label for="location">ဝန်ဆောင်မှုယူမည့်နေရာ</label>
-              <select id="location" required></select>
-            </div>
-
-            <div class="field">
               <label for="serviceType">ဝန်ဆောင်မှုအမျိုးအစား</label>
               <select id="serviceType" required></select>
             </div>
+
             <div class="field">
               <label for="servicePackage">Package / Region</label>
               <select id="servicePackage">
@@ -557,14 +532,41 @@
             </div>
 
             <div class="field">
-              <label for="paymentType">ငွေပေးချေမှုအမျိုးအစား</label>
-              <select id="paymentType" required></select>
+              <label for="location">ဝန်ဆောင်မှုယူမည့်နေရာ</label>
+              <select id="location" required></select>
+            </div>
+
+            <div class="field">
+              <label for="appointmentDate">ဝန်ဆောင်မှုရယူမည့်ရက်</label>
+              <input type="date" id="appointmentDate" />
+              <small>ရက်မသေချာသေးပါက မရွေးဘဲထားနိုင်သည်</small>
+            </div>
+
+            <div class="field">
+              <label for="appointmentTime">ဝန်ဆောင်မှုယူရန်လာရမည့်အချိန်</label>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <input type="time" id="appointmentTime" step="300" style="flex:1;" />
+                <button type="button" class="btn btn-outline" onclick="document.getElementById('appointmentTime').value=''" style="padding: 8px 12px; font-size: 14px;" title="အချိန်ကို ဖျက်မည်">✖</button>
+              </div>
+              <small>မရွေးလည်း Save ရပါတယ် (Optional)</small>
+            </div>
+
+            <div class="field">
+              <label for="expiryDate">Expiry Date (သက်တမ်းကုန်မည့်ရက်)</label>
+              <input type="date" id="expiryDate" />
+              <small>Visa / MOU ကဲ့သို့ သက်တမ်းကုန်မည့် ဝန်ဆောင်မှုများအတွက်</small>
+            </div>
+            
+            <div class="field">
+              <label for="alertDays">Alert Before (Days)</label>
+              <input type="number" id="alertDays" value="30" min="1" />
+              <small>သက်တမ်းမကုန်ခင် ဘယ်နှရက်အလိုမှာ သတိပေးရမလဲ</small>
             </div>
 
             <div class="field" id="costFieldWrapper">
-  <label for="cost">Cost (အရင်း - THB)</label>
-  <input type="number" id="cost" min="0" step="0.01" placeholder="0.00" />
-</div>
+              <label for="cost">Cost (အရင်း - THB)</label>
+              <input type="number" id="cost" min="0" step="0.01" placeholder="0.00" />
+            </div>
 
             <div class="field">
               <label for="price">Total Price (ရောင်းဈေး - THB)</label>
@@ -581,6 +583,11 @@
               <label for="balanceAmount">Balance (Auto) (THB)</label>
               <input type="number" id="balanceAmount" placeholder="0.00" disabled />
               <small>Auto = Total - Deposit (Deposit မထည့်ရင် Total)</small>
+            </div>
+
+            <div class="field">
+              <label for="paymentType">ငွေပေးချေမှုအမျိုးအစား</label>
+              <select id="paymentType" required></select>
             </div>
 
             <div class="field full-width">
@@ -606,6 +613,7 @@
             </div>
             <div id="message" class="message"></div>
           </form>
+
         </div>
       </section>
 
@@ -1566,6 +1574,8 @@
       editingDocId = null; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
       applyInvoiceIdMode(); if ($("autoInvoiceId").checked && currentUser) await ensureInvoiceIdAuto();
       if($("existingFilesContainer")) $("existingFilesContainer").innerHTML = "";
+      
+      delete form.dataset.dupLinks; // ကူးယူထားသော ပုံမှတ်တမ်းများ ရှင်းထုတ်ရန်
     });
 
     const compressImageIfNeed = (file) => new Promise((resolve, reject) => {
@@ -1784,7 +1794,13 @@
           data.createdBy = currentUserName;
           data.updatedAt = null;
           data.updatedBy = null;
-          data.documentLinks = uploadedDriveLinks;
+          
+          // Duplicate လုပ်ရာမှ ပါလာသော ပုံဟောင်းများရှိလျှင် အသစ်တင်သောပုံများနှင့် ပေါင်းထည့်မည်
+          let oldDupLinks = [];
+          if (form.dataset.dupLinks) {
+            try { oldDupLinks = JSON.parse(form.dataset.dupLinks); } catch(e){}
+          }
+          data.documentLinks = [...oldDupLinks, ...uploadedDriveLinks];
 
           await setDoc(doc(db, "appointments", invoiceId), data);
           lastSavedDocId = invoiceId; 
@@ -2395,10 +2411,27 @@
       if (currentUser) ensureInvoiceIdAuto();
 
       $("date").value = todayISO(); 
-      $("appointmentDate").value = a.appointmentDate || ""; 
-      $("appointmentTime").value = a.appointmentTime || "";
-      $("expiryDate").value = a.expiryDate || "";
-      $("alertDays").value = a.alertDays || "30";
+      
+      // Appointment ရက်နှင့် အချိန်များကို ဗလာ (Blank) ထားပေးခြင်း
+      $("appointmentDate").value = ""; 
+      $("appointmentTime").value = "";
+      $("expiryDate").value = "";
+      $("alertDays").value = a.alertDays || "15";
+
+      // မူလဖိုင်မှ ပုံဟောင်းများ ပြန်ပါလာစေရန် ပြသပေးခြင်း
+      const filesDiv = $("existingFilesContainer");
+      if (filesDiv) {
+        filesDiv.innerHTML = "";
+        if (a.documentLinks && a.documentLinks.length > 0) {
+          let linksHtml = "<div style='font-size:12px; font-weight:bold; margin-bottom:4px; color:#475569;'>မူလဖိုင်မှ ကူးယူလာသော ပုံများ:</div>";
+          a.documentLinks.forEach((link, idx) => {
+             linksHtml += `<a href="${link}" target="_blank" style="display:inline-block; margin-right:10px; margin-bottom:6px; padding:4px 10px; background:#e0e7ff; color:#3730a3; border-radius:6px; text-decoration:none; font-size:11px; border:1px solid #c7d2fe;">📄 File ${idx + 1}</a>`;
+          });
+          filesDiv.innerHTML = linksHtml;
+        }
+      }
+      if($("customerFiles")) $("customerFiles").value = "";
+      $("appointmentForm").dataset.dupLinks = JSON.stringify(a.documentLinks || []);
 
       $("name").value = a.name || ""; 
       $("socialName").value = a.socialName || ""; 
