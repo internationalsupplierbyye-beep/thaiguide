@@ -186,7 +186,31 @@
       text-overflow: ellipsis; 
     }
     tbody tr:nth-child(even){background:#f9fafb}
+    tbody tr:nth-child(even){background:#f9fafb}
     tbody tr:hover{background:#eef2ff}
+
+    /* ----- ဒီနေရာကစပြီး အသစ်ကူးထည့်လိုက်ပါ ----- */
+    th:last-child, 
+    td:last-child {
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      box-shadow: -3px 0 8px rgba(0,0,0,0.05); 
+    }
+    thead th:last-child {
+      background: #0f172a; 
+    }
+    tbody tr td:last-child {
+      background: #fff;
+    }
+    tbody tr:nth-child(even) td:last-child {
+      background: #f9fafb;
+    }
+    tbody tr:hover td:last-child {
+      background: #eef2ff;
+    }
+    /* ----- အသစ်ကူးထည့်ခြင်း ပြီးပါပြီ ----- */
+
     .tag{padding:2px 8px;border-radius:999px;font-size:11px;background:#eef2ff;color:#4f46e5}
     
     .status-select {
@@ -664,6 +688,7 @@
               <thead>
                 <tr>
                   <th>Invoice ID</th>
+                  <th>Action</th>
                   <th>Service Date</th>
                   <th>Appt / Expiry</th>
                   <th>Status (Change)</th>
@@ -677,7 +702,6 @@
                   <th>Balance</th>
                   <th>Profit</th>
                   <th>Remark</th>
-                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="appointmentsTableBody">
@@ -1465,6 +1489,46 @@
     $("price").addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", updateDepositUI);
 
+    // --- ဖောက်သည်ဟောင်း မှတ်သားပေးခြင်း (Auto-fill for Returning Customers) ---
+    $("phone").addEventListener("blur", async (e) => {
+      const phoneVal = e.target.value.trim();
+      if (!phoneVal || editingDocId) return; 
+
+      try {
+        const q = query(collection(db, "appointments"), where("phone", "==", phoneVal));
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+          let records = [];
+          snap.forEach(docSnap => records.push(docSnap.data()));
+          
+          records.sort((a, b) => {
+            const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+            const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+            return timeB - timeA; 
+          });
+
+          const latestData = records[0];
+
+          if (!$("name").value && latestData.name) $("name").value = latestData.name;
+          if (!$("socialName").value && latestData.socialName) $("socialName").value = latestData.socialName;
+
+          const msg = $("message");
+          msg.textContent = `✨ ဖောက်သည်ဟောင်း (${latestData.name}) ၏ အချက်အလက်များကို အလိုအလျောက် ဖြည့်ပေးထားပါသည်။`; 
+          msg.className = "message success";
+          
+          setTimeout(() => { 
+            if (msg.textContent.includes("ဖောက်သည်ဟောင်း")) {
+              msg.textContent = ""; msg.className = "message";
+            }
+          }, 4000);
+        }
+      } catch (err) {
+        console.error("Auto-fill Error:", err);
+      }
+    });
+    // ---------------------------------------------------------------------------
+
     function applyInvoiceIdMode(){
       const auto = $("autoInvoiceId").checked;
       const isEditing = !!editingDocId;
@@ -2112,6 +2176,13 @@
             </div>
             ${docsLinkHtml}
           </td>
+
+          <td>
+            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+               <button class="btn btn-outline action-dup" style="padding:4px 8px;font-size:11px;" data-dupid="${id}">Duplicate</button>
+               <button class="btn btn-danger action-del" style="padding:4px 8px;font-size:11px;${canEditDelete?"":"display:none;"}" data-delid="${id}">Delete</button>
+            </div>
+          </td>
           <td>${a.date || ""}</td>
           <td>${apptHtml}${expHtml}</td>
           <td>
@@ -2137,12 +2208,6 @@
           <td>${bal}</td>
           <td class="profit-cell" data-profit="${profitText}">${displayProfit}</td>
           <td title="${a.remark || "-"}"><div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px;">${a.remark || "-"}</div></td>
-          <td>
-            <div style="display:flex; gap:4px; flex-wrap:wrap;">
-               <button class="btn btn-outline action-dup" style="padding:4px 8px;font-size:11px;" data-dupid="${id}">Duplicate</button>
-               <button class="btn btn-danger action-del" style="padding:4px 8px;font-size:11px;${canEditDelete?"":"display:none;"}" data-delid="${id}">Delete</button>
-            </div>
-          </td>
         `;
         body.appendChild(tr);
 
