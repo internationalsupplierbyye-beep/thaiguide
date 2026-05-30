@@ -186,30 +186,7 @@
       text-overflow: ellipsis; 
     }
     tbody tr:nth-child(even){background:#f9fafb}
-    tbody tr:nth-child(even){background:#f9fafb}
     tbody tr:hover{background:#eef2ff}
-
-    /* ----- ဒီနေရာကစပြီး အသစ်ကူးထည့်လိုက်ပါ ----- */
-    th:last-child, 
-    td:last-child {
-      position: sticky;
-      right: 0;
-      z-index: 2;
-      box-shadow: -3px 0 8px rgba(0,0,0,0.05); 
-    }
-    thead th:last-child {
-      background: #0f172a; 
-    }
-    tbody tr td:last-child {
-      background: #fff;
-    }
-    tbody tr:nth-child(even) td:last-child {
-      background: #f9fafb;
-    }
-    tbody tr:hover td:last-child {
-      background: #eef2ff;
-    }
-    /* ----- အသစ်ကူးထည့်ခြင်း ပြီးပါပြီ ----- */
 
     .tag{padding:2px 8px;border-radius:999px;font-size:11px;background:#eef2ff;color:#4f46e5}
     
@@ -300,7 +277,6 @@
       background:#fff;border-radius:14px;border:1px solid #e5e7eb;
       padding:12px;
       box-shadow:0 10px 30px rgba(15,23,42,.25);
-      /* ✅ Remark စာရှည်ရင် အောက်ကစာတွေမပျောက်အောင် min-height သုံးပြီး auto height ပေးထားပါသည် */
       min-height:550px;
       height:auto;
       display:flex;align-items:stretch;justify-content:center;
@@ -447,7 +423,7 @@
           <button class="tab-btn" data-tab="invoice"><span class="icon">🧾</span> Invoice</button>
           <button class="tab-btn system-manage-only" data-tab="settings" id="settingsTabBtn"><span class="icon">⚙️</span> Settings</button>
           <button class="tab-btn system-manage-only" data-tab="users" id="usersTabBtn"><span class="icon">👥</span> Users</button>
-	  <button class="tab-btn system-manage-only" data-tab="logs" id="logsTabBtn"><span class="icon">🕵️</span> Tracker Logs</button>
+          <button class="tab-btn system-manage-only" data-tab="logs" id="logsTabBtn"><span class="icon">🕵️</span> Tracker Logs</button>
         </div>
 
         <div class="auth-box">
@@ -472,7 +448,6 @@
           </div>
 
           <form id="appointmentForm">
-            
             <div class="field">
               <label for="invoiceId">Invoice ID</label>
               <div class="inline-row">
@@ -502,6 +477,11 @@
             <div class="field">
               <label for="name">အမည်</label>
               <input type="text" id="name" placeholder="Customer Name" required />
+            </div>
+
+            <div class="field">
+              <label for="docNumber">Passport / Work Permit No.</label>
+              <input type="text" id="docNumber" placeholder="Document Number" />
             </div>
 
             <div class="field">
@@ -597,7 +577,12 @@
             
             <div class="field full-width">
               <label for="customerFiles">Customer Documents (Photos / PDFs)</label>
-              <input type="file" id="customerFiles" multiple accept="image/*,application/pdf" style="padding: 10px; background: #fff; border-radius: 9px; border: 1px solid #d4d4d8;" />
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <input type="file" id="customerFiles" multiple accept="image/*,application/pdf" style="padding: 10px; background: #fff; border-radius: 9px; border: 1px solid #d4d4d8; flex:1;" />
+                <button type="button" id="btnRunOCR" class="btn btn-outline" style="padding: 10px 16px; background:#eef2ff; color:#4f46e5; border-color:#818cf8; font-weight:bold;">
+                  🔍 OCR ဖြင့် Auto-fill ဖြည့်မည်
+                </button>
+              </div>
               <small>ပုံများ သို့မဟုတ် PDF ဖိုင်များကို တစ်ပြိုင်နက်တည်း အများကြီး ရွေးချယ်တင်နိုင်ပါသည်။ (Google Drive နှင့် Telegram သို့ ရောက်သွားပါမည်)</small>
               
               <div id="existingFilesContainer" style="margin-top: 8px;"></div>
@@ -613,7 +598,6 @@
             </div>
             <div id="message" class="message"></div>
           </form>
-
         </div>
       </section>
 
@@ -819,7 +803,7 @@
         <div class="panel-card">
           <div class="panel-header">
             <div>
-              <div class="panel-title"><span>⚙️ Global Settings</span> <span class="badge">Dropdown + Pricing + Telegram + Drive</span></div>
+              <div class="panel-title"><span>⚙️ Global Settings</span> <span class="badge">Dropdown + Pricing + Telegram + Drive + Sheets</span></div>
               <div class="panel-desc">System အတွက် လိုအပ်သော ဆက်တင်အားလုံးကို ဤနေရာမှ ပြင်ဆင်နိုင်ပါသည်။</div>
             </div>
             <button class="btn btn-secondary" id="saveSettings">Save Settings</button>
@@ -833,6 +817,20 @@
                 <label>Google Apps Script Web App URL</label>
                 <input type="text" id="settingGasUrl" placeholder="https://script.google.com/macros/s/..../exec" style="width: 100%; font-family: monospace; font-size: 13px;" />
                 <small>မှတ်ချက် - Code ထဲတွင် သွားပြင်ရန်မလိုတော့ဘဲ ဤနေရာတွင်သာ တစ်ကြိမ်ထည့်ပြီး Save လုပ်ထားပါ။</small>
+              </div>
+
+              <h4 style="color: var(--success); margin-top: 12px;">Google Sheets Auto-Sync</h4>
+              <div class="field" style="margin-bottom:8px;">
+                <label>Sheets Web App URL</label>
+                <input type="text" id="settingSheetUrl" placeholder="https://script.google.com/macros/s/..../exec" style="width: 100%; font-family: monospace; font-size: 13px;" />
+                <small>Auto-Sync အတွက် Google Sheets မှ ရသော Web App URL ကို ထည့်ပါ။</small>
+              </div>
+
+              <h4 style="color: var(--accent); margin-top: 12px;">Google Cloud AI (OCR System)</h4>
+              <div class="field" style="margin-bottom:8px;">
+                <label>OCR Web App URL</label>
+                <input type="text" id="settingOcrUrl" placeholder="https://script.google.com/macros/s/..../exec" style="width: 100%; font-family: monospace; font-size: 13px;" />
+                <small>Passport / Work Permit မှ စာများကို Auto ဖတ်ရန် Google OCR URL ထည့်ပါ။</small>
               </div>
             </div>
 
@@ -954,7 +952,8 @@
           </div>
         </div>
       </section>
-	<section id="tab-logs" class="tab-panel system-manage-only" style="display:none;">
+      
+      <section id="tab-logs" class="tab-panel system-manage-only" style="display:none;">
         <div class="panel-card">
           <div class="panel-header">
             <div>
@@ -1003,14 +1002,13 @@
           <button class="close-btn" id="closeDocsModal">&times;</button>
         </div>
         <div class="modal-body" id="docsModalBody" style="background:#f1f5f9; padding: 15px;">
-          </div>
+        </div>
       </div>
     </div>
 
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
@@ -1039,7 +1037,7 @@
 
     let currentUser = null;
     let currentRole = "guest"; 
-    let currentUserName = "System"; // ✅ System Display Name Track လုပ်ရန်
+    let currentUserName = "System"; 
     
     let viewMode = "active"; 
     let highlightDocId = null;
@@ -1054,7 +1052,7 @@
     };
 
     let servicePricing = {};
-    let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "" };
+    let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "", sheetUrl: "", ocrUrl: "" };
 
     let cachedAppointments = [];
     let lastFilteredAppointments = [];
@@ -1105,20 +1103,20 @@
 
       if (user) {
         let role = "staff"; 
-        let uName = user.email.split("@")[0]; // ✅ Default name
+        let uName = user.email.split("@")[0]; 
         try {
           const uDoc = await getDoc(doc(db, "users", user.email));
           if (uDoc.exists()) {
             const d = uDoc.data();
             const validRoles = ["admin", "manager", "supervisor", "finance", "staff"];
             if (validRoles.includes(d.role)) role = d.role;
-            if (d.name) uName = d.name; // ✅ Get user display name from DB
+            if (d.name) uName = d.name; 
           } else {
              console.warn("User role not found in database.");
           }
         } catch(e) { console.error("role lookup error", e); }
         currentRole = role;
-        currentUserName = uName; // ✅ Store globally for tracker
+        currentUserName = uName; 
 
         $("authStatus").textContent = `Logged in as ${uName} (${currentRole.toUpperCase()})`;
         $("loginBtn").disabled = true;
@@ -1162,7 +1160,7 @@
         "saveBtn", "btnCancelEdit", "gotoInvoiceFromEntry",
         "reloadAppointments", "exportCsv", "applyFilter",
         "loadInvoice", "downloadInvoiceJpeg", "saveSettings",
-        "regenInvoiceId", "loadMoreBtn"
+        "regenInvoiceId", "loadMoreBtn", "btnRunOCR"
       ];
       protectedButtons.forEach(id => { const el = $(id); if (el) el.disabled = locked; });
 
@@ -1395,6 +1393,8 @@
       if ($("locationsSetting")) $("locationsSetting").value = dropdownSettings.locations.join("\n");
       
       if ($("settingGasUrl")) $("settingGasUrl").value = telegramSettings.gasUrl || "";
+      if ($("settingSheetUrl")) $("settingSheetUrl").value = telegramSettings.sheetUrl || "";
+      if ($("settingOcrUrl")) $("settingOcrUrl").value = telegramSettings.ocrUrl || "";
 
       if ($("tgToken")) $("tgToken").value = telegramSettings.botToken;
       if ($("tgMainChatId")) $("tgMainChatId").value = telegramSettings.mainChatId;
@@ -1440,6 +1440,8 @@
       servicePricing = newPricing;
       
       telegramSettings.gasUrl = $("settingGasUrl").value.trim();
+      telegramSettings.sheetUrl = $("settingSheetUrl").value.trim();
+      telegramSettings.ocrUrl = $("settingOcrUrl").value.trim();
       telegramSettings.botToken = $("tgToken").value.trim();
       telegramSettings.mainChatId = $("tgMainChatId").value.trim();
       telegramSettings.threadAppt = $("tgThreadAppt").value.trim();
@@ -1521,6 +1523,7 @@
 
           if (!$("name").value && latestData.name) $("name").value = latestData.name;
           if (!$("socialName").value && latestData.socialName) $("socialName").value = latestData.socialName;
+          if (!$("docNumber").value && latestData.docNumber) $("docNumber").value = latestData.docNumber;
 
           const msg = $("message");
           msg.textContent = `✨ ဖောက်သည်ဟောင်း (${latestData.name}) ၏ အချက်အလက်များကို အလိုအလျောက် ဖြည့်ပေးထားပါသည်။`; 
@@ -1536,7 +1539,107 @@
         console.error("Auto-fill Error:", err);
       }
     });
-    // ---------------------------------------------------------------------------
+
+    // --- Google Cloud AI OCR ခလုတ်နှိပ်လျှင် ---
+    const btnRunOCR = $("btnRunOCR");
+    if (btnRunOCR) {
+      btnRunOCR.addEventListener("click", async () => {
+        const fileInput = $("customerFiles");
+        const files = fileInput.files;
+        const msg = $("message");
+
+        if (!telegramSettings.ocrUrl) {
+          msg.textContent = "⚠️ Settings ထဲတွင် Google OCR URL ထည့်သွင်းထားခြင်း မရှိသေးပါ။"; msg.className = "message error"; return;
+        }
+
+        if (!files || files.length === 0) {
+          msg.textContent = "⚠️ ကျေးဇူးပြု၍ ပုံ (Passport / Work Permit) အရင်ရွေးချယ်ပါ။"; msg.className = "message error"; return;
+        }
+
+        msg.textContent = `🔍 ပုံများကို Google Cloud AI ဖြင့် ဖတ်နေပါသည်... (ခဏစောင့်ပါ)`;
+        msg.className = "message";
+        btnRunOCR.disabled = true; $("saveBtn").disabled = true;
+
+        try {
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (!file.type.startsWith("image/")) continue;
+
+            msg.textContent = `🔍 ပုံ (${i + 1}/${files.length}) ကို Cloud AI ဖြင့် စစ်ဆေးနေပါသည်...`;
+            
+            // ၁။ ပုံကို Base64 အဖြစ် ပြောင်းခြင်း (Size သေးသွားအောင်)
+            const compressedObj = await compressImageIfNeed(file);
+
+            // ၂။ Google Apps Script သို့ လှမ်းပို့ပြီး စာဖတ်ခိုင်းခြင်း
+            const response = await fetch(telegramSettings.ocrUrl, {
+              method: "POST",
+              body: JSON.stringify({ base64: compressedObj.base64, mimeType: compressedObj.mimeType })
+            });
+
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error);
+
+            const text = result.text.replace(/\s+/g, ' '); // Google မှ ပြန်ပို့သော စာသားများ
+
+            let extractedName = "";
+            let extractedDocNo = "";
+
+            // (၁) Passport MRZ မှ အမည်ရှာခြင်း
+            const mrzNameMatch = text.match(/P[<A-Z0-9]+<<[A-Z0-9<]+/);
+            if (mrzNameMatch && !$("name").value) {
+               const namePart = mrzNameMatch[0].split("<<");
+               if(namePart.length >= 2) {
+                  const lastName = namePart[0].substring(5).replace(/</g, " ").trim();
+                  const firstName = namePart[1].replace(/</g, " ").trim();
+                  extractedName = (firstName + " " + lastName).trim();
+               }
+            }
+
+            // (၂) နံပါတ်ရှာခြင်း (မြန်မာ/ထိုင်း/MRZ)
+            if (!$("docNumber").value) {
+               const mmPassport = text.match(/\b([A-Z]{2}[0-9]{6})\b/i);
+               const thaiId = text.match(/\b(\d{1}[\s-]?\d{4}[\s-]?\d{5}[\s-]?\d{2}[\s-]?\d{1})\b/);
+               const mrzNo = text.match(/\b([A-Z0-9<]{9})[0-9]{1}[A-Z]{3}/);
+
+               if (mmPassport) extractedDocNo = mmPassport[1];
+               else if (thaiId) extractedDocNo = thaiId[1].replace(/[\s-]/g, ""); 
+               else if (mrzNo) extractedDocNo = mrzNo[1].replace(/</g, "").trim();
+               else {
+                  const noMatch = text.match(/(?:Passport No|ID No|No|Number)\.?\s*:?\s*([A-Z0-9]{6,13})/i);
+                  if (noMatch) extractedDocNo = noMatch[1];
+               }
+            }
+
+            // (၃) Work Permit သို့ Pink Card ဆိုလျှင် "Name" ရှာခြင်း
+            if (!extractedName && !$("name").value) {
+               const nameMatch = text.match(/(?:Name|Mr|Ms|Mrs|Miss)\.?\s*([A-Z\s]+)/i);
+               if (nameMatch && nameMatch[1]) extractedName = nameMatch[1].trim();
+            }
+
+            // Data ဖြည့်ခြင်း
+            if (extractedName && !$("name").value) $("name").value = extractedName.toUpperCase();
+            if (extractedDocNo && !$("docNumber").value) $("docNumber").value = extractedDocNo.toUpperCase();
+
+            // အမည်ရော နံပါတ်ပါ ပြည့်သွားရင် ရပ်ပါမည်
+            if ($("name").value && $("docNumber").value) break; 
+          }
+
+          if ($("name").value || $("docNumber").value) {
+              msg.textContent = `✨ Google AI Auto-fill အောင်မြင်ပါသည်။`;
+              msg.className = "message success";
+          } else {
+              msg.textContent = "⚠️ ပုံများထဲမှ အမည်/နံပါတ်ကို တိတိကျကျ မတွေ့ပါ (ကိုယ်တိုင်ဖြည့်သွင်းပေးပါ)";
+              msg.className = "message error";
+          }
+        } catch (err) {
+          console.error("Cloud OCR Error:", err);
+          msg.textContent = "❌ AI Server သို့ ချိတ်ဆက်ရာတွင် အမှားအယွင်းဖြစ်သွားပါသည်: " + err.message;
+          msg.className = "message error";
+        } finally {
+          btnRunOCR.disabled = false; $("saveBtn").disabled = false;
+        }
+      });
+    }
 
     function applyInvoiceIdMode(){
       const auto = $("autoInvoiceId").checked;
@@ -1575,7 +1678,7 @@
       applyInvoiceIdMode(); if ($("autoInvoiceId").checked && currentUser) await ensureInvoiceIdAuto();
       if($("existingFilesContainer")) $("existingFilesContainer").innerHTML = "";
       
-      delete form.dataset.dupLinks; // ကူးယူထားသော ပုံမှတ်တမ်းများ ရှင်းထုတ်ရန်
+      delete form.dataset.dupLinks; 
     });
 
     const compressImageIfNeed = (file) => new Promise((resolve, reject) => {
@@ -1695,6 +1798,21 @@
       }
     }
 
+    // --- Google Sheets သို့ အလိုအလျောက် Data ပို့ပေးမည့် Function ---
+    function syncToGoogleSheet(data) {
+      if (!telegramSettings.sheetUrl) return; 
+      try {
+        fetch(telegramSettings.sheetUrl, {
+          method: "POST",
+          mode: "no-cors", 
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+      } catch (e) {
+        console.error("Sheet sync error:", e);
+      }
+    }
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault(); 
       if (currentRole === "guest" || currentRole === "finance") return;
@@ -1714,6 +1832,7 @@
         expiryDate: $("expiryDate").value || null,
         alertDays: $("alertDays").value || 30,
         name: $("name").value.trim(), 
+        docNumber: $("docNumber").value.trim() || null,
         socialName: $("socialName").value.trim() || null, 
         phone: $("phone").value.trim(),
         customerStatus: $("customerStatus").value, 
@@ -1770,7 +1889,6 @@
              data.documentLinks = [...existingLinks, ...uploadedDriveLinks];
           }
 
-          // ✅ Updated Tracker မှတ်တမ်း
           data.updatedAt = serverTimestamp();
           data.updatedBy = currentUserName;
 
@@ -1781,6 +1899,9 @@
           messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; 
           messageDiv.className = "message success";
           
+          await sendMultiTelegramNotifications(lastSavedData);
+          syncToGoogleSheet(lastSavedData);
+          
           editingDocId = null; $("invoiceId").disabled = false; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
           form.reset(); updateDepositUI(); await loadAppointments(); 
 
@@ -1789,13 +1910,11 @@
             $("saveBtn").disabled = false;
             messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – New ID ထုတ်ပါ (Auto) သို့ Manual ပြောင်းပါ။"; messageDiv.className = "message error"; return;
           }
-          // ✅ Tracker မှတ်တမ်းအသစ်
           data.createdAt = serverTimestamp();
           data.createdBy = currentUserName;
           data.updatedAt = null;
           data.updatedBy = null;
           
-          // Duplicate လုပ်ရာမှ ပါလာသော ပုံဟောင်းများရှိလျှင် အသစ်တင်သောပုံများနှင့် ပေါင်းထည့်မည်
           let oldDupLinks = [];
           if (form.dataset.dupLinks) {
             try { oldDupLinks = JSON.parse(form.dataset.dupLinks); } catch(e){}
@@ -1810,6 +1929,8 @@
           messageDiv.className = "message success";
           
           await sendMultiTelegramNotifications(lastSavedData);
+          syncToGoogleSheet(lastSavedData);
+          
           form.reset(); if (!$("date").value) $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
           if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); await loadAppointments(); 
         }
@@ -1847,6 +1968,7 @@
         const linesAppt = [
           "📩 *New Appointment Saved*", "",
           `🧾 Invoice ID: ${a.invoiceId}`, `🟡 Status: ${a.customerStatus || "-"}`, `👤 Name: ${a.name}`,
+          a.docNumber ? `🛂 Doc No: ${a.docNumber}` : "",
           a.socialName ? `🌐 Social Name: ${a.socialName}` : "", `📞 Phone: ${a.phone}`, `📍 Location: ${a.location}`,
           `📅 Service Date: ${a.date}`, `🕒 Appointment: ${apptDT}`, `🧾 Service: ${sTypeStr}`,
           `💳 Payment: ${a.paymentType}`, `💰 Total: ${Number(a.price||0).toFixed(2)} THB`,
@@ -1922,7 +2044,7 @@
       renderAppointmentsTable();
     });
 
-	$("expiringCardBtn").addEventListener("click", () => {
+    $("expiringCardBtn").addEventListener("click", () => {
       viewMode = "expiring";
       highlightDocId = null;
       
@@ -2053,7 +2175,7 @@
 
       const baseFiltered = cachedAppointments.filter(a => {
         let ok = true;
-        if (searchText) ok = `${a.name||""} ${a.socialName||""} ${a.phone||""} ${a.invoiceId||a.id||""}`.toLowerCase().includes(searchText);
+        if (searchText) ok = `${a.name||""} ${a.socialName||""} ${a.phone||""} ${a.docNumber||""} ${a.invoiceId||a.id||""}`.toLowerCase().includes(searchText);
         if (ok && filterService) ok = a.serviceType === filterService;
         if (ok && filterStatus) ok = (a.customerStatus||"") === filterStatus;
         
@@ -2177,7 +2299,6 @@
         const tr = document.createElement("tr");
         if(isHighlighted) tr.className = "highlighted-row";
 
-        // ✅ Tooltip icon Tracker အချက်အလက် (Email ဖြစ်နေရင် @ နောက်ပိုင်းဖြတ်မည်)
         const cName = a.createdBy ? (a.createdBy.includes('@') ? a.createdBy.split('@')[0] : a.createdBy) : 'System';
         const uName = a.updatedBy ? (a.updatedBy.includes('@') ? a.updatedBy.split('@')[0] : a.updatedBy) : '';
         const creatorInfo = `Created By: ${cName}${uName ? '\nUpdated By: ' + uName : ''}`;
@@ -2412,13 +2533,11 @@
 
       $("date").value = todayISO(); 
       
-      // Appointment ရက်နှင့် အချိန်များကို ဗလာ (Blank) ထားပေးခြင်း
       $("appointmentDate").value = ""; 
       $("appointmentTime").value = "";
       $("expiryDate").value = "";
-      $("alertDays").value = a.alertDays || "15";
+      $("alertDays").value = a.alertDays || "30";
 
-      // မူလဖိုင်မှ ပုံဟောင်းများ ပြန်ပါလာစေရန် ပြသပေးခြင်း
       const filesDiv = $("existingFilesContainer");
       if (filesDiv) {
         filesDiv.innerHTML = "";
@@ -2434,6 +2553,7 @@
       $("appointmentForm").dataset.dupLinks = JSON.stringify(a.documentLinks || []);
 
       $("name").value = a.name || ""; 
+      $("docNumber").value = a.docNumber || "";
       $("socialName").value = a.socialName || ""; 
       $("phone").value = a.phone || ""; 
 
@@ -2554,7 +2674,10 @@
       $("expiryDate").value = a.expiryDate || "";
       $("alertDays").value = a.alertDays || "30";
 
-      $("name").value = a.name || ""; $("socialName").value = a.socialName || ""; $("phone").value = a.phone || ""; 
+      $("name").value = a.name || ""; 
+      $("docNumber").value = a.docNumber || "";
+      $("socialName").value = a.socialName || ""; 
+      $("phone").value = a.phone || ""; 
 
       ensureOption($("customerStatus"), a.customerStatus);
       ensureOption($("channel"), a.channel); ensureOption($("location"), a.location); ensureOption($("serviceType"), a.serviceType); ensureOption($("paymentType"), a.paymentType);
@@ -2586,10 +2709,10 @@
     $("exportCsv").addEventListener("click", () => {
       const canEditDelete = currentRole === "admin" || currentRole === "manager";
       if (!canEditDelete || !lastFilteredAppointments.length) return alert("Export လုပ်မယ့် data မရှိပါ။");
-      const rows = [["Invoice ID","Service Date","Appointment Date","Appointment Time","Expiry Date","Alert Days","Status","Name", "Social Name", "Phone","Channel","Location","Service Type","Payment Type","Total","Deposit","Balance","Service Cost","Service Profit","Remark"]];
+      const rows = [["Invoice ID","Service Date","Appointment Date","Appointment Time","Expiry Date","Alert Days","Status","Name", "Doc Number", "Social Name", "Phone","Channel","Location","Service Type","Payment Type","Total","Deposit","Balance","Service Cost","Service Profit","Remark"]];
       lastFilteredAppointments.forEach(a => {
         const sType = a.servicePackage ? `${a.serviceType} (${a.servicePackage})` : a.serviceType;
-        rows.push([(a.invoiceId || a.id || "").toUpperCase(), a.date || "", a.appointmentDate || "", a.appointmentTime || "", a.expiryDate || "", a.alertDays || "", a.customerStatus || "", a.name || "", a.socialName || "", a.phone || "", a.channel || "", a.location || "", sType || "", a.paymentType || "", a.price != null ? a.price : "", a.depositAmount != null ? a.depositAmount : "", a.balanceAmount != null ? a.balanceAmount : "", a.serviceCost != null ? a.serviceCost : "", a.serviceProfit != null ? a.serviceProfit : "", a.remark || ""]);
+        rows.push([(a.invoiceId || a.id || "").toUpperCase(), a.date || "", a.appointmentDate || "", a.appointmentTime || "", a.expiryDate || "", a.alertDays || "", a.customerStatus || "", a.name || "", a.docNumber || "", a.socialName || "", a.phone || "", a.channel || "", a.location || "", sType || "", a.paymentType || "", a.price != null ? a.price : "", a.depositAmount != null ? a.depositAmount : "", a.balanceAmount != null ? a.balanceAmount : "", a.serviceCost != null ? a.serviceCost : "", a.serviceProfit != null ? a.serviceProfit : "", a.remark || ""]);
       });
       const csv = rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",")).join("\r\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" }); const url = URL.createObjectURL(blob);
@@ -2655,7 +2778,6 @@
         
         const sTypeStr = data.servicePackage ? `${data.serviceType} (${data.servicePackage})` : (data.serviceType || "-");
         
-        // ✅ Remark ကို (2) ကော်လံစာအပြည့် နေရာယူအောင် `style="grid-column: 1 / -1;"` ဖြင့် ပြင်ဆင်ထားပါသည်
         $("invServiceInfo").innerHTML = `<div><span class="invoice-label">${t.service}</span><br/><span class="invoice-value">${sTypeStr}</span></div><div><span class="invoice-label">${t.payment}</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div style="grid-column: 1 / -1;"><span class="invoice-label">${t.remark}</span><br/><span class="invoice-value" style="font-size: 12px; font-weight: 600; line-height: 1.5; display: inline-block; margin-top: 4px;">${data.remark || "-"}</span></div>`;
         
         const total = Number(data.price || 0); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
@@ -2667,7 +2789,6 @@
           $("invDepositRow").style.display = "none"; $("invDepositAmount").style.display = "none"; 
         }
         
-        // ✅ Tracker မှတ်တမ်းကို Invoice အောက်ခြေမှာ ပြပေးမည် (Email ဖြစ်နေရင် @ နောက်ပိုင်းဖြတ်မည်)
         if($("invSystemRecord")) {
            let creatorName = data.createdBy ? (data.createdBy.includes('@') ? data.createdBy.split('@')[0] : data.createdBy) : 'System';
            let recText = `Entry by: ${creatorName}`;
@@ -2778,7 +2899,7 @@
 
     $("createNewAccBtn")?.addEventListener("click", async () => {
       if (currentRole !== "admin") return;
-      const name = $("newAccName").value.trim(); // ✅ Added Name Input
+      const name = $("newAccName").value.trim(); 
       const email = $("newAccEmail").value.trim(); const pwd = $("newAccPwd").value; const role = $("newAccRole").value;
       const msg = $("userManageMessage");
 
@@ -2790,7 +2911,7 @@
       try {
         await createUserWithEmailAndPassword(secondaryAuth, email, pwd);
         await signOut(secondaryAuth);
-        await setDoc(doc(db, "users", email), { role: role, name: name }); // ✅ Saving Name
+        await setDoc(doc(db, "users", email), { role: role, name: name }); 
         msg.textContent = `✅ Account (${name} / ${email}) အောင်မြင်စွာ ဖွင့်ပေးပြီးပါပြီ။`; msg.className = "message success";
         $("newAccName").value = ""; $("newAccEmail").value = ""; $("newAccPwd").value = ""; loadUsersList();
       } catch(e) {
