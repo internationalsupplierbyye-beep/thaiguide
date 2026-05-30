@@ -421,6 +421,7 @@
           <button class="tab-btn active" data-tab="entry" id="entryTabBtn"><span class="icon">📝</span> Entry</button>
           <button class="tab-btn" data-tab="dashboard"><span class="icon">📊</span> Dashboard</button>
           <button class="tab-btn" data-tab="invoice"><span class="icon">🧾</span> Invoice</button>
+          <button class="tab-btn" data-tab="scanner"><span class="icon">🛂</span> Scanner</button>
           <button class="tab-btn system-manage-only" data-tab="settings" id="settingsTabBtn"><span class="icon">⚙️</span> Settings</button>
           <button class="tab-btn system-manage-only" data-tab="users" id="usersTabBtn"><span class="icon">👥</span> Users</button>
           <button class="tab-btn system-manage-only" data-tab="logs" id="logsTabBtn"><span class="icon">🕵️</span> Tracker Logs</button>
@@ -437,6 +438,97 @@
     </header>
 
     <main>
+      <section id="tab-scanner" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title"><span>🛂 Passport Auto-Scanner</span> <span class="badge" style="background:#e0e7ff; color:#3730a3; border-color:#c7d2fe;">Utility Tool</span></div>
+              <div class="panel-desc">စနစ်ထဲသို့ Data မသိမ်းဘဲ Passport မှ အချက်အလက်များကို အလွယ်တကူ Scan ဖတ်ပြီး Copy ကူးယူရန် သီးသန့်နေရာ။</div>
+            </div>
+          </div>
+          
+          <div class="field full-width" style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px dashed #cbd5e1; margin-bottom: 16px;">
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <input type="file" id="scanInputFile" accept="image/*" style="flex:1; background: #fff;" />
+              <button type="button" id="btnRunScanner" class="btn btn-primary" style="padding: 10px 16px;">
+                🔍 Scan Passport
+              </button>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px 18px;">
+              <div class="field">
+                 <label>Full Name</label>
+                 <div class="inline-row" style="flex-wrap:nowrap;">
+                    <input type="text" id="scName" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <button type="button" class="btn-mini btn-copy" data-target="scName" style="padding:8px 12px; font-weight:bold;">Copy</button>
+                 </div>
+              </div>
+              <div class="field">
+                 <label>Passport Number</label>
+                 <div class="inline-row" style="flex-wrap:nowrap;">
+                    <input type="text" id="scDocNo" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <button type="button" class="btn-mini btn-copy" data-target="scDocNo" style="padding:8px 12px; font-weight:bold;">Copy</button>
+                 </div>
+              </div>
+              <div class="field">
+                 <label>Date of Birth (YYYY-MM-DD)</label>
+                 <div class="inline-row" style="flex-wrap:nowrap;">
+                    <input type="text" id="scDob" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <button type="button" class="btn-mini btn-copy" data-target="scDob" style="padding:8px 12px; font-weight:bold;">Copy</button>
+                 </div>
+              </div>
+              <div class="field">
+                 <label>Gender</label>
+                 <div class="inline-row" style="flex-wrap:nowrap;">
+                    <input type="text" id="scGender" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <button type="button" class="btn-mini btn-copy" data-target="scGender" style="padding:8px 12px; font-weight:bold;">Copy</button>
+                 </div>
+              </div>
+              <div class="field">
+                 <label>Nationality</label>
+                 <div class="inline-row" style="flex-wrap:nowrap;">
+                    <input type="text" id="scNat" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <button type="button" class="btn-mini btn-copy" data-target="scNat" style="padding:8px 12px; font-weight:bold;">Copy</button>
+                 </div>
+              </div>
+              <div class="field">
+                 <label>Date of Issue (ထုတ်ပေးသည့်ရက်)</label>
+                 <div class="inline-row" style="flex-wrap:nowrap;">
+                    <input type="text" id="scDoi" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <button type="button" class="btn-mini btn-copy" data-target="scDoi" style="padding:8px 12px; font-weight:bold;">Copy</button>
+                 </div>
+              </div>
+              <div class="field">
+                 <label>Expiry Date (YYYY-MM-DD)</label>
+                 <div class="inline-row" style="flex-wrap:nowrap;">
+                    <input type="text" id="scExpiry" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <button type="button" class="btn-mini btn-copy" data-target="scExpiry" style="padding:8px 12px; font-weight:bold;">Copy</button>
+                 </div>
+              </div>
+              <div class="field">
+                 <label>Place of Birth (မွေးဖွားရာဒေသ)</label>
+                 <div class="inline-row" style="flex-wrap:nowrap;">
+                    <input type="text" id="scPob" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <button type="button" class="btn-mini btn-copy" data-target="scPob" style="padding:8px 12px; font-weight:bold;">Copy</button>
+                 </div>
+              </div>
+              <div class="field">
+                 <label>Authority / Issue (ထုတ်ပေးသည့်ရုံး)</label>
+                 <div class="inline-row" style="flex-wrap:nowrap;">
+                    <input type="text" id="scPoi" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <button type="button" class="btn-mini btn-copy" data-target="scPoi" style="padding:8px 12px; font-weight:bold;">Copy</button>
+                 </div>
+              </div>
+          </div>
+          
+          <div class="actions" style="margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+             <button type="button" class="btn btn-outline" id="btnClearScanner">Clear Data</button>
+             <button type="button" class="btn btn-secondary" id="btnCopyAllScan" style="background:#0f172a; color:#fff;">📋 Copy All Info</button>
+          </div>
+          <div id="scanMessage" class="message"></div>
+        </div>
+      </section>
       <section id="tab-entry" class="tab-panel active">
         <div class="panel-card">
           <div class="panel-header">
@@ -2319,7 +2411,6 @@
            linkIcon = `<a href="${chatUrl}" target="_blank" title="Go to Profile" style="text-decoration:none; background:#e0e7ff; color:#4338ca; padding:2px 6px; border-radius:6px; font-size:10px; margin-left:4px; border:1px solid #c7d2fe; display:inline-flex; align-items:center; vertical-align:middle;">💬 Chat / Call</a>`;
         }
         // ---------------------------------
-        // ---------------------------------
 
         let nameHtml = "";
         if (viewMode === "expiring") {
@@ -2982,6 +3073,187 @@
       }
       $("createNewAccBtn").disabled = false;
     });
+
+    // --- Passport Scanner အလုပ်လုပ်စေမည့် အသက်သွေးကြောကုဒ် ---
+    const btnRunScanner = $("btnRunScanner");
+    if (btnRunScanner) {
+      btnRunScanner.addEventListener("click", async () => {
+        const file = $("scanInputFile").files[0];
+        const msg = $("scanMessage");
+
+        if (!telegramSettings.ocrUrl) {
+          msg.textContent = "⚠️ Settings ထဲတွင် Google OCR URL မရှိသေးပါ။"; msg.className = "message error"; return;
+        }
+        if (!file) {
+          msg.textContent = "⚠️ ကျေးဇူးပြု၍ Passport ပုံ ရွေးချယ်ပါ။"; msg.className = "message error"; return;
+        }
+
+        msg.textContent = `🔍 Passport ကို Scan ဖတ်နေပါသည်... (ခဏစောင့်ပါ)`; msg.className = "message";
+        btnRunScanner.disabled = true;
+
+        try {
+            const compressedObj = await compressImageIfNeed(file);
+            const response = await fetch(telegramSettings.ocrUrl, {
+              method: "POST",
+              body: JSON.stringify({ base64: compressedObj.base64, mimeType: compressedObj.mimeType })
+            });
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error);
+
+            const rawText = result.text;
+            const lines = rawText.split('\n').map(l => l.replace(/\s+/g, '').replace(/[«‹\(\[\{]/g, '<').toUpperCase());
+            
+            let mrzLine1 = lines.find(l => l.startsWith('P') && l.includes('<') && l.length >= 28);
+            let mrzLine2 = lines.find(l => /[0-9]{6}/.test(l) && l.includes('<') && l.length >= 28 && l !== mrzLine1);
+
+            let extName = "", extDocNo = "", extDob = "", extSex = "", extExpiry = "", extNat = "";
+            let extPob = "", extPoi = "", extDoi = ""; 
+
+            // ၁။ အောက်ခြေ MRZ ကို ဖတ်ခြင်း
+            if (mrzLine1 && mrzLine2) {
+               const nameMatch = mrzLine1.match(/^P[A-Z<]?([A-Z]{3})([A-Z<]+)$/);
+               if (nameMatch) {
+                  extNat = nameMatch[1].replace(/</g, '');
+                  const nameParts = nameMatch[2].split('<<');
+                  const lastName = nameParts[0].replace(/</g, ' ').trim();
+                  const firstName = (nameParts[1] || "").replace(/</g, ' ').trim();
+                  extName = `${firstName} ${lastName}`.trim();
+               }
+
+               extDocNo = mrzLine2.substring(0, 9).replace(/</g, '');
+               if(!extNat) extNat = mrzLine2.substring(10, 13).replace(/</g, '');
+               
+               const dobYY = mrzLine2.substring(13, 15);
+               const dobMM = mrzLine2.substring(15, 17);
+               const dobDD = mrzLine2.substring(17, 19);
+               if (!isNaN(dobYY) && !isNaN(dobMM)) {
+                   const fullYear = parseInt(dobYY) > parseInt(new Date().getFullYear().toString().slice(-2)) ? "19" + dobYY : "20" + dobYY;
+                   extDob = `${fullYear}-${dobMM}-${dobDD}`;
+               }
+
+               const sexChar = mrzLine2.substring(20, 21);
+               if (sexChar === 'M' || sexChar === 'F') extSex = sexChar;
+
+               const expYY = mrzLine2.substring(21, 23);
+               const expMM = mrzLine2.substring(23, 25);
+               const expDD = mrzLine2.substring(25, 27);
+               if (!isNaN(expYY) && !isNaN(expMM)) {
+                   extExpiry = `20${expYY}-${expMM}-${expDD}`;
+               }
+            } else {
+                throw new Error("ပုံထဲတွင် Passport ၏ အောက်ခြေ MRZ (P<...) စာကြောင်းများကို သေချာစွာ မတွေ့ရပါ။ ပုံအကြည်ဖြင့် ပြန်စမ်းကြည့်ပါ။");
+            }
+
+            // ၂။ အပေါ်ပိုင်းစာသားများကို စမတ်ကျကျ ဖတ်ခြင်း (Place of Birth, Issue Date, Authority)
+            const textLines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+            let fullText = textLines.join(" ").toUpperCase();
+            
+            // 2.a) Place of Birth (ရက်စွဲများကို ရှောင်မည်)
+            let pobMatch = fullText.match(/PLACE OF BIRTH[^\w]*([A-Z\s]+?)(?=\s+\d{1,2}\s+[A-Z]{3}|\s+DATE|\s+SEX)/);
+            if (pobMatch && pobMatch[1]) {
+                extPob = pobMatch[1].replace(/ဇာတိမြို့/g, "").trim();
+            } else {
+                for (let i = 0; i < textLines.length; i++) {
+                    let l = textLines[i].toUpperCase();
+                    if ((l.includes("PLACE OF BIRTH") || l.includes("BIRTH")) && !extPob) {
+                        let val = l.split(/BIRTH/i)[1].replace(/[:;\-\/]/g, "").replace(/ဇာတိမြို့/g, "").trim();
+                        if (!val && i + 1 < textLines.length) val = textLines[i+1].trim();
+                        val = val.replace(/\d{1,2}\s+[A-Z]{3}\s+\d{4}/, "").trim(); 
+                        if (val) extPob = val;
+                    }
+                }
+            }
+
+            // 2.b) Date of Issue နှင့် Authority
+            for (let i = 0; i < textLines.length; i++) {
+                let l = textLines[i].toUpperCase();
+                if ((l.includes("AUTHORITY") || l.includes("ISSUE") || l.includes("DATE OF ISSUE")) && (!extPoi || !extDoi)) {
+                    let val = l;
+                    if(l.includes("ISSUE")) val = l.split(/ISSUE/i)[1];
+                    else if (l.includes("AUTHORITY")) val = l.split(/AUTHORITY/i)[1];
+                    
+                    val = val.replace(/[:;\-\/]/g, "").trim();
+                    if (!val && i + 1 < textLines.length) val = textLines[i+1].trim();
+                    
+                    let dateMatch = val.match(/\d{1,2}\s+[A-Z]{3}\s+\d{4}/);
+                    if (dateMatch) {
+                        let dParts = dateMatch[0].split(/\s+/);
+                        const months = {JAN:"01",FEB:"02",MAR:"03",APR:"04",MAY:"05",JUN:"06",JUL:"07",AUG:"08",SEP:"09",OCT:"10",NOV:"11",DEC:"12"};
+                        let mm = months[dParts[1].toUpperCase()] || "01";
+                        let dd = dParts[0].padStart(2, "0");
+                        let yyyy = dParts[2];
+                        extDoi = `${yyyy}-${mm}-${dd}`;
+                        val = val.replace(dateMatch[0], "").trim();
+                    }
+                    
+                    val = val.replace(/DATE OF EXPIRY/i, "").replace(/ထုတ်ပေးသည့်/g, "").replace(/ရုံး/g, "").trim();
+                    if (val && !extPoi) extPoi = val;
+                }
+            }
+
+            if($("scName")) $("scName").value = extName;
+            if($("scDocNo")) $("scDocNo").value = extDocNo;
+            if($("scDob")) $("scDob").value = extDob;
+            if($("scGender")) $("scGender").value = extSex === "M" ? "Male" : (extSex === "F" ? "Female" : "");
+            if($("scNat")) $("scNat").value = extNat;
+            if($("scExpiry")) $("scExpiry").value = extExpiry;
+            if($("scPob")) $("scPob").value = extPob;
+            if($("scPoi")) $("scPoi").value = extPoi;
+            if($("scDoi")) $("scDoi").value = extDoi;
+
+            msg.textContent = `✨ Passport Scan အောင်မြင်ပါသည်။ (Copy ကူးယူနိုင်ပါပြီ)`;
+            msg.className = "message success";
+            $("scanInputFile").value = ""; 
+
+        } catch(err) {
+            msg.textContent = "❌ Error: " + err.message;
+            msg.className = "message error";
+        } finally {
+            btnRunScanner.disabled = false;
+        }
+      });
+    }
+
+    document.querySelectorAll(".btn-copy").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const targetId = e.target.dataset.target;
+        const val = $(targetId).value;
+        if (val) {
+          navigator.clipboard.writeText(val);
+          const oldText = e.target.textContent;
+          e.target.textContent = "Copied!";
+          e.target.style.background = "#16a34a"; e.target.style.color = "#fff";
+          setTimeout(() => { 
+             e.target.textContent = oldText; 
+             e.target.style.background = ""; e.target.style.color = "";
+          }, 1500);
+        }
+      });
+    });
+
+    if ($("btnCopyAllScan")) {
+       $("btnCopyAllScan").addEventListener("click", function() {
+          if(!$("scName").value && !$("scDocNo").value) return;
+          let textToCopy = `Name: ${$("scName").value}\nPassport No: ${$("scDocNo").value}\nDOB: ${$("scDob").value}\nGender: ${$("scGender").value}\nNationality: ${$("scNat").value}\nExpiry Date: ${$("scExpiry").value}`;
+          if($("scDoi") && $("scDoi").value) textToCopy += `\nDate of Issue: ${$("scDoi").value}`;
+          if($("scPob") && $("scPob").value) textToCopy += `\nPlace of Birth: ${$("scPob").value}`;
+          if($("scPoi") && $("scPoi").value) textToCopy += `\nAuthority: ${$("scPoi").value}`;
+          navigator.clipboard.writeText(textToCopy);
+          
+          const oldText = this.innerHTML;
+          this.innerHTML = "✅ Copied All!";
+          setTimeout(() => this.innerHTML = oldText, 2000);
+       });
+    }
+
+    if ($("btnClearScanner")) {
+       $("btnClearScanner").addEventListener("click", () => {
+          ["scName","scDocNo","scDob","scGender","scNat","scExpiry","scPob","scPoi","scDoi"].forEach(id => {
+             if($(id)) $(id).value = "";
+          });
+          $("scanMessage").textContent = "";
+       });
+    }
 
     updateAuthUI(); renderDropdowns(); $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
 
