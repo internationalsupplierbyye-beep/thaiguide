@@ -490,6 +490,11 @@
             </div>
 
             <div class="field">
+              <label for="socialLink">Social Profile Link</label>
+              <input type="text" id="socialLink" placeholder="Phone / Username / Link ထည့်ရန်" />
+            </div>
+
+            <div class="field">
               <label for="channel">Customer Channel</label>
               <select id="channel"></select>
             </div>
@@ -1833,7 +1838,8 @@
         alertDays: $("alertDays").value || 30,
         name: $("name").value.trim(), 
         docNumber: $("docNumber").value.trim() || null,
-        socialName: $("socialName").value.trim() || null, 
+        socialName: $("socialName").value.trim() || null,
+        socialLink: $("socialLink").value.trim() || null, 
         phone: $("phone").value.trim(),
         customerStatus: $("customerStatus").value, 
         channel: $("channel").value || null, 
@@ -2272,18 +2278,67 @@
 
         const isHighlighted = (id === highlightDocId);
 
+        // --- Auto Chat Link ဖန်တီးခြင်း (Smart Logic) ---
+        let chatUrl = "";
+        let rawInput = a.socialLink ? a.socialLink.trim() : "";
+        const cType = (a.channel || "").toLowerCase();
+
+        // ၁။ URL အပြည့်အစုံ ကူးထည့်ထားလျှင် (http, https, viber:// စသည်) ၎င်းကိုသာ တိုက်ရိုက်သုံးမည်
+        if (rawInput.startsWith("http://") || rawInput.startsWith("https://") || rawInput.startsWith("viber://") || rawInput.startsWith("tel:")) {
+           chatUrl = rawInput;
+        } else {
+           // ၂။ URL အပြည့်အစုံမဟုတ်လျှင် (အလွတ် သို့မဟုတ် ဖုန်း/Username သီးသန့်ဖြစ်လျှင်)
+           // အကွက်ထဲတွင် ရိုက်ထည့်ထားလျှင် ၎င်းကိုယူမည်။ မထည့်ထားလျှင် မူလဖုန်းနံပါတ်ကို ယူမည်။
+           let identifier = rawInput ? rawInput : (a.phone || "");
+           let cleanId = identifier.replace(/[\s-]/g, ""); // Space များ ဖယ်မည်
+           
+           // ဖုန်းနံပါတ်ပုံစံဖြစ်လျှင် နိုင်ငံကုဒ်ပြောင်းမည်
+           let intPhone = cleanId;
+           if (cleanId.startsWith("0")) intPhone = "+66" + cleanId.substring(1); 
+           let waPhone = intPhone.replace("+", "");
+           
+           // Username ပုံစံအတွက် (Telegram/Line တွင် သုံးရန်)
+           let userName = cleanId.replace("@", ""); 
+
+           if (cType.includes("viber")) chatUrl = `viber://chat?number=${intPhone}`;
+           else if (cType.includes("whatsapp")) chatUrl = `https://wa.me/${waPhone}`;
+           else if (cType.includes("line")) chatUrl = `https://line.me/ti/p/~${userName}`;
+           else if (cType.includes("telegram")) {
+               // စာသားပါလျှင် Username ဟုယူဆမည်၊ ဂဏန်းချည်းဆိုလျှင် ဖုန်းနံပါတ်ဟုယူဆမည်
+               if (/[a-zA-Z]/.test(cleanId)) chatUrl = `https://t.me/${userName}`;
+               else chatUrl = `https://t.me/${intPhone}`;
+           }
+           else if (cType.includes("phone")) chatUrl = `tel:${cleanId}`;
+           else if (cType.includes("messenger")) {
+               if (/[a-zA-Z]/.test(cleanId)) chatUrl = `https://m.me/${userName}`;
+           }
+        }
+
+        let linkIcon = "";
+        if (chatUrl) {
+           linkIcon = `<a href="${chatUrl}" target="_blank" title="Go to Profile" style="text-decoration:none; background:#e0e7ff; color:#4338ca; padding:2px 6px; border-radius:6px; font-size:10px; margin-left:4px; border:1px solid #c7d2fe; display:inline-flex; align-items:center; vertical-align:middle;">💬 Chat / Call</a>`;
+        }
+        // ---------------------------------
+        // ---------------------------------
+
         let nameHtml = "";
         if (viewMode === "expiring") {
            const tabTag = isArchive ? `<span class="tag" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;font-size:9px;">[Archive]</span>` : `<span class="tag" style="background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;font-size:9px;">[Active]</span>`;
            nameHtml = `
              <span class="jump-link" style="cursor:pointer; color:var(--error); font-weight:800; text-decoration:underline;" data-jumpid="${id}" data-targettab="${isArchive ? 'archive' : 'active'}" title="Jump to original tab">📍 ${a.name || "-"}</span> <br/>
              <div style="margin: 2px 0;">${tabTag}</div>
-             <small title="${a.socialName ? 'Social: ' + a.socialName : ""}" style="color:var(--muted); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 140px;">${a.socialName ? 'Social: ' + a.socialName : ""}</small>
+             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-top:2px;">
+                <small title="${a.socialName ? 'Social: ' + a.socialName : ""}" style="color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 140px;">${a.socialName ? 'Social: ' + a.socialName : ""}</small>
+                ${linkIcon}
+             </div>
            `;
         } else {
            nameHtml = `
              <span class="history-link" style="cursor:pointer; color:var(--primary); font-weight:700; text-decoration:underline;" data-phone="${a.phone}" data-name="${a.name}" title="${a.name || "-"}">${a.name || "-"}</span><br/>
-             <small title="${a.socialName ? 'Social: ' + a.socialName : ""}" style="color:var(--muted); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 140px;">${a.socialName ? 'Social: ' + a.socialName : ""}</small>
+             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-top:2px;">
+                <small title="${a.socialName ? 'Social: ' + a.socialName : ""}" style="color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 140px;">${a.socialName ? 'Social: ' + a.socialName : ""}</small>
+                ${linkIcon}
+             </div>
            `;
         }
         
@@ -2554,7 +2609,8 @@
 
       $("name").value = a.name || ""; 
       $("docNumber").value = a.docNumber || "";
-      $("socialName").value = a.socialName || ""; 
+      $("socialName").value = a.socialName || "";
+      $("socialLink").value = a.socialLink || ""; 
       $("phone").value = a.phone || ""; 
 
       ensureOption($("customerStatus"), "Pending");
@@ -2676,7 +2732,8 @@
 
       $("name").value = a.name || ""; 
       $("docNumber").value = a.docNumber || "";
-      $("socialName").value = a.socialName || ""; 
+      $("socialName").value = a.socialName || "";
+      $("socialLink").value = a.socialLink || ""; 
       $("phone").value = a.phone || ""; 
 
       ensureOption($("customerStatus"), a.customerStatus);
