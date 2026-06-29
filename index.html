@@ -1583,7 +1583,6 @@
     $("price").addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", updateDepositUI);
 
-    // --- ဖောက်သည်ဟောင်း မှတ်သားပေးခြင်း (Auto-fill for Returning Customers) ---
     $("phone").addEventListener("blur", async (e) => {
       const phoneVal = e.target.value.trim();
       if (!phoneVal || editingDocId) return; 
@@ -1595,36 +1594,35 @@
         if (!snap.empty) {
           let records = [];
           snap.forEach(docSnap => records.push(docSnap.data()));
-          
-          records.sort((a, b) => {
-            const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-            const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-            return timeB - timeA; 
-          });
-
+          records.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
           const latestData = records[0];
 
-          // အမည်၊ မှတ်ပုံတင်/Passport နှင့် Social Name
-          if (!$("name").value && latestData.name) $("name").value = latestData.name;
-          if (!$("docNumber").value && latestData.docNumber) $("docNumber").value = latestData.docNumber;
-          if (!$("socialName").value && latestData.socialName) $("socialName").value = latestData.socialName;
-          
-          // အသစ်ထည့်သွင်းလိုက်သော Social Link နှင့် Channel 
-          if (!$("socialLink").value && latestData.socialLink) $("socialLink").value = latestData.socialLink;
-          if (!$("channel").value && latestData.channel) {
-              if(typeof ensureOption === "function") ensureOption($("channel"), latestData.channel);
-              else $("channel").value = latestData.channel;
-          }
+          if (!$("name").value) $("name").value = latestData.name || "";
+          if (!$("docNumber").value) $("docNumber").value = latestData.docNumber || "";
+          if (!$("socialName").value) $("socialName").value = latestData.socialName || "";
+          if (!$("socialLink").value) $("socialLink").value = latestData.socialLink || "";
+          if (!$("channel").value) ensureOption($("channel"), latestData.channel);
 
+          // ✨ Visual Warning (Form ကို အရောင်ပြောင်းပြီး သတိပေးခြင်း)
+          const formCard = $("appointmentForm").closest(".panel-card");
+          formCard.style.border = "2px solid #f59e0b";
+          formCard.style.boxShadow = "0 0 15px rgba(245, 158, 11, 0.3)";
+          
           const msg = $("message");
-          msg.textContent = `✨ ဖောက်သည်ဟောင်း (${latestData.name}) ၏ အချက်အလက်များကို အလိုအလျောက် ဖြည့်ပေးထားပါသည်။`; 
-          msg.className = "message success";
+          msg.innerHTML = `<strong>⚠️ Returning Customer Found!</strong> ဖောက်သည်ဟောင်း (${latestData.name}) ၏ ဒေတာများကို အလိုအလျောက် ဖြည့်ပေးထားပါသည်။`; 
+          msg.className = "message";
+          msg.style.color = "#b45309";
+          msg.style.background = "#fef3c7";
+          msg.style.padding = "8px";
+          msg.style.borderRadius = "6px";
           
           setTimeout(() => { 
-            if (msg.textContent.includes("ဖောက်သည်ဟောင်း")) {
-              msg.textContent = ""; msg.className = "message";
+            formCard.style.border = "1px solid var(--line)";
+            formCard.style.boxShadow = "0 10px 25px rgba(15,23,42,.12)";
+            if (msg.innerHTML.includes("Returning Customer")) {
+              msg.innerHTML = ""; msg.style.background = "transparent"; msg.style.padding = "0";
             }
-          }, 4000);
+          }, 6000);
         }
       } catch (err) {
         console.error("Auto-fill Error:", err);
@@ -2180,6 +2178,28 @@
       $("filterServiceDateFrom").value = ""; 
       $("filterServiceDateTo").value = "";
       
+      // --- Quick Message Automation ---
+    window.sendQuickMessage = function(phone, name, service, balance, type) {
+      if(!phone) return alert("ဖုန်းနံပါတ် မရှိပါ။");
+      
+      let cleanPhone = phone.replace(/[\s-]/g, "");
+      if (cleanPhone.startsWith("0")) cleanPhone = "66" + cleanPhone.substring(1); 
+      
+      let msg = "";
+      if (type === 'confirm') {
+        msg = `မင်္ဂလာပါ။ ${name} ၏ ${service} ဝန်ဆောင်မှုအတွက် အချက်အလက်များ လက်ခံရရှိပါပြီ။ (Thailand Guide)`;
+      } else if (type === 'ready') {
+        msg = `မင်္ဂလာပါ။ ${name} ၏ ${service} ဝန်ဆောင်မှု ပြီးစီးပြီဖြစ်၍ လာရောက်ရယူနိုင်ပါပြီ။ (Thailand Guide)`;
+      } else if (type === 'balance') {
+        msg = `မင်္ဂလာပါ။ ${name} ၏ ${service} ဝန်ဆောင်မှုအတွက် ကျန်ငွေ ${balance} THB ကို ရှင်းလင်းပေးပါရန် အသိပေးအပ်ပါသည်။ (Thailand Guide)`;
+      }
+
+      const encodedMsg = encodeURIComponent(msg);
+      // Default အနေနဲ့ WhatsApp ကို ဖွင့်ပေးပါမည်။
+      const url = `https://wa.me/${cleanPhone}?text=${encodedMsg}`;
+      window.open(url, '_blank');
+    };
+
       renderAppointmentsTable();
     });
 
@@ -2501,12 +2521,18 @@
             ${docsLinkHtml}
           </td>
 
-          <td>
+         <td>
             <div style="display:flex; gap:4px; flex-wrap:wrap;">
                <button class="btn btn-outline action-dup" style="padding:4px 8px;font-size:11px;" data-dupid="${id}">Duplicate</button>
                <button class="btn btn-danger action-del" style="padding:4px 8px;font-size:11px;${canEditDelete?"":"display:none;"}" data-delid="${id}">Delete</button>
             </div>
+            
+            <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:6px;">
+              <button class="btn btn-outline" style="padding: 2px 6px; font-size: 10px; border-color:#38bdf8; color:#0369a1; background:#f0f9ff;" onclick="sendQuickMessage('${a.phone || ''}', '${a.name || ''}', '${a.serviceType || ''}', '${bal}', 'confirm')">💬 Confirm</button>
+              <button class="btn btn-outline" style="padding: 2px 6px; font-size: 10px; border-color:#10b981; color:#047857; background:#ecfdf5;" onclick="sendQuickMessage('${a.phone || ''}', '${a.name || ''}', '${a.serviceType || ''}', '${bal}', 'ready')">✅ Ready</button>
+            </div>
           </td>
+          
           <td>${a.date || ""}</td>
           <td>${apptHtml}${expHtml}</td>
           <td>
