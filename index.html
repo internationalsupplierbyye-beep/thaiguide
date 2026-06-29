@@ -205,47 +205,50 @@
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
     }
     .summary-card {
-      background: #f8fafc;
+      background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 12px;
-      padding: 16px;
+      padding: 14px 16px;
       display: flex;
-      flex-direction: column;
+      flex-direction: column-reverse; /* POS Style: ဂဏန်းကို အပေါ်တင်ပြီး စာသားကို အောက်ပို့ရန် */
       gap: 4px;
+      text-align: left;
+      box-shadow: 0 1px 3px rgba(15,23,42,0.03), 0 4px 12px rgba(15,23,42,0.01);
+      transition: all 0.2s ease;
+    }
+    .summary-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(15,23,42,0.08);
     }
     .summary-title {
-      font-size: 12px;
-      color: var(--muted);
+      font-size: 11px;
+      color: #64748b;
       font-weight: 600;
       text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     .summary-value {
-      font-size: 24px;
+      font-size: 26px; /* ဂဏန်းကို အကြီးကြီးပြရန် */
       font-weight: 800;
-      color: var(--ink);
+      color: #0f172a;
+      letter-spacing: -0.02em;
     }
-    .summary-card.profit-card {
-      background: #ecfdf5;
-      border-color: #a7f3d0;
-    }
-    .summary-card.profit-card .summary-value { color: #059669; }
+    .summary-card.profit-card { background: #f0fdf4; border-color: #bbf7d0; }
+    .summary-card.profit-card .summary-value { color: #16a34a; }
+    .summary-card.profit-card .summary-title { color: #15803d; }
     
-    .summary-card.pending-card {
-      background: #fff7ed;
-      border-color: #fed7aa;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .summary-card.pending-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 15px rgba(234, 88, 12, 0.15);
-    }
+    .summary-card.pending-card { background: #fff7ed; border-color: #fed7aa; cursor: pointer; }
     .summary-card.pending-card .summary-value { color: #ea580c; }
+    .summary-card.pending-card .summary-title { color: #c2410c; }
+
+    .summary-card.expiring-card { background: #fef2f2; border-color: #fecaca; cursor: pointer; }
+    .summary-card.expiring-card .summary-value { color: #dc2626; }
+    .summary-card.expiring-card .summary-title { color: #b91c1c; }
 
     .summary-card.expiring-card {
       background: #fef2f2;
@@ -700,16 +703,12 @@
 
       <section id="tab-dashboard" class="tab-panel">
         <div class="panel-card">
-          <div class="panel-header" style="align-items:flex-start;">
+          <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
             <div>
-              <div class="panel-title" id="dashboardTitleText"><span>📊 Dashboard & Records</span> <span class="badge">Filter • Search • Action</span></div>
-              <div class="panel-desc">
-                ✅ သတ်မှတ်ထားသော Role အလိုက် အချက်အလက်များကို ခွဲခြားကြည့်ရှု/စီမံနိုင်ပါသည်။
-              </div>
-              <div id="statusTabsContainer" style="display:flex; gap:6px; background:#f1f5f9; padding:4px; border-radius:10px; border:1px solid #e2e8f0; margin-top:12px; width:fit-content; flex-wrap:wrap;">
-              </div>
+              <div class="panel-title" id="dashboardTitleText"><span>📊 Dashboard & Records</span> <span class="badge">All Records</span></div>
+              <div class="panel-desc">✅ သတ်မှတ်ထားသော Role အလိုက် အချက်အလက်များကို ခွဲခြားကြည့်ရှု/စီမံနိုင်ပါသည်။</div>
             </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap; align-items:center;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
               <button class="btn btn-secondary" id="reloadAppointments">Reload Data</button>
               <button class="btn btn-secondary action-export-ui" id="exportCsv" style="display:none;">Export CSV (Excel)</button>
             </div>
@@ -721,24 +720,27 @@
               <div class="summary-value" id="sumCount">0</div>
             </div>
             <div class="summary-card">
-              <div class="summary-title">Total Sales (THB)<br/><small style="text-transform:none;font-weight:normal;">* Completed Only</small></div>
+              <div class="summary-title">Total Sales (THB)</div>
               <div class="summary-value" id="sumSales">0.00</div>
             </div>
             <div class="summary-card profit-card" id="sumProfitCard" style="display:none;">
-              <div class="summary-title">Estimated Profit (THB)<br/><small style="text-transform:none;font-weight:normal;">* Completed Only</small></div>
+              <div class="summary-title">Estimated Profit</div>
               <div class="summary-value" id="sumProfit">0.00</div>
             </div>
             <div class="summary-card pending-card" id="pendingCardBtn" title="Click to view tomorrow's appointments">
-              <div class="summary-title">Appointment Tasks<br/><small style="text-transform:none;font-weight:normal;">* Tomorrow's Appt</small></div>
+              <div class="summary-title">Tomorrow's Tasks</div>
               <div class="summary-value" id="sumPending">0</div>
             </div>
             <div class="summary-card expiring-card" id="expiringCardBtn" title="Customers whose visa is expiring soon">
-              <div class="summary-title">Visa Expiring Soon<br/><small style="text-transform:none;font-weight:normal;">* View Global Alerts</small></div>
+              <div class="summary-title">Visa Expiring Soon</div>
               <div class="summary-value" id="sumExpiring">0</div>
             </div>
           </div>
 
-          <div class="toolbar">
+          <div id="statusTabsContainer" style="display:flex; gap:6px; background:#f1f5f9; padding:4px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:16px; width:fit-content; flex-wrap:wrap;">
+          </div>
+
+          <div class="toolbar" style="margin-top: 16px;">
             <div class="toolbar-group">
               <span>🔍 Search</span>
               <input type="text" id="searchText" placeholder="Name / Phone / Invoice ID" style="width:140px;" />
@@ -2178,27 +2180,6 @@
       $("filterServiceDateFrom").value = ""; 
       $("filterServiceDateTo").value = "";
       
-      // --- Quick Message Automation ---
-    window.sendQuickMessage = function(phone, name, service, balance, type) {
-      if(!phone) return alert("ဖုန်းနံပါတ် မရှိပါ။");
-      
-      let cleanPhone = phone.replace(/[\s-]/g, "");
-      if (cleanPhone.startsWith("0")) cleanPhone = "66" + cleanPhone.substring(1); 
-      
-      let msg = "";
-      if (type === 'confirm') {
-        msg = `မင်္ဂလာပါ။ ${name} ၏ ${service} ဝန်ဆောင်မှုအတွက် အချက်အလက်များ လက်ခံရရှိပါပြီ။ (Thailand Guide)`;
-      } else if (type === 'ready') {
-        msg = `မင်္ဂလာပါ။ ${name} ၏ ${service} ဝန်ဆောင်မှု ပြီးစီးပြီဖြစ်၍ လာရောက်ရယူနိုင်ပါပြီ။ (Thailand Guide)`;
-      } else if (type === 'balance') {
-        msg = `မင်္ဂလာပါ။ ${name} ၏ ${service} ဝန်ဆောင်မှုအတွက် ကျန်ငွေ ${balance} THB ကို ရှင်းလင်းပေးပါရန် အသိပေးအပ်ပါသည်။ (Thailand Guide)`;
-      }
-
-      const encodedMsg = encodeURIComponent(msg);
-      // Default အနေနဲ့ WhatsApp ကို ဖွင့်ပေးပါမည်။
-      const url = `https://wa.me/${cleanPhone}?text=${encodedMsg}`;
-      window.open(url, '_blank');
-    };
 
       renderAppointmentsTable();
     });
@@ -2527,10 +2508,7 @@
                <button class="btn btn-danger action-del" style="padding:4px 8px;font-size:11px;${canEditDelete?"":"display:none;"}" data-delid="${id}">Delete</button>
             </div>
             
-            <div style="display:flex; gap:4px; flex-wrap:wrap; margin-top:6px;">
-              <button class="btn btn-outline" style="padding: 2px 6px; font-size: 10px; border-color:#38bdf8; color:#0369a1; background:#f0f9ff;" onclick="sendQuickMessage('${a.phone || ''}', '${a.name || ''}', '${a.serviceType || ''}', '${bal}', 'confirm')">💬 Confirm</button>
-              <button class="btn btn-outline" style="padding: 2px 6px; font-size: 10px; border-color:#10b981; color:#047857; background:#ecfdf5;" onclick="sendQuickMessage('${a.phone || ''}', '${a.name || ''}', '${a.serviceType || ''}', '${bal}', 'ready')">✅ Ready</button>
-            </div>
+   
           </td>
           
           <td>${a.date || ""}</td>
