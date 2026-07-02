@@ -2282,7 +2282,7 @@
           pendingCount++;
         }
 
-        if (a.expiryDate && a.alertDays && status !== "cancel") {
+        if (a.expiryDate && a.alertDays && status !== "cancel" && status !== "completed" && status !== "done") {
           const expDate = new Date(a.expiryDate);
           const diffTime = expDate - today;
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -2349,7 +2349,7 @@
          const s = (a.customerStatus || "").toLowerCase();
          
          let isExpiring = false;
-         if (a.expiryDate && a.alertDays && s !== "cancel") {
+         if (a.expiryDate && a.alertDays && s !== "cancel" && s !== "completed" && s !== "done") {
             const expDate = new Date(a.expiryDate);
             const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
             if (diffDays <= Number(a.alertDays) && diffDays >= -5) isExpiring = true;
@@ -2397,7 +2397,7 @@
         let expHtml = "";
         if (a.expiryDate) {
            let isExpiringAlert = false;
-           if (s !== "cancel" && a.alertDays) {
+           if (s !== "cancel" && s !== "completed" && s !== "done" && a.alertDays) {
                 const expDate = new Date(a.expiryDate);
                 const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
                 if (diffDays <= Number(a.alertDays) && diffDays >= -5) isExpiringAlert = true;
