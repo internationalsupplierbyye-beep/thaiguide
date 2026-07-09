@@ -644,34 +644,56 @@
               <input type="number" id="alertDays" value="30" min="1" />
               <small>သက်တမ်းမကုန်ခင် ဘယ်နှရက်အလိုမှာ သတိပေးရမလဲ</small>
             </div>
+            
+            <div class="field full-width" style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 8px;">
+              <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--primary);">💰 ဈေးနှုန်းနှင့် ငွေပေးချေမှု</h4>
+              
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 18px;">
+                
+                <div class="field">
+                  <label for="currency">ငွေပေးချေမည့် ငွေကြေး (Currency)</label>
+                  <select id="currency" style="border-color: #818cf8; background: #eef2ff;">
+                    <option value="THB">THB (ထိုင်းဘတ်)</option>
+                    <option value="MMK">MMK (မြန်မာကျပ်)</option>
+                  </select>
+                </div>
 
-            <div class="field" id="costFieldWrapper">
-              <label for="cost">Cost (အရင်း - THB)</label>
-              <input type="number" id="cost" min="0" step="0.01" placeholder="0.00" />
+                <div class="field" id="exchangeRateWrapper" style="display:none;">
+                  <label for="exchangeRate">ပေါက်ဈေး (၁ သိန်း = ? ဘတ်)</label>
+                  <input type="number" id="exchangeRate" min="0" step="0.01" placeholder="e.g. 780" />
+                  <small style="color:var(--primary); font-weight:bold;" id="mmkCalcPreview">MMK ကျသင့်ငွေ = 0 ကျပ်</small>
+                </div>
+
+                <div class="field" id="costFieldWrapper">
+                  <label for="cost">Cost (အရင်း - THB)</label>
+                  <input type="number" id="cost" min="0" step="0.01" placeholder="0.00" />
+                </div>
+
+                <div class="field">
+                  <label for="price">Total Price (ရောင်းဈေး - THB)</label>
+                  <input type="number" id="price" min="0" step="0.01" placeholder="0.00" required />
+                </div>
+
+                <div class="field">
+                  <label for="depositAmount">Deposit Amount (THB)</label>
+                  <input type="number" id="depositAmount" min="0" step="0.01" placeholder="0.00" />
+                  <small>Payment Type ဘာရွေးရွေး ထည့်လို့ရ</small>
+                </div>
+
+                <div class="field">
+                  <label for="balanceAmount">Balance (Auto) (THB)</label>
+                  <input type="number" id="balanceAmount" placeholder="0.00" disabled />
+                  <small>Auto = Total - Deposit</small>
+                </div>
+
+                <div class="field">
+                  <label for="paymentType">ငွေပေးချေမှုအမျိုးအစား</label>
+                  <select id="paymentType" required></select>
+                </div>
+
+              </div>
             </div>
-
-            <div class="field">
-              <label for="price">Total Price (ရောင်းဈေး - THB)</label>
-              <input type="number" id="price" min="0" step="0.01" placeholder="0.00" required />
-            </div>
-
-            <div class="field">
-              <label for="depositAmount">Deposit Amount (THB)</label>
-              <input type="number" id="depositAmount" min="0" step="0.01" placeholder="0.00" />
-              <small>Payment Type ဘာရွေးရွေး ထည့်လို့ရ</small>
-            </div>
-
-            <div class="field">
-              <label for="balanceAmount">Balance (Auto) (THB)</label>
-              <input type="number" id="balanceAmount" placeholder="0.00" disabled />
-              <small>Auto = Total - Deposit (Deposit မထည့်ရင် Total)</small>
-            </div>
-
-            <div class="field">
-              <label for="paymentType">ငွေပေးချေမှုအမျိုးအစား</label>
-              <select id="paymentType" required></select>
-            </div>
-
+           
             <div class="field full-width">
               <label for="remark">မှတ်ချက်</label>
               <textarea id="remark" placeholder="အထူးသတိပြုရမည့်အချက်များ / internal note..."></textarea>
@@ -846,6 +868,12 @@
                   <option value="th">Thai (ไทย)</option>
                 </select>
               </div>
+              <div class="field full-width" style="margin-top:10px;">
+                <label class="toggle" title="Show QR Code">
+                  <input type="checkbox" id="showQrOnInvoice" checked />
+                  QR Code ဖြင့်ငွေချေရန် ပြသမည်
+                </label>
+              </div>
               <div class="actions" style="justify-content:flex-start; margin-top:12px;">
                 <button class="btn btn-secondary" id="loadInvoice">Load Invoice</button>
                 <button class="btn btn-primary" id="downloadInvoiceJpeg">Download JPEG</button>
@@ -876,25 +904,37 @@
                 <div class="invoice-section-title" id="lblServiceInfo">Service Detail</div>
                 <div class="invoice-grid" id="invServiceInfo"></div>
 
-                <div class="invoice-total">
-                  <div>
-                    <div style="font-weight:900;" id="lblTotal">စုစုပေါင်း (THB)</div>
-                    <div id="invDepositRow" style="font-size:13px; color:#374151; display:none; margin-top:4px;">
-                      <span id="lblDeposit">(-) စရံပေးငွေ</span>
-                    </div>
-                    <div style="margin-top:8px; font-weight:900;" id="lblBalance">
-                      Customer ဆီမှကောက်ရန်ကျန်ငွေ
-                    </div>
+                <div class="invoice-total" style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 15px;">
+                  
+                  <div id="qrCodeContainer" style="display:none; text-align:center; padding-right: 15px; border-right: 1px dashed #d4d4d8;">
+                     <img id="invDynamicQR" src="" style="width: 85px; height: 85px; border: 2px solid #4f46e5; border-radius: 8px; padding: 3px; object-fit: contain;" />
+                     <div style="font-size: 11px; color: #4f46e5; font-weight: 800; margin-top: 4px;">SCAN TO PAY</div>
                   </div>
 
-                  <div style="text-align:right;">
-                    <div class="invoice-total-amount" id="invTotalAmount">0.00</div>
-                    <div id="invDepositAmount" style="font-size:14px; color:#374151; display:none; margin-top:4px;">
-                      -0.00
+                  <div style="flex-grow: 1; margin-left: 15px; display: flex; flex-direction: column; justify-content: flex-end;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-weight:900;" id="lblTotal">စုစုပေါင်း (THB)</div>
+                        <div class="invoice-total-amount" id="invTotalAmount" style="white-space: nowrap; font-size: 18px;">0.00 THB</div>
                     </div>
-                    <div class="invoice-total-amount" id="invBalanceAmount" style="margin-top:6px;">
-                      0.00
+                    
+                    <div id="invDepositWrapper" style="display:none; justify-content: space-between; align-items: center; margin-top: 6px;">
+                        <div style="font-size:13px; color:#6b7280;" id="lblDeposit">(-) စရံပေးငွေ</div>
+                        <div id="invDepositAmount" style="font-size:14px; color:#ef4444; font-weight:700; white-space: nowrap;">-0.00 THB</div>
                     </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top:10px; padding-top:10px; border-top: 1px solid #e5e7eb;">
+                        <div style="font-weight:900; color:#4f46e5;" id="lblBalance">Customer ဆီမှကောက်ရန်ကျန်ငွေ</div>
+                        <div class="invoice-total-amount" id="invBalanceAmount" style="color:#4f46e5; white-space: nowrap; font-size: 19px;">0.00 THB</div>
+                    </div>
+
+                    <div id="invExchangeRateWrapper" style="display:none; justify-content: space-between; align-items: center; margin-top: 10px; background: #fff7ed; padding: 8px 10px; border-radius: 8px; border: 1px dashed #fdba74;">
+                        <div style="font-size:11px; color:#ea580c; font-weight:bold;">
+                          * 100,000 MMK = <span id="invExchangeRateLabel">0</span> THB
+                        </div>
+                        <div id="invMmkAmount" style="font-size:16px; font-weight:900; color:#ea580c; white-space: nowrap;">0 ကျပ်</div>
+                    </div>
+
                   </div>
                 </div>
                 
@@ -973,6 +1013,19 @@
               <textarea id="locationsSetting" rows="6"></textarea>
             </div>
             
+            <div class="settings-block">
+              <h4>💳 Payment & QR Settings</h4>
+              <div class="field" style="margin-bottom:8px;">
+                <label>PromptPay ID (THB အတွက်)</label>
+                <input type="text" id="settingPromptPay" placeholder="0812345678 သို့ 1XXXXXXXXXXXX" />
+              </div>
+              <div class="field">
+                <label>Myanmar Pay QR Links (MMK အတွက်)</label>
+                <textarea id="settingMmQRs" rows="4" placeholder="KPay = https://drive.google.com/...\nWave Pay = https://drive.google.com/..."></textarea>
+                <small>Pay နာမည် = ပုံ Link ပုံစံဖြင့် တစ်ကြောင်းစီရေးပါ။</small>
+              </div>
+            </div>
+
             <div class="settings-block">
               <h4>Telegram Bot Notify (Topics)</h4>
               <small>(optional)</small>
@@ -1160,6 +1213,7 @@
 
     let servicePricing = {};
     let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "", sheetUrl: "", ocrUrl: "" };
+    let paymentSettings = { promptPayId: "", mmQRs: "" };
 
     let cachedAppointments = [];
     let lastFilteredAppointments = [];
@@ -1476,6 +1530,9 @@
 
         const spSnap = await getDoc(doc(db, "settings", "servicePricing"));
         if (spSnap.exists()) { servicePricing = spSnap.data().services || {}; }
+
+        const paySnap = await getDoc(doc(db, "settings", "payment"));
+        if (paySnap.exists()) { paymentSettings = paySnap.data(); }
       } catch (e) { console.error("Load settings error:", e); }
 
       renderDropdowns();
@@ -1483,25 +1540,29 @@
       if ($("statusesSetting")) $("statusesSetting").value = dropdownSettings.customerStatuses.join("\n");
       if ($("channelsSetting")) $("channelsSetting").value = dropdownSettings.customerChannels.join("\n");
       if ($("servicesSetting")) $("servicesSetting").value = dropdownSettings.serviceTypes.join("\n");
-      if ($("packagesSetting")) {
-         let pkgText = "";
-         for(const [sName, pList] of Object.entries(dropdownSettings.servicePackages || {})) {
-            pkgText += `${sName} = ${pList.join(", ")}\n`;
-         }
-         $("packagesSetting").value = pkgText.trim();
-      }
       if ($("paymentsSetting")) $("paymentsSetting").value = dropdownSettings.paymentTypes.join("\n");
       if ($("locationsSetting")) $("locationsSetting").value = dropdownSettings.locations.join("\n");
+
+      if ($("packagesSetting")) {
+          let pkgArr = [];
+          for (let [sName, pList] of Object.entries(dropdownSettings.servicePackages)) {
+              pkgArr.push(`${sName} = ${pList.join(", ")}`);
+          }
+          $("packagesSetting").value = pkgArr.join("\n");
+      }
+
+      if ($("settingPromptPay")) $("settingPromptPay").value = paymentSettings.promptPayId || "";
+      if ($("settingMmQRs")) $("settingMmQRs").value = paymentSettings.mmQRs || "";
       
       if ($("settingGasUrl")) $("settingGasUrl").value = telegramSettings.gasUrl || "";
       if ($("settingSheetUrl")) $("settingSheetUrl").value = telegramSettings.sheetUrl || "";
       if ($("settingOcrUrl")) $("settingOcrUrl").value = telegramSettings.ocrUrl || "";
 
-      if ($("tgToken")) $("tgToken").value = telegramSettings.botToken;
-      if ($("tgMainChatId")) $("tgMainChatId").value = telegramSettings.mainChatId;
-      if ($("tgThreadAppt")) $("tgThreadAppt").value = telegramSettings.threadAppt;
-      if ($("tgThreadAgent")) $("tgThreadAgent").value = telegramSettings.threadAgent;
-      if ($("tgThreadCustomer")) $("tgThreadCustomer").value = telegramSettings.threadCustomer;
+      if ($("tgToken")) $("tgToken").value = telegramSettings.botToken || "";
+      if ($("tgMainChatId")) $("tgMainChatId").value = telegramSettings.mainChatId || "";
+      if ($("tgThreadAppt")) $("tgThreadAppt").value = telegramSettings.threadAppt || "";
+      if ($("tgThreadAgent")) $("tgThreadAgent").value = telegramSettings.threadAgent || "";
+      if ($("tgThreadCustomer")) $("tgThreadCustomer").value = telegramSettings.threadCustomer || "";
       if ($("tgThreadCompleted")) $("tgThreadCompleted").value = telegramSettings.threadCompleted || "";
       if ($("tgThreadDoc")) $("tgThreadDoc").value = telegramSettings.threadDoc || "";
     }
@@ -1550,8 +1611,12 @@
       telegramSettings.threadCustomer = $("tgThreadCustomer").value.trim();
       telegramSettings.threadCompleted = $("tgThreadCompleted").value.trim();
       telegramSettings.threadDoc = $("tgThreadDoc").value.trim();
+      
+      paymentSettings.promptPayId = $("settingPromptPay").value.trim();
+      paymentSettings.mmQRs = $("settingMmQRs").value.trim();
 
       try {
+        await setDoc(doc(db, "settings", "payment"), paymentSettings, { merge: true });
         await setDoc(doc(db, "settings", "dropdowns"), dropdownSettings, { merge: true });
         await setDoc(doc(db, "settings", "telegram"), telegramSettings, { merge: true });
         await setDoc(doc(db, "settings", "servicePricing"), { services: servicePricing }, { merge: true });
@@ -1566,8 +1631,30 @@
     function updateDepositUI() {
       const total = Number($("price").value || 0);
       const deposit = Number($("depositAmount").value || 0);
-      $("balanceAmount").value = Math.max(total - deposit, 0).toFixed(2);
+      const bal = Math.max(total - deposit, 0);
+      $("balanceAmount").value = bal.toFixed(2);
+      
+      if($("currency").value === "MMK") {
+         const rate = Number($("exchangeRate").value || 0);
+         if(rate > 0) {
+             const mmkAmount = Math.round((bal / rate) * 100000);
+             $("mmkCalcPreview").textContent = `MMK ကျသင့်ငွေ = ${mmkAmount.toLocaleString()} ကျပ်`;
+         } else {
+             $("mmkCalcPreview").textContent = `MMK ကျသင့်ငွေ = 0 ကျပ်`;
+         }
+      }
     }
+
+    $("currency").addEventListener("change", () => {
+        if($("currency").value === "MMK") {
+            $("exchangeRateWrapper").style.display = "flex";
+        } else {
+            $("exchangeRateWrapper").style.display = "none";
+            $("exchangeRate").value = "";
+        }
+        updateDepositUI();
+    });
+    $("exchangeRate").addEventListener("input", updateDepositUI);
     
     function updatePackageDropdown() {
        const sName = $("serviceType").value;
@@ -1996,6 +2083,8 @@
         price: total, 
         depositAmount: dep,
         balanceAmount: Math.max(total - dep, 0), 
+        currency: $("currency").value, 
+        exchangeRate: Number($("exchangeRate").value || 0), 
         remark: $("remark").value.trim() || null
       };
 
@@ -2817,6 +2906,11 @@
          if($("servicePackage")) $("servicePackage").value = "";
       }
 
+      $("currency").value = a.currency || "THB";
+      $("exchangeRate").value = a.exchangeRate || "";
+      if($("currency").value === "MMK") $("exchangeRateWrapper").style.display = "flex";
+      else $("exchangeRateWrapper").style.display = "none";
+
       $("paymentType").value = a.paymentType || ""; $("cost").value = a.serviceCost != null ? a.serviceCost : ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
       $("remark").value = a.remark || ""; updateDepositUI();
 
@@ -2958,6 +3052,11 @@
          if($("servicePackage")) $("servicePackage").value = "";
       }
 
+      $("currency").value = a.currency || "THB";
+      $("exchangeRate").value = a.exchangeRate || "";
+      if($("currency").value === "MMK") $("exchangeRateWrapper").style.display = "flex";
+      else $("exchangeRateWrapper").style.display = "none";
+
       $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
       $("remark").value = a.remark || ""; updateDepositUI();
 
@@ -3048,12 +3147,80 @@
         $("invServiceInfo").innerHTML = `<div><span class="invoice-label">${t.service}</span><br/><span class="invoice-value">${sTypeStr}</span></div><div><span class="invoice-label">${t.payment}</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div style="grid-column: 1 / -1;"><span class="invoice-label">${t.remark}</span><br/><span class="invoice-value" style="font-size: 12px; font-weight: 600; line-height: 1.5; display: inline-block; margin-top: 4px;">${data.remark || "-"}</span></div>`;
         
         const total = Number(data.price || 0); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
-        $("invTotalAmount").textContent = total.toFixed(2); $("invBalanceAmount").textContent = balance.toFixed(2);
+        const cur = data.currency || "THB";
         
+        $("invTotalAmount").textContent = total.toFixed(2) + " THB"; 
+        $("invBalanceAmount").textContent = balance.toFixed(2) + " THB";
+        
+        const depWrapper = $("invDepositWrapper") || $("invDepositRow");
+        const depAmount = $("invDepositAmount");
         if (deposit > 0) { 
-          $("invDepositRow").style.display = "block"; $("invDepositAmount").style.display = "block"; $("invDepositAmount").textContent = "-" + deposit.toFixed(2); 
+          if(depWrapper) depWrapper.style.display = "flex"; 
+          if(depAmount) {
+              depAmount.style.display = "block";
+              depAmount.textContent = "-" + deposit.toFixed(2) + " THB"; 
+          }
         } else { 
-          $("invDepositRow").style.display = "none"; $("invDepositAmount").style.display = "none"; 
+          if(depWrapper) depWrapper.style.display = "none"; 
+          if(depAmount) depAmount.style.display = "none";
+        }
+
+        // --- MMK Exchange Rate Display ---
+        const excWrapper = $("invExchangeRateWrapper") || $("invExchangeRateRow");
+        if(cur === "MMK" && data.exchangeRate > 0) {
+            if(excWrapper) excWrapper.style.display = "flex";
+            if($("invExchangeRateLabel")) $("invExchangeRateLabel").textContent = data.exchangeRate;
+            
+            const mmkAmount = Math.round((balance / data.exchangeRate) * 100000);
+            if($("invMmkAmount")) {
+                $("invMmkAmount").style.display = "block";
+                $("invMmkAmount").textContent = mmkAmount.toLocaleString() + " ကျပ်";
+            }
+        } else {
+            if(excWrapper) excWrapper.style.display = "none";
+            if($("invMmkAmount")) $("invMmkAmount").style.display = "none";
+        }
+
+        // --- Dynamic QR Code Logic ---
+        const qrContainer = $("qrCodeContainer");
+        const qrImg = $("invDynamicQR");
+        const showQr = $("showQrOnInvoice") ? $("showQrOnInvoice").checked : true;
+        const pType = data.paymentType || "";
+
+        qrContainer.style.display = "none"; 
+        qrImg.src = "";
+
+        if (showQr && balance > 0) {
+            if (cur === "THB" && paymentSettings.promptPayId && (pType.toLowerCase().includes("promptpay") || pType.toLowerCase().includes("bank") || pType.toLowerCase().includes("qr"))) {
+                // PromptPay API ဖြင့် QR ထုတ်ခြင်း
+                qrImg.src = `https://promptpay.io/${paymentSettings.promptPayId}/${balance}.png`;
+                qrContainer.style.display = "block";
+            } else if (cur === "MMK" && paymentSettings.mmQRs) {
+                // Settings မှ မြန်မာ Pay QR ပုံ Link ကို ရှာခြင်း
+                const lines = paymentSettings.mmQRs.split("\n");
+                for (let l of lines) {
+                    let firstEq = l.indexOf("=");
+                    if (firstEq > -1) {
+                        let payName = l.substring(0, firstEq).trim().toLowerCase();
+                        
+                        if (pType.trim().toLowerCase() === payName) {
+                            let rawLink = l.substring(firstEq + 1).trim();
+                            
+                            // Google Drive Link ကို Direct Image Link အဖြစ် Auto ပြောင်းပေးခြင်း
+                            if (rawLink.includes("drive.google.com/file/d/")) {
+                                const match = rawLink.match(/\/d\/(.+?)\//);
+                                if (match && match[1]) {
+                                    // uc?id= အစား thumbnail endpoint က ပို reliable ဖြစ်ပါတယ်
+                                    rawLink = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
+                                }
+                            }
+                            qrImg.src = rawLink;
+                            qrContainer.style.display = "block";
+                            break;
+                        }
+                    }
+                }
+            }
         }
         
         if($("invSystemRecord")) {
