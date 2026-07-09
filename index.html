@@ -195,9 +195,11 @@
       border: 1px solid #d1d5db; background: #f9fafb; outline: none; cursor: pointer;
     }
     .status-select.pending { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
-    .status-select.confirm { background:#ecfdf5; color:#166534; border-color:#bbf7d0; }
-    .status-select.cancel { background:#fee2e2; color:#b91c1c; border-color:#fecaca; }
+    .status-select.processing { background:#fefce8; color:#a16207; border-color:#fef08a; } 
+    .status-select.ongoing { background:#eff6ff; color:#1e40af; border-color:#bfdbfe; } 
+    .status-select.confirm { background:#f5f3ff; color:#5b21b6; border-color:#ddd6fe; } 
     .status-select.completed { background:#dcfce7; color:#15803d; border-color:#bbf7d0; }
+    .status-select.cancel { background:#fee2e2; color:#b91c1c; border-color:#fecaca; }
 
     .status-pill{ padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid rgba(148,163,184,.7);display:inline-block; }
     .status-pending{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
@@ -769,6 +771,15 @@
               <span>→</span>
               <input type="date" id="filterApptTo" />
             </div>
+            
+            <div class="toolbar-group" id="completedSortGroup" style="display:none; margin-left: 8px; border-left: 2px solid #e5e7eb; padding-left: 10px;">
+              <span style="color:var(--primary); font-weight:bold;">Sort By:</span>
+              <select id="completedSortSelect" style="border-color: #818cf8; background: #eef2ff;">
+                <option value="completedTime">Completed နှိပ်ခဲ့သောအချိန်</option>
+                <option value="apptDate">Appointment Date အလိုက်</option>
+              </select>
+            </div>
+
             <button class="btn btn-secondary" id="applyFilter" style="background:#0f172a; color:#fff;">Apply Filter</button>
           </div>
 
@@ -1139,7 +1150,7 @@
     let highlightDocId = null;
 
     let dropdownSettings = {
-      customerStatuses: ["Pending", "Confirm", "Cancel", "Completed"],
+      customerStatuses: ["Pending", "Processing", "Ongoing", "Confirm", "Completed", "Cancel"],
       customerChannels: ["Facebook Page","Messenger","Telegram","Line","Phone Call","Walk-in","Agent / Referral","Other"],
       serviceTypes: ["Bank Account Opening","Visa Service","TM30 / 90 Days Report","Money Exchange","Flight / Ticket","Other Service"],
       servicePackages: {}, 
@@ -1378,6 +1389,11 @@
        } else {
           const badgeText = (viewMode === "all" || viewMode === "All") ? "All Records" : viewMode;
           $("dashboardTitleText").innerHTML = `<span>📊 Dashboard & Records</span> <span class="badge">${badgeText}</span>`;
+       }
+       
+       // Completed tab ရောက်မှသာ Sort By ကို ပြမည်
+       if ($("completedSortGroup")) {
+           $("completedSortGroup").style.display = (viewMode.toLowerCase() === "completed") ? "flex" : "none";
        }
     }
 
@@ -2335,6 +2351,27 @@
       });
 
       baseFiltered.sort((a, b) => {
+        // Completed Tab အတွက် သီးသန့်စစ်ဆေးခြင်း
+        if (viewMode.toLowerCase() === "completed") {
+            const sortType = $("completedSortSelect") ? $("completedSortSelect").value : "completedTime";
+            
+            if (sortType === "completedTime") {
+                // ၁။ Completed နှိပ်ခဲ့သော အချိန်ဖြင့် စီမည်
+                const timeA = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0);
+                const timeB = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0);
+                return timeB - timeA; 
+            } else if (sortType === "apptDate") {
+                // ၂။ Appointment Date ဖြင့် စီမည်
+                if (a.appointmentDate !== b.appointmentDate) {
+                    return (b.appointmentDate || "").localeCompare(a.appointmentDate || "");
+                }
+                const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                return timeB - timeA;
+            }
+        }
+
+        // အခြား Tab များအတွက် Service Date ဖြင့် မူလအတိုင်းစီမည်
         if (a.date !== b.date) {
           return (b.date || "").localeCompare(a.date || ""); 
         }
@@ -2644,19 +2681,34 @@
           const oldVal = e.target.dataset.oldstatus;
           e.target.disabled = true;
           try {
-            await updateDoc(doc(db, "appointments", docId), { customerStatus: newVal });
+            // Firestore ပေါ်တွင် Status အပြင် Update လုပ်တဲ့အချိန်ကိုပါ သိမ်းမည်
+            await updateDoc(doc(db, "appointments", docId), { 
+                customerStatus: newVal,
+                updatedAt: serverTimestamp(),
+                updatedBy: currentUserName
+            });
             e.target.className = `status-select ${newVal.toLowerCase()}`;
             e.target.dataset.oldstatus = newVal;
 
             const idx = cachedAppointments.findIndex(x => x.id === docId);
             if (idx > -1) {
               cachedAppointments[idx].customerStatus = newVal;
+              // Local Cache တွင်ပါ အချိန်ကို ချက်ချင်း Update လုပ်ပေးမည်
+              cachedAppointments[idx].updatedAt = { 
+                  toDate: () => new Date(), 
+                  toMillis: () => Date.now() 
+              };
+              
               if (newVal === "Completed" && oldVal !== "Completed") {
                 await sendCompletedTelegram(cachedAppointments[idx]);
               }
             }
-            // Status ပြောင်းလိုက်လျှင် ချက်ချင်းပျောက်မသွားစေရန် Table အသစ်ပြန်မဆွဲဘဲ Summary ကိုသာ Update လုပ်ပါမည်
+            
+            // UI Update ပြန်လုပ်ရန် (Completed Tab ထဲမှာ ချက်ချင်း အပေါ်ရောက်သွားစေရန်)
             updateSummaryCards(lastFilteredAppointments); 
+            if (viewMode.toLowerCase() === "completed") {
+                renderAppointmentsTable();
+            }
           } catch(err) {
             alert("Status Update Error: " + err.message + "\n\n(Firebase Rule တွင် Update လုပ်ခွင့်ပေးထားရန် လိုအပ်ပါသည်)");
             e.target.value = oldVal;
@@ -2808,6 +2860,8 @@
            let pillClass = "status-pending";
            
            if (sLower === "confirm") pillClass = "status-confirm";
+           else if (sLower === "processing") pillClass = "status-pill style='background:#fefce8;color:#a16207;border-color:#fef08a;'";
+           else if (sLower === "ongoing") pillClass = "status-pill style='background:#eff6ff;color:#1e40af;border-color:#bfdbfe;'";
            else if (sLower === "cancel") pillClass = "status-pill style='background:#fee2e2;color:#b91c1c;border-color:#fecaca;'";
            else if (sLower === "completed" || sLower === "done") pillClass = "status-pill style='background:#dcfce7;color:#15803d;border-color:#bbf7d0;'";
            
@@ -2916,6 +2970,9 @@
 
     $("reloadAppointments").addEventListener("click", () => loadAppointments(false));
     $("applyFilter").addEventListener("click", renderAppointmentsTable);
+    if ($("completedSortSelect")) {
+        $("completedSortSelect").addEventListener("change", renderAppointmentsTable);
+    }
     $("exportCsv").addEventListener("click", () => {
       const canEditDelete = currentRole === "admin" || currentRole === "manager";
       if (!canEditDelete || !lastFilteredAppointments.length) return alert("Export လုပ်မယ့် data မရှိပါ။");
