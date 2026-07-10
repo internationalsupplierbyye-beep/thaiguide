@@ -1016,8 +1016,9 @@
             <div class="settings-block">
               <h4>💳 Payment & QR Settings</h4>
               <div class="field" style="margin-bottom:8px;">
-                <label>PromptPay ID (THB အတွက်)</label>
-                <input type="text" id="settingPromptPay" placeholder="0812345678 သို့ 1XXXXXXXXXXXX" />
+                <label>PromptPay IDs (THB အတွက်)</label>
+                <textarea id="settingPromptPay" rows="3" placeholder="PP (Bank 1) = 0812345678\nPP (Bank 2) = 1XXXXXXXXXXXX"></textarea>
+                <small>Pay နာမည် = ဖုန်းနံပါတ် ပုံစံဖြင့် တစ်ကြောင်းစီရေးပါ။</small>
               </div>
               <div class="field">
                 <label>Myanmar Pay QR Links (MMK အတွက်)</label>
@@ -1408,6 +1409,43 @@
         $("tab-" + tab).classList.add("active");
       });
     });
+
+    async function getBase64FromUrl(url) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = url;
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL("image/png"));
+          } catch (e) {
+            console.error("Canvas Base64 error:", e);
+            resolve(url); // Error တက်ပါက မူလ URL အတိုင်း ပြန်သုံးမည်
+          }
+        };
+        img.onerror = () => {
+          // Direct image fail ဖြစ်ပါက သီးသန့် CORS Proxy ပြောင်းသုံးမည်
+          const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+          const imgProxy = new Image();
+          imgProxy.crossOrigin = "anonymous";
+          imgProxy.src = proxyUrl;
+          imgProxy.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = imgProxy.width;
+            canvas.height = imgProxy.height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(imgProxy, 0, 0);
+            resolve(canvas.toDataURL("image/png"));
+          };
+          imgProxy.onerror = () => resolve(url);
+        };
+      });
+    }
     
     function renderDashboardStatusTabs() {
       const container = document.getElementById("statusTabsContainer");
@@ -3189,37 +3227,78 @@
 
         qrContainer.style.display = "none"; 
         qrImg.src = "";
+        qrImg.removeAttribute("crossOrigin"); 
 
         if (showQr && balance > 0) {
-            if (cur === "THB" && paymentSettings.promptPayId && (pType.toLowerCase().includes("promptpay") || pType.toLowerCase().includes("bank") || pType.toLowerCase().includes("qr"))) {
-                // PromptPay API ဖြင့် QR ထုတ်ခြင်း
-                qrImg.src = `https://promptpay.io/${paymentSettings.promptPayId}/${balance}.png`;
-                qrContainer.style.display = "block";
-            } else if (cur === "MMK" && paymentSettings.mmQRs) {
-                // Settings မှ မြန်မာ Pay QR ပုံ Link ကို ရှာခြင်း
-                const lines = paymentSettings.mmQRs.split("\n");
-                for (let l of lines) {
-                    let firstEq = l.indexOf("=");
-                    if (firstEq > -1) {
-                        let payName = l.substring(0, firstEq).trim().toLowerCase();
-                        
-                        if (pType.trim().toLowerCase() === payName) {
-                            let rawLink = l.substring(firstEq + 1).trim();
-                            
-                            // Google Drive Link ကို Direct Image Link အဖြစ် Auto ပြောင်းပေးခြင်း
-                            if (rawLink.includes("drive.google.com/file/d/")) {
-                                const match = rawLink.match(/\/d\/(.+?)\//);
-                                if (match && match[1]) {
-                                    // uc?id= အစား thumbnail endpoint က ပို reliable ဖြစ်ပါတယ်
-                                    rawLink = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
-                                }
-                            }
-                            qrImg.src = rawLink;
-                            qrContainer.style.display = "block";
+            let targetUrl = "";
+            
+            if (cur === "THB" && paymentSettings.promptPayId) {
+                if (paymentSettings.promptPayId.includes("=")) {
+                    // PromptPay ၂ ခုထက်ပို၍ "နာမည် = နံပါတ်" ပုံစံဖြင့် ရေးထားလျှင်
+                    const lines = paymentSettings.promptPayId.split("\n");
+                    for (let l of lines) {
+                        let firstEq = l.indexOf("=");
+                        if (firstEq > -1 && pType.trim().toLowerCase() === l.substring(0, firstEq).trim().toLowerCase()) {
+                            let ppNumber = l.substring(firstEq + 1).trim();
+                            targetUrl = `https://promptpay.io/${ppNumber}/${balance}.png`;
+                            isPromptPay = true;
                             break;
                         }
                     }
+                } else {
+                    // အရင်လို ဖုန်းနံပါတ် ၁ ခုတည်း ထည့်ထားလျှင်
+                    if (pType.toLowerCase().includes("promptpay") || pType.toLowerCase().includes("bank") || pType.toLowerCase().includes("qr")) {
+                        targetUrl = `https://promptpay.io/${paymentSettings.promptPayId}/${balance}.png`;
+                        isPromptPay = true;
+                    }
                 }
+            } else if (cur === "MMK" && paymentSettings.mmQRs) {
+                const lines = paymentSettings.mmQRs.split("\n");
+                for (let l of lines) {
+                    let firstEq = l.indexOf("=");
+                    if (firstEq > -1 && pType.trim().toLowerCase() === l.substring(0, firstEq).trim().toLowerCase()) {
+                        let rawLink = l.substring(firstEq + 1).trim();
+                        if (rawLink.includes("drive.google.com/file/d/")) {
+                            const match = rawLink.match(/\/d\/(.+?)\//);
+                            if (match && match[1]) rawLink = `https://drive.google.com/uc?id=${match[1]}`;
+                        }
+                        targetUrl = rawLink;
+                        break;
+                    }
+                }
+            }
+
+            if (targetUrl) {
+                qrContainer.style.display = "block";
+                // ချက်ချင်း Loading ပုံစံလေး အရင်ပြထားမည်
+                qrImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 85 85'%3E%3Crect width='85' height='85' fill='%23eef2ff'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='10' fill='%234f46e5'%3ELoading...%3C/text%3E%3C/svg%3E";
+                
+                // PromptPay ရော Myanmar QR ရောကို အမြန်ဆုံး Cache Server (wsrv.nl) ကနေပဲ ဖြတ်ဆွဲပါမည် (CORS Error လုံးဝမတက်တော့ပါ)
+                const fetchFastQR = async (url) => {
+                    try {
+                        const cleanUrl = url.replace(/^https?:\/\//, '');
+                        const fetchUrl = `https://wsrv.nl/?url=${encodeURIComponent(cleanUrl)}`;
+                        
+                        const response = await fetch(fetchUrl);
+                        if (response.ok) {
+                            const blob = await response.blob();
+                            return await new Promise(res => {
+                                const reader = new FileReader();
+                                reader.onloadend = () => res(reader.result);
+                                reader.readAsDataURL(blob);
+                            });
+                        }
+                    } catch (e) {
+                        console.error("Fast QR Fetch Error", e);
+                    }
+                    return url; 
+                };
+
+                // Base64 ရတာနဲ့ ချက်ချင်း အစားထိုးမည်
+                fetchFastQR(targetUrl).then(finalData => {
+                    if(finalData.startsWith("http")) qrImg.crossOrigin = "anonymous";
+                    qrImg.src = finalData;
+                });
             }
         }
         
