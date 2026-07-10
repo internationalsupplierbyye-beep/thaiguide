@@ -3233,24 +3233,30 @@
             let targetUrl = "";
             
             if (cur === "THB" && paymentSettings.promptPayId) {
+                let ppNumber = "";
                 if (paymentSettings.promptPayId.includes("=")) {
-                    // PromptPay ၂ ခုထက်ပို၍ "နာမည် = နံပါတ်" ပုံစံဖြင့် ရေးထားလျှင်
                     const lines = paymentSettings.promptPayId.split("\n");
+                    // ၁။ Payment Type နာမည် အတိအကျတူလား အရင်ရှာမည်
                     for (let l of lines) {
                         let firstEq = l.indexOf("=");
                         if (firstEq > -1 && pType.trim().toLowerCase() === l.substring(0, firstEq).trim().toLowerCase()) {
-                            let ppNumber = l.substring(firstEq + 1).trim();
-                            targetUrl = `https://promptpay.io/${ppNumber}/${balance}.png`;
-                            isPromptPay = true;
+                            ppNumber = l.substring(firstEq + 1).trim();
                             break;
                         }
                     }
-                } else {
-                    // အရင်လို ဖုန်းနံပါတ် ၁ ခုတည်း ထည့်ထားလျှင်
-                    if (pType.toLowerCase().includes("promptpay") || pType.toLowerCase().includes("bank") || pType.toLowerCase().includes("qr")) {
-                        targetUrl = `https://promptpay.io/${paymentSettings.promptPayId}/${balance}.png`;
-                        isPromptPay = true;
+                    // ၂။ အတိအကျမတွေ့လျှင် (Invoice တွင် PromptPay ဟုသာရွေးထားလျှင်) Settings ထဲက ပထမဆုံးနံပါတ်ကို Auto ယူမည်
+                    if (!ppNumber && (pType.toLowerCase().includes("promptpay") || pType.toLowerCase().includes("bank") || pType.toLowerCase().includes("qr"))) {
+                        const firstLine = lines.find(l => l.includes("="));
+                        if(firstLine) ppNumber = firstLine.substring(firstLine.indexOf("=") + 1).trim();
                     }
+                } else {
+                    if (pType.toLowerCase().includes("promptpay") || pType.toLowerCase().includes("bank") || pType.toLowerCase().includes("qr")) {
+                        ppNumber = paymentSettings.promptPayId;
+                    }
+                }
+
+                if (ppNumber) {
+                    targetUrl = `https://promptpay.io/${ppNumber}/${balance}.png`;
                 }
             } else if (cur === "MMK" && paymentSettings.mmQRs) {
                 const lines = paymentSettings.mmQRs.split("\n");
@@ -3270,23 +3276,29 @@
 
             if (targetUrl) {
                 qrContainer.style.display = "block";
-                // ချက်ချင်း Loading ပုံစံလေး အရင်ပြထားမည်
                 qrImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 85 85'%3E%3Crect width='85' height='85' fill='%23eef2ff'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='10' fill='%234f46e5'%3ELoading...%3C/text%3E%3C/svg%3E";
                 
-                // PromptPay ရော Myanmar QR ရောကို အမြန်ဆုံး Cache Server (wsrv.nl) ကနေပဲ ဖြတ်ဆွဲပါမည် (CORS Error လုံးဝမတက်တော့ပါ)
                 const fetchFastQR = async (url) => {
                     try {
                         const cleanUrl = url.replace(/^https?:\/\//, '');
-                        const fetchUrl = `https://wsrv.nl/?url=${encodeURIComponent(cleanUrl)}`;
+                        // အလွန်မြန်သော Proxy ၂ ခုကို အရန်သင့် ထည့်ထားပါမည် (တစ်ခု Error တက်လျှင် နောက်တစ်ခုက Auto အလုပ်လုပ်မည်)
+                        const proxies = [
+                            `https://wsrv.nl/?url=${encodeURIComponent(cleanUrl)}`,
+                            `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+                        ];
                         
-                        const response = await fetch(fetchUrl);
-                        if (response.ok) {
-                            const blob = await response.blob();
-                            return await new Promise(res => {
-                                const reader = new FileReader();
-                                reader.onloadend = () => res(reader.result);
-                                reader.readAsDataURL(blob);
-                            });
+                        for(let p of proxies) {
+                            try {
+                                const response = await fetch(p);
+                                if (response.ok) {
+                                    const blob = await response.blob();
+                                    return await new Promise(res => {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => res(reader.result);
+                                        reader.readAsDataURL(blob);
+                                    });
+                                }
+                            } catch(e){} // Failed ဆိုရင် နောက် Proxy ကို ဆက်သွားမည်
                         }
                     } catch (e) {
                         console.error("Fast QR Fetch Error", e);
@@ -3294,7 +3306,6 @@
                     return url; 
                 };
 
-                // Base64 ရတာနဲ့ ချက်ချင်း အစားထိုးမည်
                 fetchFastQR(targetUrl).then(finalData => {
                     if(finalData.startsWith("http")) qrImg.crossOrigin = "anonymous";
                     qrImg.src = finalData;
