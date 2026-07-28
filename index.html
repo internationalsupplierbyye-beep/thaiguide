@@ -400,6 +400,55 @@
     @media (max-width: 480px) {
       .summary-grid { grid-template-columns: 1fr; }
     }
+
+    /* --- 🚀 NEW: Toast Notification Styles --- */
+    #toast-container {
+      position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+    }
+    .toast-msg {
+      padding: 14px 24px; border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideInRight 0.3s ease forwards;
+      min-width: 250px; text-align: left;
+    }
+    .toast-msg.success { background: #16a34a; }
+    .toast-msg.error { background: #dc2626; }
+    .toast-msg.info { background: #4f46e5; }
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    /* --- 🚀 ဤနေရာတွင် ဖျက်လိုက်သော Dark Mode CSS များကို ပြန်ထည့်ပါ --- */
+    body.dark-mode {
+      --card-bg: #1e293b;
+      --line: #334155;
+      --ink: #f8fafc;
+      --muted: #94a3b8;
+      --primary-soft: #312e81;
+    }
+    body.dark-mode .app-shell {
+      background: #0f172a !important;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+    }
+    body.dark-mode header {
+      background: #1e293b !important; border-bottom: 1px solid #334155;
+    }
+    body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+      background: #0f172a; color: #f8fafc; border-color: #334155;
+    }
+    body.dark-mode table thead { background: #020617; }
+    body.dark-mode table tbody tr:nth-child(even) { background: #1e293b; }
+    body.dark-mode table tbody tr:hover { background: #334155; }
+    body.dark-mode .settings-block, body.dark-mode .summary-card, 
+    body.dark-mode .field.full-width[style*="background"] {
+      background: #1e293b !important; border-color: #334155 !important;
+    }
+    body.dark-mode .summary-value { color: #f8fafc; }
+    
+    .invoice-card { background: #fff !important; color: #111827 !important; }
+    .invoice-card .invoice-value, .invoice-card .invoice-label, 
+    .invoice-card .invoice-total-amount { color: #111827 !important; }
+    body.dark-mode .invoice-card input, body.dark-mode .invoice-card select {
+      background: #fff; color: #111827; border-color: #d4d4d8;
+    }
+    /* ----------------------------------------------------------- */
+
   </style>
 </head>
 
@@ -433,6 +482,9 @@
         </div>
 
         <div class="auth-box">
+          <!-- 🚀 NEW: Dark Mode Toggle Button -->
+          <button id="themeToggleBtn" class="btn-mini" style="font-size:14px; padding:4px; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; margin-right:4px; background:#1e293b; color:#fff;" title="Toggle Dark/Light Mode">🌙</button>
+          
           <input id="loginEmail" type="email" placeholder="email@example.com">
           <input id="loginPassword" type="password" placeholder="password">
           <button class="btn-mini" id="loginBtn">Login</button>
@@ -1224,6 +1276,24 @@
     let lastVisibleDoc = null; 
 
     const $ = (id) => document.getElementById(id);
+    // --- 🚀 NEW: Toast Notification Function ---
+    function showToast(msg, type = 'info') {
+      let container = document.getElementById('toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+      }
+      const toast = document.createElement('div');
+      toast.className = `toast-msg ${type}`;
+      toast.textContent = msg;
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'fadeOutUp 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
 
     function todayISO(){
       const d = new Date();
@@ -2130,6 +2200,16 @@
         messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။"; messageDiv.className = "message error"; return;
       }
 
+      // --- 🚀 NEW: Advanced Form Validation (Phone Number စစ်ဆေးခြင်း) ---
+      const phoneRegex = /^[0-9\+\-\s\(\)]+$/;
+      if (!phoneRegex.test(data.phone)) {
+        messageDiv.textContent = "❌ ဖုန်းနံပါတ် မှားယွင်းနေပါသည်။ (ဂဏန်းများ၊ + နှင့် - များသာ အသုံးပြုပါ)"; 
+        messageDiv.className = "message error"; 
+        $("saveBtn").disabled = false;
+        return;
+      }
+      // -------------------------------------------------------------
+
       data.serviceCost = Number($("cost").value || 0);
       data.serviceProfit = data.price - data.serviceCost;
 
@@ -2209,6 +2289,9 @@
           
           messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId; 
           messageDiv.className = "message success";
+          
+          // --- 🚀 NEW: Show Toast Notification ---
+          showToast("✅ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ: " + invoiceId, "success");
           
           await sendMultiTelegramNotifications(lastSavedData);
           syncToGoogleSheet(lastSavedData);
@@ -3684,6 +3767,32 @@
     }
 
     updateAuthUI(); renderDropdowns(); $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
+
+    // --- 🚀 NEW: Dark Mode Toggle Logic ---
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+    const currentTheme = localStorage.getItem("theme");
+    
+    // Browser ကို ပိတ်ပြီးပြန်ဖွင့်လည်း အရင်ရွေးထားတဲ့ Theme အတိုင်း မှတ်ထားပေးရန်
+    if (currentTheme === "dark") {
+      document.body.classList.add("dark-mode");
+      themeToggleBtn.textContent = "☀️";
+      themeToggleBtn.style.background = "#fef08a";
+    }
+
+    themeToggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      if (document.body.classList.contains("dark-mode")) {
+        localStorage.setItem("theme", "dark");
+        themeToggleBtn.textContent = "☀️";
+        themeToggleBtn.style.background = "#fef08a";
+        showToast("Dark Mode ဖွင့်လိုက်ပါပြီ", "info");
+      } else {
+        localStorage.setItem("theme", "light");
+        themeToggleBtn.textContent = "🌙";
+        themeToggleBtn.style.background = "#1e293b";
+        showToast("Light Mode သို့ ပြောင်းလိုက်ပါပြီ", "info");
+      }
+    });
 
   </script>
 </body>
