@@ -855,6 +855,7 @@
             </div>
 
             <button class="btn btn-secondary" id="applyFilter" style="background:#0f172a; color:#fff;">Apply Filter</button>
+            <button class="btn btn-outline" id="clearFilterBtn" style="border-color:#dc2626; color:#dc2626; margin-left: 8px;">✖ Clear Filter</button>
           </div>
 
           <div style="max-height: 450px; overflow:auto; border-radius:10px; border:1px solid #e5e7eb;">
@@ -3190,6 +3191,26 @@
 
     $("reloadAppointments").addEventListener("click", () => loadAppointments(false));
     $("applyFilter").addEventListener("click", renderAppointmentsTable);
+
+    // --- 🚀 ဒီနေရာမှာ Clear Filter Code ကို စပြီးထည့်ပါ ---
+    window.clearAllFilters = function() {
+        if($("searchText")) $("searchText").value = "";
+        if($("filterServiceType")) $("filterServiceType").value = "";
+        if($("filterStatus")) $("filterStatus").value = "";
+        if($("filterServiceDateFrom")) $("filterServiceDateFrom").value = "";
+        if($("filterServiceDateTo")) $("filterServiceDateTo").value = "";
+        if($("filterApptFrom")) $("filterApptFrom").value = "";
+        if($("filterApptTo")) $("filterApptTo").value = "";
+    };
+
+    if($("clearFilterBtn")) {
+        $("clearFilterBtn").addEventListener("click", () => {
+            clearAllFilters(); 
+            renderAppointmentsTable(); 
+        });
+    }
+    // --- ထည့်သွင်းခြင်း ပြီးဆုံးပါပြီ ---
+
     if ($("completedSortSelect")) {
         $("completedSortSelect").addEventListener("change", renderAppointmentsTable);
     }
