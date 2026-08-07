@@ -747,9 +747,14 @@
             </div>
            
             <div class="field full-width">
-              <label for="remark">မှတ်ချက်</label>
-              <textarea id="remark" placeholder="အထူးသတိပြုရမည့်အချက်များ / internal note..."></textarea>
-            </div>
+  <label for="remark">မှတ်ချက် (Invoice တွင်ပေါ်မည်)</label>
+  <textarea id="remark" placeholder="Customer အတွက် Invoice ပေါ်တွင် ပြသမည်..."></textarea>
+</div>
+
+<div class="field full-width">
+  <label for="internalRemark">Internal Note (အတွင်းသုံး မှတ်ချက်)</label>
+  <textarea id="internalRemark" placeholder="Admin/Staff များအတွက်သာ၊ Invoice တွင် မပေါ်ပါ..."></textarea>
+</div>
             
             <div class="field full-width">
               <label for="customerFiles">Customer Documents (Photos / PDFs)</label>
@@ -960,9 +965,9 @@
                 <div class="invoice-total" style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 15px;">
                   
                   <div id="qrCodeContainer" style="display:none; text-align:center; padding-right: 15px; border-right: 1px dashed #d4d4d8;">
-                     <img id="invDynamicQR" src="" style="width: 85px; height: 85px; border: 2px solid #4f46e5; border-radius: 8px; padding: 3px; object-fit: contain;" />
-                     <div style="font-size: 11px; color: #4f46e5; font-weight: 800; margin-top: 4px;">SCAN TO PAY</div>
-                  </div>
+    <img id="invDynamicQR" src="" style="width: 85px; height: 85px; border: 2px solid #4f46e5; border-radius: 8px; padding: 3px; object-fit: contain;" />
+    <div style="font-size: 11px; color: #4f46e5; font-weight: 800; margin-top: 4px;">ငွေပေးချေရန် Scan ဖတ်ပါ</div>
+</div>
 
                   <div style="flex-grow: 1; margin-left: 15px; display: flex; flex-direction: column; justify-content: flex-end;">
                     
@@ -2194,7 +2199,8 @@
         balanceAmount: Math.max(total - dep, 0), 
         currency: $("currency").value, 
         exchangeRate: Number($("exchangeRate").value || 0), 
-        remark: $("remark").value.trim() || null
+        remark: $("remark").value.trim() || null,
+        internalRemark: $("internalRemark").value.trim() || null
       };
 
       if (!invoiceId || !data.date || !data.name || !data.phone || !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
@@ -2783,7 +2789,12 @@
           <td>${dep}</td>
           <td>${bal}</td>
           <td class="profit-cell" data-profit="${profitText}">${displayProfit}</td>
-          <td title="${a.remark || "-"}"><div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px;">${a.remark || "-"}</div></td>
+          <td title="Inv: ${a.remark || "-"}&#10;Int: ${a.internalRemark || "-"}">
+  <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px; font-size:11px; line-height:1.4;">
+    <span style="color:var(--primary); font-weight:bold;">Inv:</span> ${a.remark || "-"}<br/>
+    <span style="color:#ea580c; font-weight:bold;">Int:</span> ${a.internalRemark || "-"}
+  </div>
+</td>
         `;
         body.appendChild(tr);
 
@@ -3035,6 +3046,7 @@
 
       $("paymentType").value = a.paymentType || ""; $("cost").value = a.serviceCost != null ? a.serviceCost : ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
       $("remark").value = a.remark || ""; updateDepositUI();
+      $("internalRemark").value = a.internalRemark || "";
 
       $("saveBtnText").textContent = "Save to Firebase"; 
       $("btnCancelEdit").style.display = "none";
