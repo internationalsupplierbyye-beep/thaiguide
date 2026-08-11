@@ -617,10 +617,11 @@
               <input type="date" id="date" required />
             </div>
 
-            <div class="field">
+            <div class="field" style="position:relative;">
               <label for="phone">ဖုန်းနံပါတ် <span style="color:#ea580c;">(အရင်ရိုက်ပါ)</span></label>
-              <input type="tel" id="phone" placeholder="0XXXXXXXXX" required />
-              <small>ဖောက်သည်ဟောင်းဆိုလျှင် အမည် Auto ဖြည့်ပေးမည်</small>
+              <input type="tel" id="phone" placeholder="0XXXXXXXXX" required autocomplete="off" />
+              <small>ဖောက်သည်ဟောင်းဆိုလျှင် အမည် Auto ဖြည့်ပေးမည် (Dropdown ထဲက ရွေးလည်းရပါတယ်)</small>
+              <div id="phoneSuggestions" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:50; background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 10px 20px rgba(15,23,42,.15); max-height:220px; overflow-y:auto; margin-top:2px;"></div>
             </div>
 
             <div class="field">
@@ -651,6 +652,14 @@
             <div class="field">
               <label for="customerStatus">Customer Status</label>
               <select id="customerStatus" required></select>
+            </div>
+
+            <div class="field">
+              <label for="assignedTo">👤 Assign To (ဒီ Case ကို ဘယ်သူ လုပ်ရမလဲ)</label>
+              <select id="assignedTo">
+                <option value="">-- Unassigned --</option>
+              </select>
+              <small>Settings &gt; Staff List တွင် နာမည်များ ထည့်နိုင်ပါသည်</small>
             </div>
 
             <div class="field">
@@ -754,6 +763,18 @@
 <div class="field full-width">
   <label for="internalRemark">Internal Note (အတွင်းသုံး မှတ်ချက်)</label>
   <textarea id="internalRemark" placeholder="Admin/Staff များအတွက်သာ၊ Invoice တွင် မပေါ်ပါ..."></textarea>
+</div>
+
+<div class="field full-width" style="background:#f8fafc; padding:12px 14px; border-radius:10px; border:1px dashed #cbd5e1;">
+  <label style="margin-bottom:8px;">🗒️ Handover Notes Log (ဝန်ထမ်းချင်း လက်ဆင့်ကမ်း မှတ်ချက်များ)</label>
+  <div id="notesLogList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px; max-height:180px; overflow-y:auto;">
+    <small style="color:var(--muted);">မှတ်ချက်မရှိသေးပါ</small>
+  </div>
+  <div style="display:flex; gap:6px;">
+    <input type="text" id="newNoteText" placeholder="Note အသစ်ရေးပါ..." style="flex:1;" />
+    <button type="button" class="btn btn-outline" id="btnAddNote" style="white-space:nowrap;">➕ Add Note</button>
+  </div>
+  <small>Save/Update မလုပ်ရသေးလည်း Note ချက်ချင်း သိမ်းပေးပါမယ် (Record ရှိပြီးသားဆိုရင်)</small>
 </div>
             
             <div class="field full-width">
@@ -1070,6 +1091,11 @@
               <h4>Service Location List</h4>
               <textarea id="locationsSetting" rows="6"></textarea>
             </div>
+            <div class="settings-block">
+              <h4>👤 Staff List (Task Assignment)</h4>
+              <textarea id="staffSetting" rows="6" placeholder="One name per line, e.g.\nAye\nSu\nMin"></textarea>
+              <small>Case ကို ဘယ်သူလုပ်ရမယ်ဆိုတာ Assign လုပ်ရန်အတွက် ဝန်ထမ်းစာရင်း</small>
+            </div>
             
             <div class="settings-block">
               <h4>💳 Payment & QR Settings</h4>
@@ -1232,7 +1258,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
       getFirestore, collection, serverTimestamp, getDocs, doc, getDoc, setDoc, deleteDoc, updateDoc,
-      query, orderBy, limit, startAfter, where
+      query, orderBy, limit, startAfter, where, onSnapshot
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
     import {
       getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword
@@ -1267,8 +1293,16 @@
       serviceTypes: ["Bank Account Opening","Visa Service","TM30 / 90 Days Report","Money Exchange","Flight / Ticket","Other Service"],
       servicePackages: {}, 
       paymentTypes: ["Cash","Bank Transfer","QR Payment","Deposit (Partial)","Deposit (50%)","Deposit (Custom)","Free of Charge"],
-      locations: ["Chiang Mai Office","Bangkok Office","Online Service"]
+      locations: ["Chiang Mai Office","Bangkok Office","Online Service"],
+      staffList: []
     };
+
+    // --- 🚀 NEW: Editing-lock (who's viewing/editing) state ---
+    let activeLocks = {}; // { invoiceId: { user, startedAt(ms) } }
+    const LOCK_STALE_MS = 10 * 60 * 1000; // 10 minutes = stale lock, ignore
+
+    // --- 🚀 NEW: Pending notes queued before a brand-new record is first saved ---
+    let pendingNewNotes = [];
 
     let servicePricing = {};
     let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "", sheetUrl: "", ocrUrl: "" };
@@ -1583,6 +1617,8 @@
       if($("serviceType")) fillSelect($("serviceType"), dropdownSettings.serviceTypes);
       if($("filterServiceType")) fillSelect($("filterServiceType"), dropdownSettings.serviceTypes);
       if($("paymentType")) fillSelect($("paymentType"), dropdownSettings.paymentTypes);
+      if($("assignedTo")) fillSelect($("assignedTo"), dropdownSettings.staffList);
+      if($("filterAssignedTo")) fillSelect($("filterAssignedTo"), dropdownSettings.staffList);
       
       renderServicePricingEditor();
       if(typeof updatePackageDropdown === "function") updatePackageDropdown();
@@ -1634,6 +1670,7 @@
           dropdownSettings.servicePackages = d.servicePackages || {}; 
           dropdownSettings.paymentTypes = d.paymentTypes && d.paymentTypes.length ? d.paymentTypes : dropdownSettings.paymentTypes;
           dropdownSettings.locations = d.locations && d.locations.length ? d.locations : dropdownSettings.locations;
+          dropdownSettings.staffList = d.staffList && d.staffList.length ? d.staffList : dropdownSettings.staffList;
         }
 
         const tgSnap = await getDoc(doc(db, "settings", "telegram"));
@@ -1656,6 +1693,7 @@
       if ($("servicesSetting")) $("servicesSetting").value = dropdownSettings.serviceTypes.join("\n");
       if ($("paymentsSetting")) $("paymentsSetting").value = dropdownSettings.paymentTypes.join("\n");
       if ($("locationsSetting")) $("locationsSetting").value = dropdownSettings.locations.join("\n");
+      if ($("staffSetting")) $("staffSetting").value = dropdownSettings.staffList.join("\n");
 
       if ($("packagesSetting")) {
           let pkgArr = [];
@@ -1701,6 +1739,7 @@
       });
       dropdownSettings.paymentTypes = $("paymentsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
       dropdownSettings.locations = $("locationsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
+      dropdownSettings.staffList = $("staffSetting") ? $("staffSetting").value.split("\n").map(s=>s.trim()).filter(Boolean) : dropdownSettings.staffList;
 
       const newPricing = {};
       document.querySelectorAll("[data-sp-cost]").forEach(input => {
@@ -1802,6 +1841,35 @@
     $("price").addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", updateDepositUI);
 
+    function applyReturningCustomerData(latestData) {
+      if (!$("name").value) $("name").value = latestData.name || "";
+      if (!$("docNumber").value) $("docNumber").value = latestData.docNumber || "";
+      if (!$("socialName").value) $("socialName").value = latestData.socialName || "";
+      if (!$("socialLink").value) $("socialLink").value = latestData.socialLink || "";
+      if (!$("channel").value) ensureOption($("channel"), latestData.channel);
+
+      // ✨ Visual Warning (Form ကို အရောင်ပြောင်းပြီး သတိပေးခြင်း)
+      const formCard = $("appointmentForm").closest(".panel-card");
+      formCard.style.border = "2px solid #f59e0b";
+      formCard.style.boxShadow = "0 0 15px rgba(245, 158, 11, 0.3)";
+
+      const msg = $("message");
+      msg.innerHTML = `<strong>⚠️ Returning Customer Found!</strong> ဖောက်သည်ဟောင်း (${latestData.name}) ၏ ဒေတာများကို အလိုအလျောက် ဖြည့်ပေးထားပါသည်။`;
+      msg.className = "message";
+      msg.style.color = "#b45309";
+      msg.style.background = "#fef3c7";
+      msg.style.padding = "8px";
+      msg.style.borderRadius = "6px";
+
+      setTimeout(() => {
+        formCard.style.border = "1px solid var(--line)";
+        formCard.style.boxShadow = "0 10px 25px rgba(15,23,42,.12)";
+        if (msg.innerHTML.includes("Returning Customer")) {
+          msg.innerHTML = ""; msg.style.background = "transparent"; msg.style.padding = "0";
+        }
+      }, 6000);
+    }
+
     $("phone").addEventListener("blur", async (e) => {
       const phoneVal = e.target.value.trim();
       if (!phoneVal || editingDocId) return; 
@@ -1814,38 +1882,66 @@
           let records = [];
           snap.forEach(docSnap => records.push(docSnap.data()));
           records.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
-          const latestData = records[0];
-
-          if (!$("name").value) $("name").value = latestData.name || "";
-          if (!$("docNumber").value) $("docNumber").value = latestData.docNumber || "";
-          if (!$("socialName").value) $("socialName").value = latestData.socialName || "";
-          if (!$("socialLink").value) $("socialLink").value = latestData.socialLink || "";
-          if (!$("channel").value) ensureOption($("channel"), latestData.channel);
-
-          // ✨ Visual Warning (Form ကို အရောင်ပြောင်းပြီး သတိပေးခြင်း)
-          const formCard = $("appointmentForm").closest(".panel-card");
-          formCard.style.border = "2px solid #f59e0b";
-          formCard.style.boxShadow = "0 0 15px rgba(245, 158, 11, 0.3)";
-          
-          const msg = $("message");
-          msg.innerHTML = `<strong>⚠️ Returning Customer Found!</strong> ဖောက်သည်ဟောင်း (${latestData.name}) ၏ ဒေတာများကို အလိုအလျောက် ဖြည့်ပေးထားပါသည်။`; 
-          msg.className = "message";
-          msg.style.color = "#b45309";
-          msg.style.background = "#fef3c7";
-          msg.style.padding = "8px";
-          msg.style.borderRadius = "6px";
-          
-          setTimeout(() => { 
-            formCard.style.border = "1px solid var(--line)";
-            formCard.style.boxShadow = "0 10px 25px rgba(15,23,42,.12)";
-            if (msg.innerHTML.includes("Returning Customer")) {
-              msg.innerHTML = ""; msg.style.background = "transparent"; msg.style.padding = "0";
-            }
-          }, 6000);
+          applyReturningCustomerData(records[0]);
         }
       } catch (err) {
         console.error("Auto-fill Error:", err);
       }
+    });
+
+    // --- 🚀 NEW: Phone Suggestion Dropdown (type-ahead, before leaving the field) ---
+    let phoneSuggestTimer = null;
+    $("phone").addEventListener("input", (e) => {
+      const box = $("phoneSuggestions");
+      if (!box) return;
+      const val = e.target.value.trim();
+      clearTimeout(phoneSuggestTimer);
+      if (editingDocId || val.length < 3) { box.style.display = "none"; box.innerHTML = ""; return; }
+
+      phoneSuggestTimer = setTimeout(async () => {
+        try {
+          const q = query(
+            collection(db, "appointments"),
+            where("phone", ">=", val),
+            where("phone", "<=", val + "\uf8ff"),
+            limit(8)
+          );
+          const snap = await getDocs(q);
+          if (snap.empty) { box.style.display = "none"; box.innerHTML = ""; return; }
+
+          const seenPhones = new Set();
+          const uniqueCustomers = [];
+          snap.forEach(docSnap => {
+            const d = docSnap.data();
+            if (!seenPhones.has(d.phone)) { seenPhones.add(d.phone); uniqueCustomers.push(d); }
+          });
+
+          box.innerHTML = uniqueCustomers.map((d, i) => `
+            <div class="phone-suggest-item" data-idx="${i}" style="padding:8px 10px; cursor:pointer; border-bottom:1px solid #f1f5f9; font-size:12px;">
+              <strong>${d.name || "-"}</strong> — ${d.phone}
+              ${d.docNumber ? `<span style="color:var(--muted);"> · ${d.docNumber}</span>` : ""}
+            </div>
+          `).join("");
+          box.style.display = "block";
+
+          box.querySelectorAll(".phone-suggest-item").forEach((el, i) => {
+            el.addEventListener("mouseenter", () => el.style.background = "#eef2ff");
+            el.addEventListener("mouseleave", () => el.style.background = "#fff");
+            el.addEventListener("click", () => {
+              const chosen = uniqueCustomers[i];
+              $("phone").value = chosen.phone || "";
+              applyReturningCustomerData(chosen);
+              box.style.display = "none"; box.innerHTML = "";
+            });
+          });
+        } catch (err) {
+          console.error("Phone suggest error:", err);
+        }
+      }, 300);
+    });
+    document.addEventListener("click", (e) => {
+      const box = $("phoneSuggestions");
+      if (box && !box.contains(e.target) && e.target.id !== "phone") { box.style.display = "none"; }
     });
 
     // --- Google Cloud AI OCR ခလုတ်နှိပ်လျှင် ---
@@ -2018,18 +2114,89 @@
     const form = $("appointmentForm");
     const messageDiv = $("message");
 
+    // --- 🚀 NEW: Handover Notes Log ---
+    function renderNotesLog(notesArr) {
+      const box = $("notesLogList");
+      if (!box) return;
+      const list = notesArr || [];
+      if (list.length === 0) {
+        box.innerHTML = `<small style="color:var(--muted);">မှတ်ချက်မရှိသေးပါ</small>`;
+        return;
+      }
+      const sorted = [...list].sort((a,b) => (b.ts || 0) - (a.ts || 0));
+      box.innerHTML = sorted.map(n => {
+        const when = n.ts ? new Date(n.ts).toLocaleString() : "";
+        return `<div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:12px;">
+          <div style="font-weight:700;color:var(--primary);">${n.author || "Unknown"} <span style="font-weight:400;color:var(--muted);font-size:10px;">${when}</span></div>
+          <div>${n.text}</div>
+        </div>`;
+      }).join("");
+    }
+
+    // --- 🚀 NEW: Keyboard Shortcuts (Enter -> next field, Ctrl/Cmd+S -> Save) ---
+    form.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && e.target.tagName !== "TEXTAREA" && e.target.tagName !== "BUTTON") {
+        e.preventDefault();
+        const focusable = Array.from(form.querySelectorAll("input, select, textarea"))
+          .filter(el => !el.disabled && el.offsetParent !== null);
+        const idx = focusable.indexOf(e.target);
+        if (idx > -1 && idx < focusable.length - 1) focusable[idx + 1].focus();
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        const entryTab = $("tab-entry");
+        if (entryTab && entryTab.classList.contains("active")) {
+          e.preventDefault();
+          if ($("saveBtn") && !$("saveBtn").disabled) $("saveBtn").click();
+        }
+      }
+    });
+
+    if ($("btnAddNote")) {
+      $("btnAddNote").addEventListener("click", async () => {
+        const txt = $("newNoteText").value.trim();
+        if (!txt) return;
+        const note = { text: txt, author: currentUserName, ts: Date.now() };
+
+        if (editingDocId) {
+          try {
+            const appt = cachedAppointments.find(x => x.id === editingDocId);
+            const existing = (appt && appt.notesLog) ? appt.notesLog : [];
+            const updated = [...existing, note];
+            await updateDoc(doc(db, "appointments", editingDocId), { notesLog: updated });
+            if (appt) appt.notesLog = updated;
+            renderNotesLog(updated);
+            showToast("📝 Note ထည့်ပြီးပါပြီ", "success");
+          } catch (e) {
+            showToast("❌ Note မထည့်နိုင်ပါ: " + e.message, "error");
+          }
+        } else {
+          pendingNewNotes.push(note);
+          renderNotesLog(pendingNewNotes);
+        }
+        $("newNoteText").value = "";
+      });
+    }
+
     $("btnCancelEdit").addEventListener("click", async () => {
+      if (editingDocId) deleteDoc(doc(db, "editingLocks", editingDocId)).catch(()=>{});
       editingDocId = null; $("invoiceId").disabled = false; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
       messageDiv.textContent = ""; form.reset(); if (!$("date").value) $("date").value = todayISO();
       updateDepositUI(); applyInvoiceIdMode(); if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto();
+      pendingNewNotes = []; renderNotesLog([]);
     });
 
     form.addEventListener("reset", async () => {
+      if (editingDocId) deleteDoc(doc(db, "editingLocks", editingDocId)).catch(()=>{});
       if (!$("date").value) $("date").value = todayISO(); updateDepositUI();
       editingDocId = null; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
       applyInvoiceIdMode(); if ($("autoInvoiceId").checked && currentUser) await ensureInvoiceIdAuto();
       if($("existingFilesContainer")) $("existingFilesContainer").innerHTML = "";
       
+      pendingNewNotes = []; renderNotesLog([]);
+      if ($("phoneSuggestions")) { $("phoneSuggestions").style.display = "none"; $("phoneSuggestions").innerHTML = ""; }
+
       delete form.dataset.dupLinks; 
     });
 
@@ -2200,7 +2367,8 @@
         currency: $("currency").value, 
         exchangeRate: Number($("exchangeRate").value || 0), 
         remark: $("remark").value.trim() || null,
-        internalRemark: $("internalRemark").value.trim() || null
+        internalRemark: $("internalRemark").value.trim() || null,
+        assignedTo: $("assignedTo") ? ($("assignedTo").value || null) : null
       };
 
       if (!invoiceId || !data.date || !data.name || !data.phone || !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
@@ -2271,6 +2439,7 @@
           await sendMultiTelegramNotifications(lastSavedData);
           syncToGoogleSheet(lastSavedData);
           
+          deleteDoc(doc(db, "editingLocks", editingDocId)).catch(()=>{});
           editingDocId = null; $("invoiceId").disabled = false; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
           form.reset(); updateDepositUI(); await loadAppointments(); 
 
@@ -2289,6 +2458,8 @@
             try { oldDupLinks = JSON.parse(form.dataset.dupLinks); } catch(e){}
           }
           data.documentLinks = [...oldDupLinks, ...uploadedDriveLinks];
+          data.notesLog = pendingNewNotes;
+          data.reminderSent = false;
 
           await setDoc(doc(db, "appointments", invoiceId), data);
           lastSavedDocId = invoiceId; 
@@ -2303,6 +2474,7 @@
           await sendMultiTelegramNotifications(lastSavedData);
           syncToGoogleSheet(lastSavedData);
           
+          pendingNewNotes = [];
           form.reset(); if (!$("date").value) $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
           if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); await loadAppointments(); 
         }
@@ -2643,6 +2815,12 @@
           }
         }
 
+        // --- 🚀 NEW: No-Show / Follow-up Auto Flag ---
+        // Appointment date already passed but status is still not Completed/Cancel/Ongoing.
+        if (a.appointmentDate && a.appointmentDate < todayISO() && !["completed","done","cancel","ongoing"].includes(s)) {
+          apptHtml += `<br/><span class="tag" style="background:#fee2e2;color:#b91c1c;border-color:#fecaca;font-size:10px;" title="Appointment date ကျော်လွန်ပြီး Status မပြောင်းသေးပါ">⏰ No-Show / Follow-up</span>`;
+        }
+
         let statusOptions = "";
         dropdownSettings.customerStatuses.forEach(s_opt => {
           statusOptions += `<option value="${s_opt}" ${a.customerStatus === s_opt ? 'selected' : ''}>${s_opt}</option>`;
@@ -2742,6 +2920,19 @@
         const uName = a.updatedBy ? (a.updatedBy.includes('@') ? a.updatedBy.split('@')[0] : a.updatedBy) : '';
         const creatorInfo = `Created By: ${cName}${uName ? '\nUpdated By: ' + uName : ''}`;
 
+        // --- 🚀 NEW: "Who's viewing/editing" indicator (avoid conflicts) ---
+        let lockBadge = "";
+        const lockInfo = activeLocks[id];
+        if (lockInfo && lockInfo.user !== currentUserName && (Date.now() - (lockInfo.startedAt || 0)) < LOCK_STALE_MS) {
+          lockBadge = `<div style="margin-top:4px;"><span class="tag" style="background:#fef9c3;color:#a16207;border-color:#fde68a;font-size:10px;" title="Conflict ရှောင်ရန် စောင့်ပါ">👀 ${lockInfo.user} ဖွင့်ကြည့်နေသည်</span></div>`;
+        }
+
+        // --- 🚀 NEW: Task Assignment quick control ---
+        let assignOptions = `<option value="">-- Unassigned --</option>`;
+        dropdownSettings.staffList.forEach(sName => {
+          assignOptions += `<option value="${sName}" ${a.assignedTo === sName ? 'selected' : ''}>${sName}</option>`;
+        });
+
         tr.innerHTML = `
           <td>
             <div style="font-weight:700; margin-bottom: 4px;">
@@ -2753,6 +2944,7 @@
               <button class="btn btn-secondary action-edit" style="padding: 2px 8px; font-size: 10px; ${canEditDelete ? "" : "display:none;"}" data-editid="${id}">✏️ Edit</button>
               <button class="btn btn-outline" style="padding: 2px 8px; font-size: 10px;" data-docid="${id}">🧾 Invoice</button>
             </div>
+            ${lockBadge}
             ${docsLinkHtml}
           </td>
 
@@ -2761,8 +2953,9 @@
                <button class="btn btn-outline action-dup" style="padding:4px 8px;font-size:11px;" data-dupid="${id}">Duplicate</button>
                <button class="btn btn-danger action-del" style="padding:4px 8px;font-size:11px;${canEditDelete?"":"display:none;"}" data-delid="${id}">Delete</button>
             </div>
-            
-   
+            <select class="assign-select" data-assignid="${id}" style="margin-top:6px; font-size:10px; padding:3px 4px; border-radius:6px; width:100%;" title="Assign To">
+               ${assignOptions}
+            </select>
           </td>
           
           <td>${a.date || ""}</td>
@@ -2937,6 +3130,24 @@
           }
           e.target.disabled = false;
         });
+
+        const assignSelect = tr.querySelector(".assign-select");
+        if (assignSelect) {
+          assignSelect.addEventListener("change", async (e) => {
+            const newVal = e.target.value || null;
+            const docId = e.target.dataset.assignid;
+            e.target.disabled = true;
+            try {
+              await updateDoc(doc(db, "appointments", docId), { assignedTo: newVal });
+              const idx = cachedAppointments.findIndex(x => x.id === docId);
+              if (idx > -1) cachedAppointments[idx].assignedTo = newVal;
+              showToast(newVal ? `👤 ${newVal} ထံ Assign လုပ်ပြီးပါပြီ` : "👤 Unassigned", "success");
+            } catch (err) {
+              alert("Assign Update Error: " + err.message);
+            }
+            e.target.disabled = false;
+          });
+        }
 
         tr.querySelector("[data-docid]").addEventListener("click", () => {
           $("invoiceDocId").value = id; document.querySelector('.tab-btn[data-tab="invoice"]').click(); loadInvoice();
@@ -3193,6 +3404,12 @@
 
       $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
       $("remark").value = a.remark || ""; updateDepositUI();
+      if ($("assignedTo")) { ensureOption($("assignedTo"), a.assignedTo); $("assignedTo").value = a.assignedTo || ""; }
+      pendingNewNotes = [];
+      renderNotesLog(a.notesLog || []);
+
+      // 👀 Mark this record as being edited by me (so others see the indicator)
+      setDoc(doc(db, "editingLocks", editingDocId), { user: currentUserName, startedAt: Date.now() }).catch(()=>{});
 
       const canEditDelete = currentRole === "admin" || currentRole === "manager";
       $("saveBtnText").textContent = "Update Appointment"; $("btnCancelEdit").style.display = canEditDelete ? "inline-flex" : "none";
