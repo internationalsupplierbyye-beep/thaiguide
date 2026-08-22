@@ -449,6 +449,737 @@
     }
     /* ----------------------------------------------------------- */
 
+    /* --- Entry Form Alignment Fix --- */
+    #tab-entry .panel-card {
+      max-width: 1100px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #appointmentForm {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px 14px;
+      align-items: start;
+    }
+
+    #appointmentForm > .field,
+    #appointmentForm .field {
+      min-width: 0;
+    }
+
+    /* Label အရှည်မတူလည်း input အစတန်း တစ်တန်းတည်းဖြစ်စေရန် */
+    #appointmentForm > .field > label:not(.toggle) {
+      display: flex;
+      align-items: flex-end;
+      min-height: 30px;
+      line-height: 1.25;
+    }
+
+    #appointmentForm input:not([type="checkbox"]),
+    #appointmentForm select,
+    #appointmentForm textarea {
+      width: 100%;
+      min-width: 0;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    #appointmentForm input:not([type="checkbox"]),
+    #appointmentForm select {
+      height: 38px;
+      min-height: 38px;
+      padding: 8px 10px;
+    }
+
+    #appointmentForm textarea {
+      min-height: 72px;
+    }
+
+    #appointmentForm .inline-row {
+      min-width: 0;
+      align-items: stretch;
+    }
+
+    #appointmentForm .inline-row > input,
+    #appointmentForm .inline-row > select {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    #appointmentForm .inline-row > .btn,
+    #appointmentForm .inline-row > .btn-outline,
+    #appointmentForm .inline-row > .btn-mini {
+      min-height: 38px;
+    }
+
+    /* Payment box အတွင်း field များကိုလည်း ၃ ကော်လံညီစေရန် */
+    #appointmentForm .field.full-width > div[style*="grid-template-columns"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 10px 12px !important;
+    }
+
+    @media (max-width: 1000px) {
+      #appointmentForm {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      #appointmentForm .field.full-width > div[style*="grid-template-columns"] {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+    }
+
+    @media (max-width: 600px) {
+      #tab-entry .panel-card {
+        max-width: 100%;
+      }
+
+      #appointmentForm {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      #appointmentForm .field.full-width > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    /* --- Settings Tabs UI --- */
+    .settings-panel-card { max-width: 1180px; margin: 0 auto; }
+    .settings-main-header { margin-bottom: 14px; }
+    .settings-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 5px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+    .settings-tab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 8px 14px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 750;
+      white-space: nowrap;
+      transition: all .16s ease;
+    }
+    .settings-tab:hover { background: #eef2ff; color: #4338ca; }
+    .settings-tab.active {
+      background: #4f46e5;
+      color: #ffffff;
+      border-color: #4338ca;
+      box-shadow: 0 5px 12px rgba(79,70,229,.22);
+    }
+    .settings-tab-panels { min-height: 250px; }
+    .settings-tab-panel { display: none; animation: fadeIn .16s ease-out; }
+    .settings-tab-panel.active { display: block; }
+    .settings-section-intro {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 2px 0 12px;
+      color: #64748b;
+      font-size: 11px;
+    }
+    .settings-section-intro strong { color: #1e293b; font-size: 14px; }
+    .settings-list-grid,
+    .settings-two-column-grid,
+    .settings-field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .settings-field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .settings-block {
+      min-width: 0;
+      padding: 13px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 11px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(15,23,42,.045);
+    }
+    .settings-block-wide { margin-bottom: 12px; }
+    .settings-block h4 { margin: 0 0 5px; color: #334155; font-size: 13px; }
+    .settings-block small { display: block; color: #64748b; font-size: 10px; line-height: 1.45; }
+    .settings-block textarea,
+    .settings-block input,
+    .settings-block select { width: 100%; font-size: 12px; }
+    .settings-block textarea { min-height: 92px; resize: vertical; }
+    .settings-optional,
+    .settings-note {
+      display: inline-block;
+      margin-left: 4px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4f46e5;
+      font-size: 9px;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+    .settings-note { background: #f1f5f9; color: #64748b; }
+    .settings-block-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .settings-block-heading-row h4 { margin-bottom: 3px; }
+    .settings-block-heading-row small { margin: 0; }
+    .settings-block .field label { min-height: 24px; font-size: 11px; }
+    .settings-block .field input { height: 36px; min-height: 36px; padding: 7px 9px; }
+    .settings-info-block { margin-top: 12px; background: #f8fafc; border-style: dashed; }
+    .settings-info-block p { margin: 4px 0 0; color: #64748b; font-size: 11px; line-height: 1.5; }
+    .service-pricing-editor { max-height: 320px; overflow: auto; padding-right: 4px; }
+    .service-pricing-editor > div { grid-template-columns: minmax(180px, 1fr) 100px 110px !important; margin-bottom: 6px !important; }
+    .service-pricing-editor > div input { height: 34px; min-height: 34px; }
+    body.dark-mode .settings-tabs { background: #0f172a; border-color: #334155; }
+    body.dark-mode .settings-tab { color: #94a3b8; }
+    body.dark-mode .settings-tab:hover { background: #312e81; color: #e0e7ff; }
+    body.dark-mode .settings-block,
+    body.dark-mode .settings-info-block { background: #1e293b; border-color: #334155; }
+    body.dark-mode .settings-section-intro strong,
+    body.dark-mode .settings-block h4 { color: #f8fafc; }
+    @media (max-width: 900px) {
+      .settings-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      .settings-tabs { gap: 4px; }
+      .settings-tab { flex: 1 0 auto; padding: 8px 10px; }
+      .settings-list-grid,
+      .settings-two-column-grid,
+      .settings-field-grid { grid-template-columns: 1fr; }
+      .settings-block-heading-row { align-items: flex-start; flex-direction: column; gap: 4px; }
+      .service-pricing-editor > div { grid-template-columns: minmax(150px, 1fr) 82px 92px !important; }
+    }
+    /* --- End Settings Tabs UI --- */
+
+
+    /* --- System-wide UI Polish --- */
+    html { scroll-behavior: smooth; }
+    body {
+      padding: 18px;
+      background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 48%, #e0e7ff 100%);
+    }
+    .app-shell {
+      max-width: 1440px;
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 22px 55px rgba(15,23,42,.22), 0 0 0 1px rgba(148,163,184,.28);
+    }
+    header {
+      min-height: 74px;
+      padding: 14px 24px;
+      background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(238,242,255,.96));
+      box-shadow: 0 1px 0 rgba(148,163,184,.2);
+    }
+    .brand { gap: 12px; }
+    .brand-mark { width: 38px; height: 38px; }
+    .brand-text-title { font-size: 17px; letter-spacing: -.01em; }
+    .brand-text-sub { margin-top: 2px; font-size: 11px; }
+    .tabs { background: #eef2ff; border: 1px solid #e0e7ff; padding: 4px; }
+    .tab-btn { padding: 8px 12px; font-weight: 700; }
+    .tab-btn.active { background: var(--primary); color: #fff; border-color: #4338ca; box-shadow: 0 5px 12px rgba(79,70,229,.22); }
+    .auth-box { min-height: 40px; padding: 6px 9px; box-shadow: 0 4px 12px rgba(2,6,23,.16); }
+    main { padding: 22px 24px 28px; }
+    .panel-card {
+      padding: 20px 22px 22px;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(15,23,42,.08);
+    }
+    .panel-header { margin-bottom: 18px; }
+    .panel-title { font-size: 18px; letter-spacing: -.01em; }
+    .panel-desc { margin-top: 4px; line-height: 1.5; }
+    .chip { background: #f8fafc; color: #64748b; border-color: #dbe3ef; }
+    main .field > input:not([type="checkbox"]):not([type="file"]),
+    main .field > select,
+    main .field > textarea {
+      border-color: #dbe3ef;
+      background: #fff;
+    }
+    main .field > input:not([type="checkbox"]):not([type="file"]),
+    main .field > select { min-height: 40px; }
+    main .field > textarea { min-height: 82px; line-height: 1.45; }
+    .field label { line-height: 1.35; }
+    .field small { margin-top: 4px; line-height: 1.45; }
+    .btn { min-height: 36px; font-weight: 700; }
+    .btn-secondary { background: #eef2f7; border: 1px solid #dbe3ef; color: #334155; box-shadow: 0 3px 9px rgba(15,23,42,.08); }
+    .btn-outline { border-style: solid; border-color: #cbd5e1; color: #475569; background: #fff; }
+    .btn-outline:hover { background: #f8fafc; border-color: #818cf8; color: #4338ca; }
+    .message { line-height: 1.5; }
+
+    /* Entry */
+    #tab-entry .panel-card { max-width: 1160px; }
+    #appointmentForm { gap: 14px 16px; }
+    #appointmentForm .field.full-width[style*="background"] {
+      background: #f8fafc !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: inset 0 1px 1px rgba(15,23,42,.02);
+    }
+    #appointmentForm .field.full-width > h4 { letter-spacing: -.01em; }
+    #appointmentForm #customerFiles { min-height: 42px; background: #fff !important; }
+    #appointmentForm #btnRunOCR { border-style: solid; box-shadow: 0 4px 10px rgba(79,70,229,.12); }
+    #appointmentForm .actions { padding-top: 4px; }
+
+    /* Scanner */
+    #tab-scanner .field.full-width[style*="background"] {
+      background: linear-gradient(135deg, #f8fafc, #eef2ff) !important;
+      border: 1px solid #dbe3ef !important;
+      box-shadow: inset 0 1px 2px rgba(15,23,42,.03);
+    }
+    #tab-scanner .panel-card > div[style*="repeat(auto-fit"] { gap: 14px 16px !important; }
+    #tab-scanner .inline-row input[readonly] { background: #f8fafc !important; border-color: #dbe3ef; }
+    #tab-scanner .btn-copy { border-radius: 8px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+    #tab-scanner .actions { border-top-color: #e2e8f0 !important; }
+
+    /* Dashboard */
+    #tab-dashboard .summary-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    #tab-dashboard .summary-card { min-height: 96px; padding: 16px; border-radius: 14px; }
+    #tab-dashboard .summary-value { font-size: 25px; }
+    #statusTabsContainer {
+      width: 100% !important;
+      background: #f8fafc !important;
+      border: 1px solid #e2e8f0 !important;
+      padding: 5px !important;
+      margin-bottom: 12px !important;
+    }
+    #statusTabsContainer .btn { min-height: 32px; box-shadow: none; }
+    #tab-dashboard .toolbar {
+      padding: 12px;
+      margin-top: 0 !important;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      gap: 9px;
+    }
+    #tab-dashboard .toolbar-group {
+      min-height: 36px;
+      padding: 4px 7px;
+      border: 1px solid #e8edf4;
+      border-radius: 9px;
+      background: #fff;
+    }
+    #tab-dashboard .toolbar input,
+    #tab-dashboard .toolbar select { height: 30px; border-color: #dbe3ef; background: #fff; }
+    #tab-dashboard .toolbar button { min-height: 34px; }
+    #tab-dashboard .panel-card > div[style*="max-height: 450px"] {
+      border-color: #dbe3ef !important;
+      box-shadow: 0 3px 10px rgba(15,23,42,.04);
+    }
+    #tab-dashboard table { min-width: 1180px; }
+    #tab-dashboard thead { position: sticky; top: 0; z-index: 2; }
+
+    /* Invoice */
+    #tab-invoice .invoice-wrap {
+      padding: 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 15px;
+      background: #f8fafc;
+      gap: 16px;
+    }
+    #tab-invoice .invoice-controls {
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 4px 14px rgba(15,23,42,.05);
+    }
+    #tab-invoice .invoice-controls .actions { margin-top: 14px !important; }
+    #tab-invoice .invoice-card { box-shadow: 0 10px 24px rgba(15,23,42,.16); }
+
+    /* Users and logs */
+    #tab-users .settings-block { background: #f8fafc; border-style: solid; border-color: #e2e8f0; }
+    #tab-users .inline-row > input,
+    #tab-users .inline-row > select { min-height: 40px; }
+    #tab-users .panel-card > div[style*="max-height: 350px"],
+    #tab-logs .panel-card > div[style*="max-height: 450px"] {
+      border-color: #dbe3ef !important;
+      box-shadow: 0 3px 10px rgba(15,23,42,.04);
+    }
+
+    /* Modals and uploads */
+    .modal-content { border: 1px solid #e2e8f0; border-radius: 16px; padding: 22px; }
+    .modal-header { margin-bottom: 16px; }
+    .close-btn { width: 34px; height: 34px; border-radius: 9px; }
+    .close-btn:hover { background: #fee2e2; }
+    input[type="file"] { cursor: pointer; }
+
+    /* Dark mode matching */
+    body.dark-mode { background: #020617; }
+    body.dark-mode header { background: #1e293b !important; }
+    body.dark-mode .tabs { background: #0f172a; border-color: #334155; }
+    body.dark-mode .tab-btn.active { background: #6366f1; border-color: #818cf8; }
+    body.dark-mode main .field > input:not([type="checkbox"]):not([type="file"]),
+    body.dark-mode main .field > select,
+    body.dark-mode main .field > textarea { background: #0f172a; border-color: #334155; }
+    body.dark-mode .btn-secondary { background: #334155; border-color: #475569; color: #f8fafc; }
+    body.dark-mode .btn-outline { background: #1e293b; border-color: #475569; color: #cbd5e1; }
+    body.dark-mode #tab-dashboard .toolbar,
+    body.dark-mode #statusTabsContainer,
+    body.dark-mode #tab-scanner .field.full-width[style*="background"],
+    body.dark-mode #tab-invoice .invoice-wrap { background: #0f172a !important; border-color: #334155 !important; }
+    body.dark-mode #tab-dashboard .toolbar-group,
+    body.dark-mode #tab-invoice .invoice-controls { background: #1e293b; border-color: #334155; }
+    body.dark-mode #tab-dashboard .toolbar input,
+    body.dark-mode #tab-dashboard .toolbar select { background: #0f172a; color: #f8fafc; border-color: #475569; }
+    body.dark-mode #tab-users .settings-block { background: #1e293b; border-color: #334155; }
+
+    @media (max-width: 1120px) {
+      #tab-dashboard .summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 900px) {
+      body { padding: 10px; }
+      header { padding: 12px 16px; }
+      main { padding: 16px; }
+      #tab-dashboard .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #tab-invoice .invoice-card { flex-basis: 500px; }
+    }
+    @media (max-width: 768px) {
+      body { padding: 0; }
+      .app-shell { border-radius: 0; }
+      main { padding: 14px 12px 20px; }
+      .panel-card { padding: 16px 14px 18px; border-radius: 14px; }
+      .panel-title { font-size: 16px; }
+      #tab-dashboard .toolbar-group { flex: 1 1 220px; }
+      #tab-dashboard .toolbar input,
+      #tab-dashboard .toolbar select { width: auto !important; flex: 1; min-width: 0; }
+      #tab-invoice .invoice-wrap { padding: 10px; }
+    }
+    @media (max-width: 600px) {
+      #tab-dashboard .summary-grid { grid-template-columns: 1fr; }
+      #tab-dashboard .summary-card { min-height: 78px; }
+      #tab-invoice .invoice-controls { padding: 12px; }
+      #tab-invoice .invoice-card { flex-basis: 100%; min-height: 520px; }
+      #tab-invoice .invoice-grid { grid-template-columns: 1fr; }
+      #tab-scanner .field.full-width[style*="background"] > div { align-items: stretch !important; }
+      #tab-scanner .field.full-width[style*="background"] input[type="file"],
+      #tab-scanner .field.full-width[style*="background"] button { width: 100%; }
+    }
+
+    /* --- Required Field Markers --- */
+    .required-mark {
+      display: inline-block;
+      margin-left: 4px;
+      color: #dc2626;
+      font-weight: 900;
+      letter-spacing: .03em;
+      white-space: nowrap;
+    }
+    .required-legend {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      margin-left: 8px;
+      padding: 3px 8px;
+      border: 1px solid #fecaca;
+      border-radius: 999px;
+      background: #fff1f2;
+      color: #991b1b;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    #appointmentForm input:invalid:not(:focus):not([type="checkbox"]),
+    #appointmentForm select:invalid:not(:focus),
+    #appointmentForm textarea:invalid:not(:focus) {
+      border-color: #fca5a5;
+    }
+    body.dark-mode .required-legend { background: #450a0a; border-color: #7f1d1d; color: #fecaca; }
+    body.dark-mode .required-mark { color: #fca5a5; }
+
+    /* --- Entry Input Design Polish --- */
+    #appointmentForm {
+      gap: 16px 16px;
+    }
+    #appointmentForm > .field,
+    #appointmentForm .field {
+      min-width: 0;
+    }
+    #appointmentForm > .field > label:not(.toggle),
+    #appointmentForm .field > label:not(.toggle) {
+      color: #334155;
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.35;
+      letter-spacing: .005em;
+    }
+    #appointmentForm input:not([type="checkbox"]),
+    #appointmentForm select,
+    #appointmentForm textarea {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid #d7e0ea;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #1e293b;
+      box-shadow: 0 1px 2px rgba(15,23,42,.025);
+      transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+    #appointmentForm input:not([type="checkbox"]),
+    #appointmentForm select {
+      height: 42px;
+      min-height: 42px;
+      padding: 9px 11px;
+      line-height: 1.2;
+    }
+    #appointmentForm textarea {
+      min-height: 86px;
+      padding: 10px 11px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+    #appointmentForm input::placeholder,
+    #appointmentForm textarea::placeholder { color: #94a3b8; opacity: 1; }
+    #appointmentForm input:hover,
+    #appointmentForm select:hover,
+    #appointmentForm textarea:hover { border-color: #b8c5d6; }
+    #appointmentForm input:focus,
+    #appointmentForm select:focus,
+    #appointmentForm textarea:focus {
+      border-color: #6366f1;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(99,102,241,.13), 0 2px 6px rgba(15,23,42,.06);
+      outline: none;
+    }
+    #appointmentForm select { cursor: pointer; }
+    #appointmentForm input[type="number"] { font-variant-numeric: tabular-nums; }
+    #appointmentForm input[type="number"]:not(#alertDays) { text-align: right; }
+    #appointmentForm input[disabled] {
+      background: #f1f5f9 !important;
+      color: #64748b;
+      border-color: #dbe3ef;
+      cursor: not-allowed;
+    }
+    #appointmentForm input[type="file"] {
+      height: auto;
+      min-height: 44px;
+      padding: 8px 10px;
+      background: #ffffff !important;
+      cursor: pointer;
+    }
+    #appointmentForm input[type="file"]::file-selector-button {
+      margin-right: 10px;
+      padding: 7px 11px;
+      border: 1px solid #c7d2fe;
+      border-radius: 8px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    #appointmentForm .inline-row {
+      gap: 8px;
+      align-items: stretch;
+    }
+    #appointmentForm .inline-row > input,
+    #appointmentForm .inline-row > select,
+    #appointmentForm .inline-row > .toggle,
+    #appointmentForm .inline-row > .btn,
+    #appointmentForm .inline-row > .btn-outline {
+      min-height: 42px;
+    }
+    #appointmentForm .inline-row > .toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 11px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    #appointmentForm .inline-row > .toggle input[type="checkbox"] { width: 16px; height: 16px; margin: 0; }
+    #appointmentForm .inline-row > .btn,
+    #appointmentForm .inline-row > .btn-outline {
+      padding: 9px 12px !important;
+      border-radius: 10px;
+    }
+    #appointmentForm .field > small { min-height: 15px; }
+    #appointmentForm .field.full-width[style*="background"] {
+      padding: 18px !important;
+      border-radius: 14px !important;
+    }
+    #appointmentForm .field.full-width[style*="background"] > div[style*="grid-template-columns"] {
+      gap: 14px 14px !important;
+    }
+    #appointmentForm .field.full-width[style*="background"] h4 {
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    #appointmentForm .actions {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+    #appointmentForm .actions .btn { min-height: 40px; border-radius: 10px; }
+    #appointmentForm .actions .btn-primary { box-shadow: 0 5px 12px rgba(79,70,229,.2); }
+    body.dark-mode #appointmentForm > .field > label:not(.toggle),
+    body.dark-mode #appointmentForm .field > label:not(.toggle) { color: #e2e8f0; }
+    body.dark-mode #appointmentForm input:not([type="checkbox"]),
+    body.dark-mode #appointmentForm select,
+    body.dark-mode #appointmentForm textarea { background: #0f172a; color: #f8fafc; border-color: #475569; }
+    body.dark-mode #appointmentForm input:focus,
+    body.dark-mode #appointmentForm select:focus,
+    body.dark-mode #appointmentForm textarea:focus { background: #0f172a; border-color: #818cf8; }
+    body.dark-mode #appointmentForm .actions { background: #0f172a; border-color: #334155; }
+    body.dark-mode #appointmentForm .field.full-width[style*="background"] h4 { border-color: #334155; }
+    @media (max-width: 600px) {
+      #appointmentForm .inline-row { flex-wrap: wrap; }
+      #appointmentForm .inline-row > input,
+      #appointmentForm .inline-row > select { flex: 1 1 100%; }
+      #appointmentForm .inline-row > .toggle,
+      #appointmentForm .inline-row > .btn,
+      #appointmentForm .inline-row > .btn-outline { flex: 1 1 auto; }
+      #appointmentForm .actions { gap: 8px; }
+      #appointmentForm .actions .btn { flex: 1 1 100%; justify-content: center; }
+    }
+
+    /* --- Entry Document Preview --- */
+    .entry-notes-preview-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(340px, .92fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .entry-notes-stack { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    .handover-notes-card {
+      padding: 14px !important;
+      border: 1px dashed #cbd5e1 !important;
+      border-radius: 12px !important;
+      background: #f8fafc;
+    }
+    .handover-note-input { display: flex; gap: 8px; align-items: stretch; }
+    .handover-note-input input { flex: 1 1 auto; }
+    .handover-note-input button { flex: 0 0 auto; white-space: nowrap; }
+    .document-preview-panel {
+      min-width: 0;
+      min-height: 285px;
+      padding: 14px;
+      border: 1px solid #c7d2fe;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #f8faff 0%, #eef2ff 100%);
+      box-shadow: 0 8px 22px rgba(79,70,229,.08);
+      position: sticky;
+      top: 12px;
+    }
+    .document-preview-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .document-preview-title { color: #3730a3; font-size: 13px; font-weight: 850; }
+    .document-preview-header small { display: block; margin-top: 3px; color: #64748b; line-height: 1.35; }
+    .document-preview-status {
+      flex: 0 0 auto;
+      padding: 4px 8px;
+      border: 1px solid #c7d2fe;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #4338ca;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .document-preview-empty {
+      min-height: 214px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      border: 1px dashed #a5b4fc;
+      border-radius: 11px;
+      background: rgba(255,255,255,.68);
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.55;
+      text-align: center;
+    }
+    .document-preview-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .document-preview-card {
+      overflow: hidden;
+      border: 1px solid #dbe3ff;
+      border-radius: 11px;
+      background: #ffffff;
+      box-shadow: 0 3px 10px rgba(15,23,42,.07);
+    }
+    .document-preview-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .document-preview-card-header span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .document-preview-source { color: #64748b; font-size: 10px; font-weight: 600; white-space: nowrap; }
+    .document-preview-card img,
+    .document-preview-card iframe {
+      display: block;
+      width: 100%;
+      height: 205px;
+      border: 0;
+      object-fit: contain;
+      background: #f8fafc;
+    }
+    .document-preview-card iframe { background: #ffffff; }
+    .document-preview-card-footer { padding: 7px 9px; text-align: right; }
+    .document-preview-card-footer a {
+      color: #4338ca;
+      font-size: 10px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    .document-upload-row { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+    .document-upload-row input[type="file"] { flex: 1 1 320px; }
+    .document-upload-row .ocr-action-btn { flex: 0 0 auto; min-height: 44px; padding: 10px 16px; background: #eef2ff; color: #4f46e5; border-color: #818cf8; font-weight: 800; }
+    .existing-files-container { margin-top: 8px; }
+    .existing-files-container:empty { display: none; }
+    body.dark-mode .handover-notes-card { background: #0f172a; border-color: #475569 !important; }
+    body.dark-mode .document-preview-panel { background: linear-gradient(180deg, #172554 0%, #1e293b 100%); border-color: #6366f1; }
+    body.dark-mode .document-preview-title { color: #c7d2fe; }
+    body.dark-mode .document-preview-header small,
+    body.dark-mode .document-preview-empty { color: #cbd5e1; }
+    body.dark-mode .document-preview-empty { background: rgba(15,23,42,.55); border-color: #6366f1; }
+    body.dark-mode .document-preview-status,
+    body.dark-mode .document-preview-card { background: #0f172a; color: #e2e8f0; }
+    body.dark-mode .document-preview-card-header { border-color: #334155; color: #e2e8f0; }
+    @media (max-width: 980px) {
+      .entry-notes-preview-grid { grid-template-columns: 1fr; }
+      .document-preview-panel { position: static; }
+    }
+    @media (max-width: 600px) {
+      .document-preview-header { flex-direction: column; }
+      .document-preview-status { align-self: flex-start; }
+      .handover-note-input { flex-direction: column; }
+      .handover-note-input button { width: 100%; }
+      .document-upload-row .ocr-action-btn { flex: 1 1 100%; width: 100%; }
+    }
+    /* --- End Entry Document Preview --- */
+
+    /* --- End Entry Input Design Polish --- */
+
+    /* --- End Required Field Markers --- */
+
+    /* --- End System-wide UI Polish --- */
+
+    /* --- End Entry Form Alignment Fix --- */
+
   </style>
 </head>
 
@@ -593,7 +1324,7 @@
               <div class="panel-title"><span>📝 Customer Appointment Data</span> <span class="badge">Live Firestore Save</span></div>
               <div class="panel-desc">Invoice ထုတ်မည့် အချက်အလက်များကို ဒီနေရာမှာ စနစ်တကျ လက်ခံသိမ်းဆည်းပါတယ်။</div>
             </div>
-            <span class="chip">Entry Access Allowed</span>
+            <span class="chip">Entry Access Allowed</span><span class="required-legend"><span class="required-mark">***</span> မဖြစ်မနေဖြည့်ရန်</span>
           </div>
 
           <form id="appointmentForm">
@@ -755,39 +1486,54 @@
               </div>
             </div>
            
-            <div class="field full-width">
-  <label for="remark">မှတ်ချက် (Invoice တွင်ပေါ်မည်)</label>
-  <textarea id="remark" placeholder="Customer အတွက် Invoice ပေါ်တွင် ပြသမည်..."></textarea>
-</div>
+            <div class="entry-notes-preview-grid full-width">
+              <div class="entry-notes-stack">
+                <div class="field">
+                  <label for="remark">မှတ်ချက် (Invoice တွင်ပေါ်မည်)</label>
+                  <textarea id="remark" placeholder="Customer အတွက် Invoice ပေါ်တွင် ပြသမည်..."></textarea>
+                </div>
 
-<div class="field full-width">
-  <label for="internalRemark">Internal Note (အတွင်းသုံး မှတ်ချက်)</label>
-  <textarea id="internalRemark" placeholder="Admin/Staff များအတွက်သာ၊ Invoice တွင် မပေါ်ပါ..."></textarea>
-</div>
+                <div class="field">
+                  <label for="internalRemark">Internal Note (အတွင်းသုံး မှတ်ချက်)</label>
+                  <textarea id="internalRemark" placeholder="Admin/Staff များအတွက်သာ၊ Invoice တွင် မပေါ်ပါ..."></textarea>
+                </div>
 
-<div class="field full-width" style="background:#f8fafc; padding:12px 14px; border-radius:10px; border:1px dashed #cbd5e1;">
-  <label style="margin-bottom:8px;">🗒️ Handover Notes Log (ဝန်ထမ်းချင်း လက်ဆင့်ကမ်း မှတ်ချက်များ)</label>
-  <div id="notesLogList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px; max-height:180px; overflow-y:auto;">
-    <small style="color:var(--muted);">မှတ်ချက်မရှိသေးပါ</small>
-  </div>
-  <div style="display:flex; gap:6px;">
-    <input type="text" id="newNoteText" placeholder="Note အသစ်ရေးပါ..." style="flex:1;" />
-    <button type="button" class="btn btn-outline" id="btnAddNote" style="white-space:nowrap;">➕ Add Note</button>
-  </div>
-  <small>Save/Update မလုပ်ရသေးလည်း Note ချက်ချင်း သိမ်းပေးပါမယ် (Record ရှိပြီးသားဆိုရင်)</small>
-</div>
-            
+                <div class="field handover-notes-card">
+                  <label style="margin-bottom:8px;">🗒️ Handover Notes Log (ဝန်ထမ်းချင်း လက်ဆင့်ကမ်း မှတ်ချက်များ)</label>
+                  <div id="notesLogList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px; max-height:180px; overflow-y:auto;">
+                    <small style="color:var(--muted);">မှတ်ချက်မရှိသေးပါ</small>
+                  </div>
+                  <div class="handover-note-input">
+                    <input type="text" id="newNoteText" placeholder="Note အသစ်ရေးပါ..." />
+                    <button type="button" class="btn btn-outline" id="btnAddNote">➕ Add Note</button>
+                  </div>
+                  <small>Save/Update မလုပ်ရသေးလည်း Note ချက်ချင်း သိမ်းပေးပါမယ် (Record ရှိပြီးသားဆိုရင်)</small>
+                </div>
+              </div>
+
+              <div class="document-preview-panel" id="documentPreviewPanel">
+                <div class="document-preview-header">
+                  <div>
+                    <div class="document-preview-title">🪪 Passport / Document Preview</div>
+                    <small>OCR ဖတ်ထားသောပုံနှင့် မူရင်းစာရွက်ကို စစ်ဆေးရန်</small>
+                  </div>
+                  <span id="documentPreviewStatus" class="document-preview-status">ပုံမရှိသေးပါ</span>
+                </div>
+                <div id="documentPreviewEmpty" class="document-preview-empty">Customer Documents မှ ပုံ/PDF ရွေးပြီး OCR လုပ်ပါ။<br />အဟောင်း record ဖြစ်လျှင် ယခင်တင်ထားသော document ကို ပြပါမည်။</div>
+                <div id="documentPreviewGrid" class="document-preview-grid"></div>
+              </div>
+            </div>
+
             <div class="field full-width">
               <label for="customerFiles">Customer Documents (Photos / PDFs)</label>
-              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <input type="file" id="customerFiles" multiple accept="image/*,application/pdf" style="padding: 10px; background: #fff; border-radius: 9px; border: 1px solid #d4d4d8; flex:1;" />
-                <button type="button" id="btnRunOCR" class="btn btn-outline" style="padding: 10px 16px; background:#eef2ff; color:#4f46e5; border-color:#818cf8; font-weight:bold;">
+              <div class="document-upload-row">
+                <input type="file" id="customerFiles" multiple accept="image/*,application/pdf" />
+                <button type="button" id="btnRunOCR" class="btn btn-outline ocr-action-btn">
                   🔍 OCR ဖြင့် Auto-fill ဖြည့်မည်
                 </button>
               </div>
-              <small>ပုံများ သို့မဟုတ် PDF ဖိုင်များကို တစ်ပြိုင်နက်တည်း အများကြီး ရွေးချယ်တင်နိုင်ပါသည်။ (Google Drive နှင့် Telegram သို့ ရောက်သွားပါမည်)</small>
-              
-              <div id="existingFilesContainer" style="margin-top: 8px;"></div>
+              <small>ပုံများ သို့မဟုတ် PDF ဖိုင်များကို တစ်ပြိုင်နက်တည်း အများကြီး ရွေးချယ်တင်နိုင်ပါသည်။ PDF ကို စာမျက်နှာပုံအဖြစ် ပြောင်းပြီး OCR ဖတ်ပါမည်။ (Google Drive နှင့် Telegram သို့ ရောက်သွားပါမည်)</small>
+              <div id="existingFilesContainer" class="existing-files-container" aria-hidden="true"></div>
             </div>
 
             <div class="actions">
@@ -1026,128 +1772,188 @@
       </section>
 
       <section id="tab-settings" class="tab-panel system-manage-only" style="display:none;">
-        <div class="panel-card">
-          <div class="panel-header">
+        <div class="panel-card settings-panel-card">
+          <div class="panel-header settings-main-header">
             <div>
-              <div class="panel-title"><span>⚙️ Global Settings</span> <span class="badge">Dropdown + Pricing + Telegram + Drive + Sheets</span></div>
-              <div class="panel-desc">System အတွက် လိုအပ်သော ဆက်တင်အားလုံးကို ဤနေရာမှ ပြင်ဆင်နိုင်ပါသည်။</div>
+              <div class="panel-title"><span>⚙️ Global Settings</span> <span class="badge">Admin Only</span></div>
+              <div class="panel-desc">လိုအပ်သော Setting အမျိုးအစားကို ရွေးပြီး တစ်ပိုင်းချင်းစီ ပြင်ဆင်နိုင်ပါသည်။</div>
             </div>
             <button class="btn btn-secondary" id="saveSettings">Save Settings</button>
           </div>
 
-          <div class="settings-grid">
-            
-            <div class="settings-block full-width" style="grid-column: 1 / -1; border-color: var(--primary);">
-              <h4 style="color: var(--primary);">Google Drive Integration</h4>
-              <div class="field" style="margin-bottom:8px;">
-                <label>Google Apps Script Web App URL</label>
-                <input type="text" id="settingGasUrl" placeholder="https://script.google.com/macros/s/..../exec" style="width: 100%; font-family: monospace; font-size: 13px;" />
-                <small>မှတ်ချက် - Code ထဲတွင် သွားပြင်ရန်မလိုတော့ဘဲ ဤနေရာတွင်သာ တစ်ကြိမ်ထည့်ပြီး Save လုပ်ထားပါ။</small>
-              </div>
-
-              <h4 style="color: var(--success); margin-top: 12px;">Google Sheets Auto-Sync</h4>
-              <div class="field" style="margin-bottom:8px;">
-                <label>Sheets Web App URL</label>
-                <input type="text" id="settingSheetUrl" placeholder="https://script.google.com/macros/s/..../exec" style="width: 100%; font-family: monospace; font-size: 13px;" />
-                <small>Auto-Sync အတွက် Google Sheets မှ ရသော Web App URL ကို ထည့်ပါ။</small>
-              </div>
-
-              <h4 style="color: var(--accent); margin-top: 12px;">Google Cloud AI (OCR System)</h4>
-              <div class="field" style="margin-bottom:8px;">
-                <label>OCR Web App URL</label>
-                <input type="text" id="settingOcrUrl" placeholder="https://script.google.com/macros/s/..../exec" style="width: 100%; font-family: monospace; font-size: 13px;" />
-                <small>Passport / Work Permit မှ စာများကို Auto ဖတ်ရန် Google OCR URL ထည့်ပါ။</small>
-              </div>
-            </div>
-
-            <div class="settings-block" style="grid-column: 1 / -1;">
-              <h4>Service Package List (Optional)</h4>
-              <small>ဥပမာ: TM30 = BKK, REG (ခွဲရေးချင်ရင်သုံးပါ)</small>
-              <textarea id="packagesSetting" rows="5" placeholder="Service Name = Pkg1, Pkg2" style="width: 100%; font-size:14px; padding:10px;"></textarea>
-            </div>
-
-            <div class="settings-block" style="grid-column: 1 / -1;">
-              <h4>Service Pricing (Cost / Default Price)</h4>
-              <div id="servicePricingContainer" style="max-height: 100px; overflow-y: auto; overflow-x: auto; padding-right: 6px;"></div>
-            </div>
-
-            <div class="settings-block">
-              <h4>Customer Status List</h4>
-              <textarea id="statusesSetting" rows="6"></textarea>
-            </div>
-            <div class="settings-block">
-              <h4>Customer Channel List</h4>
-              <textarea id="channelsSetting" rows="6"></textarea>
-            </div>
-            <div class="settings-block">
-              <h4>Service Type List</h4>
-              <textarea id="servicesSetting" rows="6"></textarea>
-            </div>
-            <div class="settings-block">
-              <h4>Payment Type List</h4>
-              <textarea id="paymentsSetting" rows="6"></textarea>
-            </div>
-            <div class="settings-block">
-              <h4>Service Location List</h4>
-              <textarea id="locationsSetting" rows="6"></textarea>
-            </div>
-            <div class="settings-block">
-              <h4>👤 Staff List (Task Assignment)</h4>
-              <textarea id="staffSetting" rows="6" placeholder="One name per line, e.g.\nAye\nSu\nMin"></textarea>
-              <small>Case ကို ဘယ်သူလုပ်ရမယ်ဆိုတာ Assign လုပ်ရန်အတွက် ဝန်ထမ်းစာရင်း</small>
-            </div>
-            
-            <div class="settings-block">
-              <h4>💳 Payment & QR Settings</h4>
-              <div class="field" style="margin-bottom:8px;">
-                <label>PromptPay IDs (THB အတွက်)</label>
-                <textarea id="settingPromptPay" rows="3" placeholder="PP (Bank 1) = 0812345678\nPP (Bank 2) = 1XXXXXXXXXXXX"></textarea>
-                <small>Pay နာမည် = ဖုန်းနံပါတ် ပုံစံဖြင့် တစ်ကြောင်းစီရေးပါ။</small>
-              </div>
-              <div class="field">
-                <label>Myanmar Pay QR Links (MMK အတွက်)</label>
-                <textarea id="settingMmQRs" rows="4" placeholder="KPay = https://drive.google.com/...\nWave Pay = https://drive.google.com/..."></textarea>
-                <small>Pay နာမည် = ပုံ Link ပုံစံဖြင့် တစ်ကြောင်းစီရေးပါ။</small>
-              </div>
-            </div>
-
-            <div class="settings-block">
-              <h4>Telegram Bot Notify (Topics)</h4>
-              <small>(optional)</small>
-              <div style="max-height: 250px; overflow-y: auto; overflow-x: hidden; padding-right: 6px; margin-top: 8px;">
-                <div class="field" style="margin-bottom:8px;">
-                  <label>Bot Token</label>
-                  <input type="text" id="tgToken" placeholder="123456789:ABC-YourBotToken" />
-                </div>
-                <div class="field" style="margin-bottom:8px;">
-                  <label>Main Group Chat ID</label>
-                  <input type="text" id="tgMainChatId" placeholder="-100xxxxxxxxxx" />
-                </div>
-                <div class="field" style="margin-bottom:8px;">
-                  <label>Appointment Topic ID (အသစ်သွင်းလျှင်)</label>
-                  <input type="number" id="tgThreadAppt" placeholder="e.g. 2" />
-                </div>
-                <div class="field" style="margin-bottom:8px;">
-                  <label>Completed Topic ID (Status Completed ဖြစ်လျှင် ပို့ရန်)</label>
-                  <input type="number" id="tgThreadCompleted" placeholder="e.g. 99" />
-                </div>
-                <div class="field" style="margin-bottom:8px;">
-                  <label>Agent Topic ID</label>
-                  <input type="number" id="tgThreadAgent" placeholder="e.g. 45" />
-                </div>
-                <div class="field" style="margin-bottom:8px;">
-                  <label>Customer Topic ID</label>
-                  <input type="number" id="tgThreadCustomer" placeholder="e.g. 89" />
-                </div>
-                <div class="field" style="margin-bottom:8px;">
-                  <label>Document (ပုံ/PDF) ပို့ရန် Topic ID</label>
-                  <input type="number" id="tgThreadDoc" placeholder="e.g. 100" />
-                </div>
-              </div>
-            </div>
-
+          <div class="settings-tabs" role="tablist" aria-label="Settings categories">
+            <button type="button" class="settings-tab active" role="tab" aria-selected="true" data-settings-tab="basic">
+              <span>📋</span><span>Basic Lists</span>
+            </button>
+            <button type="button" class="settings-tab" role="tab" aria-selected="false" data-settings-tab="pricing">
+              <span>💵</span><span>Pricing</span>
+            </button>
+            <button type="button" class="settings-tab" role="tab" aria-selected="false" data-settings-tab="payment">
+              <span>💳</span><span>Payment &amp; Invoice</span>
+            </button>
+            <button type="button" class="settings-tab" role="tab" aria-selected="false" data-settings-tab="integrations">
+              <span>🔗</span><span>Integrations</span>
+            </button>
           </div>
-          
+
+          <div class="settings-tab-panels">
+            <!-- 1. Basic Lists -->
+            <div id="settings-panel-basic" class="settings-tab-panel active" role="tabpanel">
+              <div class="settings-section-intro">
+                <strong>📋 Basic Lists</strong>
+                <span>Dropdown ထဲမှာ ရွေးချယ်စရာအဖြစ် ပြမည့်စာရင်းများကို တစ်ကြောင်းစီရေးပါ။</span>
+              </div>
+              <div class="settings-list-grid">
+                <div class="settings-block">
+                  <h4>Customer Status List</h4>
+                  <textarea id="statusesSetting" rows="5" placeholder="Pending\nProcessing\nOngoing"></textarea>
+                  <small>Customer case အခြေအနေများ</small>
+                </div>
+                <div class="settings-block">
+                  <h4>Customer Channel List</h4>
+                  <textarea id="channelsSetting" rows="5" placeholder="Facebook Page\nMessenger\nTelegram"></textarea>
+                  <small>ဖောက်သည်ရောက်လာသော Channel များ</small>
+                </div>
+                <div class="settings-block">
+                  <h4>Service Type List</h4>
+                  <textarea id="servicesSetting" rows="5" placeholder="Visa Service\nTM30 / 90 Days Report"></textarea>
+                  <small>ဝန်ဆောင်မှုအမျိုးအစားများ</small>
+                </div>
+                <div class="settings-block">
+                  <h4>Payment Type List</h4>
+                  <textarea id="paymentsSetting" rows="5" placeholder="Cash\nBank Transfer\nQR Payment"></textarea>
+                  <small>ငွေပေးချေမှုအမျိုးအစားများ</small>
+                </div>
+                <div class="settings-block">
+                  <h4>Service Location List</h4>
+                  <textarea id="locationsSetting" rows="5" placeholder="Bangkok Office\nChiang Mai Office"></textarea>
+                  <small>ဝန်ဆောင်မှုပေးသည့်နေရာများ</small>
+                </div>
+                <div class="settings-block">
+                  <h4>👤 Staff List</h4>
+                  <textarea id="staffSetting" rows="5" placeholder="Aye\nSu\nMin"></textarea>
+                  <small>Case Assign လုပ်နိုင်မည့် ဝန်ထမ်းများကို တစ်ကြောင်းစီရေးပါ။</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Pricing -->
+            <div id="settings-panel-pricing" class="settings-tab-panel" role="tabpanel" hidden>
+              <div class="settings-section-intro">
+                <strong>💵 Pricing</strong>
+                <span>Package နှင့် ဝန်ဆောင်မှုတစ်ခုချင်းစီအတွက် Cost / Default Price ကို သတ်မှတ်ပါ။</span>
+              </div>
+              <div class="settings-block settings-block-wide">
+                <h4>Service Package List <span class="settings-optional">Optional</span></h4>
+                <small>ဥပမာ: <code>TM30 = BKK, REG</code> — Service တစ်ခုလျှင် Package များကို comma ဖြင့် ခွဲရေးပါ။</small>
+                <textarea id="packagesSetting" rows="4" placeholder="Service Name = Package 1, Package 2"></textarea>
+              </div>
+              <div class="settings-block settings-block-wide">
+                <div class="settings-block-heading-row">
+                  <div>
+                    <h4>Service Pricing</h4>
+                    <small>ဝန်ဆောင်မှုအလိုက် အရင်းနှင့် ပုံသေရောင်းဈေး</small>
+                  </div>
+                  <span class="settings-note">Cost / Default Price</span>
+                </div>
+                <div id="servicePricingContainer" class="service-pricing-editor"></div>
+              </div>
+            </div>
+
+            <!-- 3. Payment & Invoice -->
+            <div id="settings-panel-payment" class="settings-tab-panel" role="tabpanel" hidden>
+              <div class="settings-section-intro">
+                <strong>💳 Payment &amp; Invoice</strong>
+                <span>Invoice ပေါ်တွင် ပြမည့် QR နှင့် ငွေပေးချေမှုဆိုင်ရာ အချက်အလက်များကို သတ်မှတ်ပါ။</span>
+              </div>
+              <div class="settings-two-column-grid">
+                <div class="settings-block">
+                  <h4>PromptPay IDs <span class="settings-optional">THB</span></h4>
+                  <textarea id="settingPromptPay" rows="5" placeholder="PP (Bank 1) = 0812345678\nPP (Bank 2) = 1XXXXXXXXXXXX"></textarea>
+                  <small>Pay နာမည် = ဖုန်းနံပါတ် ပုံစံဖြင့် တစ်ကြောင်းစီရေးပါ။</small>
+                </div>
+                <div class="settings-block">
+                  <h4>Myanmar Pay QR Links <span class="settings-optional">MMK</span></h4>
+                  <textarea id="settingMmQRs" rows="5" placeholder="KPay = https://drive.google.com/...\nWave Pay = https://drive.google.com/..."></textarea>
+                  <small>Pay နာမည် = QR ပုံ Link ပုံစံဖြင့် တစ်ကြောင်းစီရေးပါ။</small>
+                </div>
+              </div>
+              <div class="settings-block settings-info-block">
+                <h4>💡 ငွေပေးချေမှု Setting အသုံးပြုပုံ</h4>
+                <p>Entry form တွင် THB သို့မဟုတ် MMK ကို ရွေးပါ။ Invoice တွင် QR ပြရန် Invoice tab ရှိ QR option ကို အသုံးပြုနိုင်ပါသည်။</p>
+              </div>
+            </div>
+
+            <!-- 4. Integrations -->
+            <div id="settings-panel-integrations" class="settings-tab-panel" role="tabpanel" hidden>
+              <div class="settings-section-intro">
+                <strong>🔗 Integrations</strong>
+                <span>Google, OCR နှင့် Telegram ချိတ်ဆက်မှုများကို ဤနေရာမှာသာ ထည့်ပါ။</span>
+              </div>
+
+              <div class="settings-block settings-block-wide integration-block">
+                <h4>Google Services</h4>
+                <div class="settings-field-grid">
+                  <div class="field">
+                    <label for="settingGasUrl">Google Drive Web App URL</label>
+                    <input type="text" id="settingGasUrl" placeholder="https://script.google.com/macros/s/..../exec" />
+                    <small>Document ပုံ/PDF များကို Google Drive သို့ သိမ်းရန်</small>
+                  </div>
+                  <div class="field">
+                    <label for="settingSheetUrl">Google Sheets Web App URL</label>
+                    <input type="text" id="settingSheetUrl" placeholder="https://script.google.com/macros/s/..../exec" />
+                    <small>Appointment data Auto-Sync အတွက်</small>
+                  </div>
+                  <div class="field">
+                    <label for="settingOcrUrl">OCR Web App URL</label>
+                    <input type="text" id="settingOcrUrl" placeholder="https://script.google.com/macros/s/..../exec" />
+                    <small>Passport / Work Permit OCR ဖတ်ရန်</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="settings-block settings-block-wide integration-block">
+                <div class="settings-block-heading-row">
+                  <div>
+                    <h4>Telegram Bot Notify</h4>
+                    <small>Appointment, document နှင့် status alert များအတွက်</small>
+                  </div>
+                  <span class="settings-optional">Optional</span>
+                </div>
+                <div class="settings-field-grid telegram-settings-grid">
+                  <div class="field">
+                    <label for="tgToken">Bot Token</label>
+                    <input type="text" id="tgToken" placeholder="123456789:ABC-YourBotToken" />
+                  </div>
+                  <div class="field">
+                    <label for="tgMainChatId">Main Group Chat ID</label>
+                    <input type="text" id="tgMainChatId" placeholder="-100xxxxxxxxxx" />
+                  </div>
+                  <div class="field">
+                    <label for="tgThreadAppt">Appointment Topic ID</label>
+                    <input type="number" id="tgThreadAppt" placeholder="e.g. 2" />
+                  </div>
+                  <div class="field">
+                    <label for="tgThreadCompleted">Completed Topic ID</label>
+                    <input type="number" id="tgThreadCompleted" placeholder="e.g. 99" />
+                  </div>
+                  <div class="field">
+                    <label for="tgThreadAgent">Agent Topic ID</label>
+                    <input type="number" id="tgThreadAgent" placeholder="e.g. 45" />
+                  </div>
+                  <div class="field">
+                    <label for="tgThreadCustomer">Customer Topic ID</label>
+                    <input type="number" id="tgThreadCustomer" placeholder="e.g. 89" />
+                  </div>
+                  <div class="field">
+                    <label for="tgThreadDoc">Document Topic ID</label>
+                    <input type="number" id="tgThreadDoc" placeholder="e.g. 100" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div id="settingsMessage" class="message"></div>
         </div>
       </section>
@@ -1519,6 +2325,43 @@
         $("tab-" + tab).classList.add("active");
       });
     });
+
+    function addRequiredFieldMarkers() {
+      const form = document.getElementById("appointmentForm");
+      if (!form) return;
+      form.querySelectorAll("input[required], select[required], textarea[required]").forEach(field => {
+        if (!field.id) return;
+        const label = form.querySelector(`label[for="${field.id}"]`);
+        if (!label || label.querySelector(".required-mark")) return;
+        const mark = document.createElement("span");
+        mark.className = "required-mark";
+        mark.setAttribute("aria-label", "မဖြစ်မနေဖြည့်ရန်");
+        mark.textContent = "***";
+        label.appendChild(mark);
+      });
+    }
+    addRequiredFieldMarkers();
+
+    function initSettingsTabs() {
+      const buttons = document.querySelectorAll(".settings-tab");
+      const panels = document.querySelectorAll(".settings-tab-panel");
+      buttons.forEach(button => {
+        button.addEventListener("click", () => {
+          const target = button.dataset.settingsTab;
+          buttons.forEach(item => {
+            const isActive = item === button;
+            item.classList.toggle("active", isActive);
+            item.setAttribute("aria-selected", isActive ? "true" : "false");
+          });
+          panels.forEach(panel => {
+            const isActive = panel.id === `settings-panel-${target}`;
+            panel.classList.toggle("active", isActive);
+            panel.hidden = !isActive;
+          });
+        });
+      });
+    }
+    initSettingsTabs();
 
     async function getBase64FromUrl(url) {
       return new Promise((resolve) => {
@@ -1944,6 +2787,351 @@
       if (box && !box.contains(e.target) && e.target.id !== "phone") { box.style.display = "none"; }
     });
 
+
+    // --- Entry Auto-fill OCR accuracy helpers ---
+    function entryOcrRawText(result) {
+      return String(result?.text || result?.fullText || result?.fullTextAnnotation?.text || "");
+    }
+
+    function entryOcrLine(line) {
+      return String(line || "")
+        .replace(/[«‹([{]/g, "<")
+        .replace(/[»›)\\]}]/g, ">")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toUpperCase();
+    }
+
+    function entryMrzLine(line) {
+      return entryOcrLine(line).replace(/\s+/g, "");
+    }
+
+    function entryMrzCharValue(ch) {
+      if (ch === "<") return 0;
+      if (/^[0-9]$/.test(ch)) return Number(ch);
+      if (/^[A-Z]$/.test(ch)) return ch.charCodeAt(0) - 55;
+      return 0;
+    }
+
+    function entryMrzCheckDigit(value, checkDigit) {
+      if (!value || !/^[0-9]$/.test(String(checkDigit || ""))) return false;
+      const weights = [7, 3, 1];
+      let total = 0;
+      for (let i = 0; i < value.length; i++) {
+        total += entryMrzCharValue(value[i]) * weights[i % 3];
+      }
+      return (total % 10) === Number(checkDigit);
+    }
+
+    function entryValidMrzDate(value) {
+      if (!/^\d{6}$/.test(value || "")) return false;
+      const month = Number(value.slice(2, 4));
+      const day = Number(value.slice(4, 6));
+      return month >= 1 && month <= 12 && day >= 1 && day <= 31;
+    }
+
+    function entryMrzDate(value, type) {
+      if (!entryValidMrzDate(value)) return "";
+      const yy = Number(value.slice(0, 2));
+      const mm = value.slice(2, 4);
+      const dd = value.slice(4, 6);
+      const currentYY = Number(String(new Date().getFullYear()).slice(-2));
+      const year = type === "dob"
+        ? (yy > currentYY ? 1900 + yy : 2000 + yy)
+        : 2000 + yy;
+      return `${year}-${mm}-${dd}`;
+    }
+
+    function entryFindMrz(lines) {
+      for (let i = 0; i < lines.length - 1; i++) {
+        const line1 = entryMrzLine(lines[i]);
+        if (!/^P[A-Z<]/.test(line1) || !line1.includes("<<") || line1.length < 30) continue;
+        for (let j = i + 1; j < Math.min(lines.length, i + 3); j++) {
+          const line2 = entryMrzLine(lines[j]);
+          if (line2.length >= 28 && /\d{6}/.test(line2) && line2.includes("<")) {
+            return { line1, line2 };
+          }
+        }
+      }
+      return null;
+    }
+
+    function entryParseMrz(mrz) {
+      if (!mrz) return null;
+      const line1 = mrz.line1;
+      const line2 = mrz.line2;
+      const nameZone = line1.length >= 6 ? line1.slice(5) : "";
+      const nameParts = nameZone.split("<<");
+      const lastName = (nameParts[0] || "").replace(/</g, " ").replace(/\s+/g, " ").trim();
+      const firstName = (nameParts[1] || "").replace(/</g, " ").replace(/\s+/g, " ").trim();
+      const name = `${firstName} ${lastName}`.trim();
+      const docRaw = line2.slice(0, 9);
+      const docNumber = docRaw.replace(/</g, "").trim();
+      const docCheck = line2[9] || "";
+      const dobRaw = line2.slice(13, 19);
+      const dobCheck = line2[19] || "";
+      const expiryRaw = line2.slice(21, 27);
+      const expiryCheck = line2[27] || "";
+      const docValid = entryMrzCheckDigit(docRaw, docCheck);
+      const dobValid = entryMrzCheckDigit(dobRaw, dobCheck) && entryValidMrzDate(dobRaw);
+      const expiryValid = entryMrzCheckDigit(expiryRaw, expiryCheck) && entryValidMrzDate(expiryRaw);
+      const enoughChecks = Boolean(docCheck && dobCheck && expiryCheck);
+      const mrzValid = enoughChecks && docValid && dobValid && expiryValid;
+      return {
+        name,
+        docNumber,
+        dob: entryMrzDate(dobRaw, "dob"),
+        expiry: entryMrzDate(expiryRaw, "expiry"),
+        nationality: (line1.slice(2, 5) || "").replace(/</g, "").trim(),
+        mrzFound: true,
+        mrzValid,
+        docValid,
+        warnings: mrzValid ? [] : ["MRZ validation မအောင်မြင်ပါ — Passport No. ကို စစ်ဆေးပါ။"]
+      };
+    }
+
+    function entryNextLabelValue(lines, index, labelRegex) {
+      const current = lines[index] || "";
+      const inline = current.match(labelRegex);
+      if (inline && inline[1]) return inline[1].trim();
+      const next = lines[index + 1] || "";
+      return next && !/^(NAME|FULL NAME|PASSPORT|DOCUMENT|ID|NO|NATIONALITY|DATE|SEX|GENDER)\b/i.test(next)
+        ? next.trim()
+        : "";
+    }
+
+    function entryCleanName(value) {
+      let name = String(value || "").replace(/\s+/g, " ").trim();
+      const months = "JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC";
+      // OCR က Name value နောက်တွင် မွေးသက္ကရာဇ်ပါ တစ်ဆက်တည်းပြန်ပေးပါက date မှစ၍ ဖြတ်သည်။
+      name = name.replace(new RegExp(`\\s+\\d{1,2}\\s+(?:${months})\\s+\\d{4}.*$`, "i"), "");
+      name = name.replace(/\s+\d{1,2}[\\/.-]\d{1,2}[\\/.-]\d{2,4}.*$/, "");
+      name = name.replace(/\s+\d{4}[\\/.-]\d{1,2}[\\/.-]\d{1,2}.*$/, "");
+      name = name.replace(/\s+(?:DATE\s+OF\s+BIRTH|DOB|DATE|SEX|GENDER|PASSPORT|DOCUMENT|ID|NO)\b.*$/i, "");
+      return name.replace(/[,:;|]+$/g, "").trim();
+    }
+
+    function entryParseLabeledFields(lines, rawText) {
+      const result = { name: "", docNumber: "", warnings: [] };
+      const joined = lines.join(" ");
+      const nameLabel = /\b(?:FULL\s+NAME|NAME)\s*[:#-]?\s*(.+?)(?=\s+(?:NATIONALITY|DATE|SEX|GENDER|PASSPORT|DOCUMENT|ID|NO|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i;
+      const titleName = /\b(?:MR|MS|MRS|MISS)\.?\s+([A-Z][A-Z\s]*?)(?=\s+(?:PASSPORT|DOCUMENT|NO|NATIONALITY|DATE|SEX|GENDER|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i;
+      const nameMatch = joined.match(nameLabel) || joined.match(titleName);
+      if (nameMatch && nameMatch[1]) result.name = entryCleanName(nameMatch[1]);
+
+      const docLabel = /\b(?:PASSPORT\s*(?:NO|NUMBER)|DOCUMENT\s*(?:NO|NUMBER)|ID\s*(?:NO|NUMBER))\s*[:#-]?\s*([A-Z0-9<]{6,16})\b/i;
+      const docMatch = joined.match(docLabel);
+      if (docMatch && docMatch[1]) result.docNumber = docMatch[1].replace(/</g, "").trim();
+      if (!result.docNumber) {
+        const mmPassport = joined.match(/\b([A-Z]{2}[0-9]{6})\b/i);
+        const thaiId = joined.match(/\b(\d{1}[\s-]?\d{4}[\s-]?\d{5}[\s-]?\d{2}[\s-]?\d{1})\b/);
+        if (mmPassport) result.docNumber = mmPassport[1].toUpperCase();
+        else if (thaiId) result.docNumber = thaiId[1].replace(/[\s-]/g, "");
+      }
+      return result;
+    }
+
+    function parseEntryOcrText(result) {
+      const rawText = entryOcrRawText(result);
+      const lines = rawText.split(/\r?\n/).map(entryOcrLine).filter(Boolean);
+      const mrz = entryParseMrz(entryFindMrz(lines));
+      const labeled = entryParseLabeledFields(lines, rawText);
+      const parsed = {
+        name: mrz?.name || labeled.name || "",
+        // MRZ validation မအောင်မြင်ပါက MRZ မှရသော document number ကို မဖြည့်ပါ။
+        // Label-based number ရှိမှသာ fallback အဖြစ် အသုံးပြုမည်။
+        docNumber: (mrz && !mrz.mrzValid) ? (labeled.docNumber || "") : (mrz?.docNumber || labeled.docNumber || ""),
+        dob: (mrz && mrz.mrzValid) ? (mrz.dob || "") : "",
+        expiry: (mrz && mrz.mrzValid) ? (mrz.expiry || "") : "",
+        mrzFound: Boolean(mrz),
+        mrzValid: Boolean(mrz?.mrzValid),
+        warnings: [...(mrz?.warnings || []), ...(labeled.warnings || [])]
+      };
+      parsed.shouldRetry = !parsed.docNumber || !parsed.name || (parsed.mrzFound && !parsed.mrzValid);
+      parsed.score = (parsed.name ? 2 : 0) + (parsed.docNumber ? 3 : 0) + (parsed.mrzValid ? 4 : 0);
+      parsed.warnings = [...new Set(parsed.warnings)];
+      return parsed;
+    }
+
+    async function requestEntryOcrPayload(payload) {
+      const response = await fetch(telegramSettings.ocrUrl, {
+        method: "POST",
+        body: JSON.stringify({ base64: payload.base64, mimeType: payload.mimeType })
+      });
+      if (!response.ok) throw new Error(`OCR server HTTP ${response.status}`);
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error || "OCR server က အောင်မြင်မှု မပြန်ပါ။");
+      return result;
+    }
+
+    async function enhanceEntryOcrPayload(payload) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxWidth = 2200;
+            const maxHeight = 2200;
+            let width = img.width;
+            let height = img.height;
+            if (width > height && width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+            if (height >= width && height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(width));
+            canvas.height = Math.max(1, Math.round(height));
+            const ctx = canvas.getContext("2d", { willReadFrequently: true });
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const px = imageData.data;
+            for (let i = 0; i < px.length; i += 4) {
+              const gray = (0.299 * px[i]) + (0.587 * px[i + 1]) + (0.114 * px[i + 2]);
+              const contrast = Math.max(0, Math.min(255, ((gray - 128) * 1.18) + 128));
+              px[i] = px[i + 1] = px[i + 2] = contrast;
+            }
+            ctx.putImageData(imageData, 0, 0);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+            resolve({
+              base64: dataUrl.split(",")[1],
+              mimeType: "image/jpeg",
+              filename: `${payload.filename || "ocr"}.enhanced.jpg`
+            });
+          } catch (error) { reject(error); }
+        };
+        img.onerror = reject;
+        img.src = `data:${payload.mimeType || "image/jpeg"};base64,${payload.base64}`;
+      });
+    }
+
+
+    // --- Entry document preview helpers ---
+    let documentPreviewObjectUrls = [];
+
+    function clearDocumentPreview() {
+      documentPreviewObjectUrls.forEach(url => { try { URL.revokeObjectURL(url); } catch (e) {} });
+      documentPreviewObjectUrls = [];
+      const grid = $("documentPreviewGrid");
+      const empty = $("documentPreviewEmpty");
+      const status = $("documentPreviewStatus");
+      if (grid) grid.innerHTML = "";
+      if (empty) empty.style.display = "flex";
+      if (status) status.textContent = "ပုံမရှိသေးပါ";
+    }
+
+    function drivePreviewUrl(link) {
+      const value = String(link || "");
+      return value.replace(/\/view(?:\?.*)?$/, "/preview").replace(/\/view.*/, "/preview");
+    }
+
+    function appendDocumentPreviewCard({ src, name, source, isPdf, openUrl }) {
+      const grid = $("documentPreviewGrid");
+      const empty = $("documentPreviewEmpty");
+      if (!grid || !src) return;
+      if (empty) empty.style.display = "none";
+
+      const card = document.createElement("div");
+      card.className = "document-preview-card";
+      const header = document.createElement("div");
+      header.className = "document-preview-card-header";
+      const title = document.createElement("span");
+      title.textContent = name || "Document";
+      const sourceText = document.createElement("span");
+      sourceText.className = "document-preview-source";
+      sourceText.textContent = source || "Selected";
+      header.append(title, sourceText);
+      card.appendChild(header);
+
+      if (isPdf) {
+        const frame = document.createElement("iframe");
+        frame.src = src;
+        frame.title = name || "PDF document preview";
+        frame.loading = "lazy";
+        card.appendChild(frame);
+      } else {
+        const image = document.createElement("img");
+        image.src = src;
+        image.alt = name || "Passport/document preview";
+        image.loading = "lazy";
+        card.appendChild(image);
+      }
+
+      const footer = document.createElement("div");
+      footer.className = "document-preview-card-footer";
+      const open = document.createElement("a");
+      open.href = openUrl || src;
+      open.target = "_blank";
+      open.rel = "noopener noreferrer";
+      open.textContent = "🔗 ပုံအပြည့်ဖွင့်မည်";
+      footer.appendChild(open);
+      card.appendChild(footer);
+      grid.appendChild(card);
+    }
+
+    function renderDocumentPreviews(fileList = [], savedLinks = []) {
+      clearDocumentPreview();
+      const files = Array.from(fileList || []).filter(file => file && (file.type.startsWith("image/") || file.type === "application/pdf"));
+      const links = Array.from(savedLinks || []).filter(Boolean);
+
+      // ဖိုင် ၁၀ ပုံတင်လျှင် အားလုံးမပြဘဲ ပထမရွေးထားသော document တစ်ခုသာ ပြသည်။
+      const file = files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        documentPreviewObjectUrls.push(url);
+        appendDocumentPreviewCard({
+          src: url,
+          name: file.name,
+          source: files.length > 1 ? `ရွေးထားသောဖိုင် (ပထမ ၁ ခုသာပြ)` : "ရွေးထားသောဖိုင်",
+          isPdf: file.type === "application/pdf",
+          openUrl: url
+        });
+        const status = $("documentPreviewStatus");
+        if (status) status.textContent = files.length > 1 ? `1 ဖိုင်သာပြထားသည် (${files.length} ဖိုင်ရွေးထား)` : "1 ဖိုင်";
+        return;
+      }
+
+      // Old record တွင်လည်း document တစ်ခုသာ preview ပြမည်။
+      const link = links[0];
+      if (link) {
+        appendDocumentPreviewCard({
+          src: drivePreviewUrl(link),
+          name: "Saved document 1",
+          source: links.length > 1 ? `ယခင် record (ပထမ ၁ ခုသာပြ)` : "ယခင် record",
+          isPdf: true,
+          openUrl: link
+        });
+        const status = $("documentPreviewStatus");
+        if (status) status.textContent = links.length > 1 ? `1 ဖိုင်သာပြထားသည် (${links.length} ဖိုင်ရှိ)` : "1 ဖိုင်";
+      }
+    }
+
+    function renderOcrPayloadPreview(payload, name, source = "OCR ဖတ်နေသည်") {
+      if (!payload || !payload.base64) return;
+      clearDocumentPreview();
+      const src = `data:${payload.mimeType || "image/jpeg"};base64,${payload.base64}`;
+      appendDocumentPreviewCard({
+        src,
+        name: name || payload.filename || "OCR document",
+        source,
+        isPdf: false,
+        openUrl: src
+      });
+      const status = $("documentPreviewStatus");
+      if (status) status.textContent = source;
+    }
+
+    function getExistingDocumentLinks() {
+      try {
+        return JSON.parse($("appointmentForm")?.dataset.dupLinks || "[]");
+      } catch (e) { return []; }
+    }
+
+    const customerFilesPreviewInput = $("customerFiles");
+    if (customerFilesPreviewInput) {
+      customerFilesPreviewInput.addEventListener("change", () => {
+        renderDocumentPreviews(customerFilesPreviewInput.files, getExistingDocumentLinks());
+      });
+    }
+
     // --- Google Cloud AI OCR ခလုတ်နှိပ်လျှင် ---
     const btnRunOCR = $("btnRunOCR");
     if (btnRunOCR) {
@@ -1965,69 +3153,46 @@
         btnRunOCR.disabled = true; $("saveBtn").disabled = true;
 
         try {
+          const ocrWarnings = [];
+          clearDocumentPreview();
           for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            if (!file.type.startsWith("image/")) continue;
+            if (!file.type.startsWith("image/") && file.type !== "application/pdf") continue;
 
-            msg.textContent = `🔍 ပုံ (${i + 1}/${files.length}) ကို Cloud AI ဖြင့် စစ်ဆေးနေပါသည်...`;
-            
-            // ၁။ ပုံကို Base64 အဖြစ် ပြောင်းခြင်း (Size သေးသွားအောင်)
-            const compressedObj = await compressImageIfNeed(file);
+            const ocrPayloads = await prepareOcrPayloads(file);
+            for (let pageIndex = 0; pageIndex < ocrPayloads.length; pageIndex++) {
+              const compressedObj = ocrPayloads[pageIndex];
+              msg.textContent = `🔍 ဖိုင် (${i + 1}/${files.length})${ocrPayloads.length > 1 ? `၊ စာမျက်နှာ (${pageIndex + 1}/${ocrPayloads.length})` : ""} ကို Cloud AI ဖြင့် စစ်ဆေးနေပါသည်...`;
 
-            // ၂။ Google Apps Script သို့ လှမ်းပို့ပြီး စာဖတ်ခိုင်းခြင်း
-            const response = await fetch(telegramSettings.ocrUrl, {
-              method: "POST",
-              body: JSON.stringify({ base64: compressedObj.base64, mimeType: compressedObj.mimeType })
-            });
+              let previewPayload = compressedObj;
+              let parsed = parseEntryOcrText(await requestEntryOcrPayload(compressedObj));
 
-            const result = await response.json();
-            if (!result.success) throw new Error(result.error);
+              // မူရင်း image ဖြင့် confidence မလုံလောက်မှသာ grayscale/contrast variant ကို တစ်ကြိမ် ထပ်စစ်သည်။
+              if (parsed.shouldRetry) {
+                try {
+                  const enhancedPayload = await enhanceEntryOcrPayload(compressedObj);
+                  const enhancedParsed = parseEntryOcrText(await requestEntryOcrPayload(enhancedPayload));
+                  if (enhancedParsed.score > parsed.score) {
+                    parsed = enhancedParsed;
+                    previewPayload = enhancedPayload;
+                  }
+                } catch (retryError) {
+                  console.warn("Enhanced OCR retry skipped:", retryError);
+                }
+              }
 
-            const text = result.text.replace(/\s+/g, ' '); // Google မှ ပြန်ပို့သော စာသားများ
+              if (parsed.name || parsed.docNumber) {
+                const pageLabel = ocrPayloads.length > 1 ? ` — Page ${pageIndex + 1}` : "";
+                renderOcrPayloadPreview(previewPayload, `${file.name}${pageLabel}`, parsed.mrzValid ? "OCR အောင်မြင်ပါပြီ" : "OCR ဖတ်ပြီး စစ်ဆေးရန်");
+              }
+              if (parsed.name && !$("name").value) $("name").value = parsed.name.toUpperCase();
+              if (parsed.docNumber && !$("docNumber").value) $("docNumber").value = parsed.docNumber.toUpperCase();
+              if (parsed.warnings && parsed.warnings.length) ocrWarnings.push(...parsed.warnings);
 
-            let extractedName = "";
-            let extractedDocNo = "";
-
-            // (၁) Passport MRZ မှ အမည်ရှာခြင်း
-            const mrzNameMatch = text.match(/P[<A-Z0-9]+<<[A-Z0-9<]+/);
-            if (mrzNameMatch && !$("name").value) {
-               const namePart = mrzNameMatch[0].split("<<");
-               if(namePart.length >= 2) {
-                  const lastName = namePart[0].substring(5).replace(/</g, " ").trim();
-                  const firstName = namePart[1].replace(/</g, " ").trim();
-                  extractedName = (firstName + " " + lastName).trim();
-               }
+              if ($("name").value && $("docNumber").value) break;
             }
-
-            // (၂) နံပါတ်ရှာခြင်း (မြန်မာ/ထိုင်း/MRZ)
-            if (!$("docNumber").value) {
-               const mmPassport = text.match(/\b([A-Z]{2}[0-9]{6})\b/i);
-               const thaiId = text.match(/\b(\d{1}[\s-]?\d{4}[\s-]?\d{5}[\s-]?\d{2}[\s-]?\d{1})\b/);
-               const mrzNo = text.match(/\b([A-Z0-9<]{9})[0-9]{1}[A-Z]{3}/);
-
-               if (mmPassport) extractedDocNo = mmPassport[1];
-               else if (thaiId) extractedDocNo = thaiId[1].replace(/[\s-]/g, ""); 
-               else if (mrzNo) extractedDocNo = mrzNo[1].replace(/</g, "").trim();
-               else {
-                  const noMatch = text.match(/(?:Passport No|ID No|No|Number)\.?\s*:?\s*([A-Z0-9]{6,13})/i);
-                  if (noMatch) extractedDocNo = noMatch[1];
-               }
-            }
-
-            // (၃) Work Permit သို့ Pink Card ဆိုလျှင် "Name" ရှာခြင်း
-            if (!extractedName && !$("name").value) {
-               const nameMatch = text.match(/(?:Name|Mr|Ms|Mrs|Miss)\.?\s*([A-Z\s]+)/i);
-               if (nameMatch && nameMatch[1]) extractedName = nameMatch[1].trim();
-            }
-
-            // Data ဖြည့်ခြင်း
-            if (extractedName && !$("name").value) $("name").value = extractedName.toUpperCase();
-            if (extractedDocNo && !$("docNumber").value) $("docNumber").value = extractedDocNo.toUpperCase();
-
-            // အမည်ရော နံပါတ်ပါ ပြည့်သွားရင် ရပ်ပါမည်
-            if ($("name").value && $("docNumber").value) break; 
+            if ($("name").value && $("docNumber").value) break;
           }
-
           if ($("name").value || $("docNumber").value) {
               let foundExisting = false;
               let docToSearch = $("docNumber").value.trim();
@@ -2074,7 +3239,13 @@
               } else {
                   msg.textContent = `✨ Google AI Auto-fill အောင်မြင်ပါသည်။`;
               }
-              msg.className = "message success";
+              if (ocrWarnings.length) {
+                const uniqueWarnings = [...new Set(ocrWarnings)];
+                msg.textContent += ` ⚠️ ${uniqueWarnings.join(" ")}`;
+                msg.className = "message";
+              } else {
+                msg.className = "message success";
+              }
           } else {
               msg.textContent = "⚠️ ပုံများထဲမှ အမည်/နံပါတ်ကို တိတိကျကျ မတွေ့ပါ (ကိုယ်တိုင်ဖြည့်သွင်းပေးပါ)";
               msg.className = "message error";
@@ -2193,6 +3364,7 @@
       editingDocId = null; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
       applyInvoiceIdMode(); if ($("autoInvoiceId").checked && currentUser) await ensureInvoiceIdAuto();
       if($("existingFilesContainer")) $("existingFilesContainer").innerHTML = "";
+      renderDocumentPreviews([], []);
       
       pendingNewNotes = []; renderNotesLog([]);
       if ($("phoneSuggestions")) { $("phoneSuggestions").style.display = "none"; $("phoneSuggestions").innerHTML = ""; }
@@ -2200,7 +3372,7 @@
       delete form.dataset.dupLinks; 
     });
 
-    const compressImageIfNeed = (file) => new Promise((resolve, reject) => {
+    const compressImageIfNeed = (file, options = {}) => new Promise((resolve, reject) => {
       if (file.type === "application/pdf" || !file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -2221,43 +3393,101 @@
         img.src = event.target.result;
         img.onload = () => {
           const canvas = document.createElement("canvas");
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
+          const maxWidth = options.maxWidth || 1600;
+          const maxHeight = options.maxHeight || 1600;
+          const quality = options.quality || 0.9;
           let width = img.width;
           let height = img.height;
 
           if (width > height) {
-            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+            if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
           } else {
-            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+            if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
           }
-          canvas.width = width;
-          canvas.height = height;
+          canvas.width = Math.max(1, Math.round(width));
+          canvas.height = Math.max(1, Math.round(height));
 
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
+          const ctx = canvas.getContext("2d", { alpha: false });
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-          const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          const dataUrl = canvas.toDataURL("image/jpeg", quality);
           const base64Str = dataUrl.split(',')[1];
-
+          const newFilename = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
           const bstr = atob(base64Str);
           let n = bstr.length;
           const u8arr = new Uint8Array(n);
-          while(n--){ u8arr[n] = bstr.charCodeAt(n); }
-          const newFilename = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
-          const compressedFile = new File([u8arr], newFilename, {type: "image/jpeg"});
+          while (n--) u8arr[n] = bstr.charCodeAt(n);
+          const compressedFile = new File([u8arr], newFilename, { type: "image/jpeg" });
 
           resolve({
-             file: compressedFile, 
-             base64: base64Str,    
-             mimeType: "image/jpeg",
-             filename: newFilename
+            file: compressedFile,
+            base64: base64Str,
+            mimeType: "image/jpeg",
+            filename: newFilename
           });
         };
         img.onerror = error => reject(error);
       };
       reader.onerror = error => reject(error);
     });
+
+    // PDF OCR ကို browser ထဲမှာ စာမျက်နှာတစ်မျက်နှာချင်းစီ JPEG အဖြစ် render လုပ်ပြီး
+    // လက်ရှိ OCR Web App သို့ image payload အဖြစ်ပို့သည်။ ထို့ကြောင့် Apps Script ဘက်က
+    // image OCR ကိုသာ လက်ခံနေသော်လည်း PDF ကိုပါ ဖတ်နိုင်မည်ဖြစ်သည်။
+    let pdfJsPromise = null;
+    async function loadPdfJs() {
+      if (!pdfJsPromise) {
+        pdfJsPromise = import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs")
+          .then(pdfjs => {
+            pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
+            return pdfjs;
+          });
+      }
+      return pdfJsPromise;
+    }
+
+    async function prepareOcrPayloads(file) {
+      const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name || "");
+      if (!isPdf) {
+        return [await compressImageIfNeed(file, { maxWidth: 2200, maxHeight: 2200, quality: 0.9 })];
+      }
+
+      const pdfjs = await loadPdfJs();
+      const data = new Uint8Array(await file.arrayBuffer());
+      const pdf = await pdfjs.getDocument({ data }).promise;
+      const maxPages = Math.min(pdf.numPages, 10);
+      const payloads = [];
+
+      for (let pageNo = 1; pageNo <= maxPages; pageNo++) {
+        const page = await pdf.getPage(pageNo);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const scale = Math.min(2.8, 2200 / Math.max(baseViewport.width, baseViewport.height));
+        const viewport = page.getViewport({ scale: Math.max(1, scale) });
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.ceil(viewport.width));
+        canvas.height = Math.max(1, Math.ceil(viewport.height));
+        const context = canvas.getContext("2d", { alpha: false });
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        await page.render({ canvasContext: context, viewport }).promise;
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+        payloads.push({
+          file: null,
+          base64: dataUrl.split(',')[1],
+          mimeType: "image/jpeg",
+          filename: `${file.name.replace(/\.pdf$/i, "")}.page-${pageNo}.jpg`
+        });
+      }
+
+      if (!payloads.length) throw new Error("PDF ထဲတွင် ဖတ်ရန် စာမျက်နှာ မတွေ့ပါ။");
+      if (pdf.numPages > maxPages) {
+        console.warn(`PDF OCR သည် ပထမ ${maxPages} စာမျက်နှာကိုသာ ဖတ်ထားပါသည်။ စုစုပေါင်းစာမျက်နှာ: ${pdf.numPages}`);
+      }
+      return payloads;
+    }
 
     async function uploadToGoogleDrive(fileObj) {
       const webAppUrl = telegramSettings.gasUrl;
@@ -3225,6 +4455,7 @@
           });
           filesDiv.innerHTML = linksHtml;
         }
+        renderDocumentPreviews([], a.documentLinks || []);
       }
       if($("customerFiles")) $("customerFiles").value = "";
       $("appointmentForm").dataset.dupLinks = JSON.stringify(a.documentLinks || []);
@@ -3368,6 +4599,7 @@
           });
           filesDiv.innerHTML = linksHtml;
         }
+        renderDocumentPreviews([], a.documentLinks || []);
       }
 
       $("date").value = a.date || ""; 
