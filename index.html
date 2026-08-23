@@ -1064,7 +1064,7 @@
     .handover-note-input button { flex: 0 0 auto; white-space: nowrap; }
     .document-preview-panel {
       min-width: 0;
-      min-height: 285px;
+      min-height: 480px;
       padding: 14px;
       border: 1px solid #c7d2fe;
       border-radius: 14px;
@@ -1107,8 +1107,9 @@
       line-height: 1.55;
       text-align: center;
     }
-    .document-preview-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .document-preview-grid { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
     .document-preview-card {
+      flex: 1 1 100%;
       overflow: hidden;
       border: 1px solid #dbe3ff;
       border-radius: 11px;
@@ -1138,13 +1139,193 @@
       background: #f8fafc;
     }
     .document-preview-card iframe { background: #ffffff; }
-    .document-preview-card-footer { padding: 7px 9px; text-align: right; }
+    .document-preview-card-footer { padding: 7px 9px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
     .document-preview-card-footer a {
       color: #4338ca;
       font-size: 10px;
       font-weight: 800;
       text-decoration: none;
     }
+    .document-preview-remove-btn {
+      color: #dc2626;
+      font-size: 10px;
+      font-weight: 800;
+      text-decoration: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      font-family: inherit;
+    }
+    .document-preview-remove-btn:hover { text-decoration: underline; }
+    .document-preview-thumb {
+      position: relative;
+      width: 76px;
+      height: 76px;
+      flex: 0 0 auto;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #dbe3ff;
+      background: #eef2ff;
+      cursor: pointer;
+    }
+    .document-preview-thumb img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .document-preview-thumb .thumb-file-icon {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #4f46e5;
+    }
+    .document-preview-thumb .thumb-name {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      background: rgba(15,23,42,.65);
+      color: #fff;
+      font-size: 8px;
+      font-weight: 700;
+      text-align: center;
+      padding: 2px 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .document-preview-thumb .thumb-remove {
+      position: absolute;
+      top: 2px; right: 2px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: rgba(15,23,42,.75);
+      color: #fff;
+      border: none;
+      font-size: 11px;
+      line-height: 18px;
+      text-align: center;
+      cursor: pointer;
+      padding: 0;
+    }
+    .document-preview-thumb .thumb-remove:hover { background: #dc2626; }
+    .document-preview-thumb.matched { border-color: #16a34a; box-shadow: 0 0 0 2px rgba(22,163,74,.35); }
+    .document-preview-thumb .thumb-ocr-badge {
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #16a34a;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    body.dark-mode .document-preview-thumb { border-color: #475569; background: #1e293b; }
+    .document-preview-expanded {
+      border: 1px solid #dbe3ff;
+      border-radius: 11px;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 3px 10px rgba(15,23,42,.07);
+    }
+    .document-preview-expanded-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .document-preview-expanded-header span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .document-preview-expanded-close {
+      background: none;
+      border: none;
+      color: #4338ca;
+      font-weight: 800;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0;
+      flex: 0 0 auto;
+      font-family: inherit;
+    }
+    .document-preview-expanded-close:hover { text-decoration: underline; }
+    .document-preview-expanded iframe {
+      display: block;
+      width: 100%;
+      height: 440px;
+      border: 0;
+      background: #ffffff;
+    }
+    .document-preview-zoom-wrap {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      overflow: hidden;
+      background: #0b1120;
+      cursor: zoom-in;
+      touch-action: none;
+    }
+    .document-preview-zoom-wrap.is-zoomed { cursor: grab; }
+    .document-preview-zoom-wrap.is-dragging { cursor: grabbing; }
+    .document-preview-zoom-img {
+      position: absolute;
+      top: 50%; left: 50%;
+      max-width: 100%;
+      max-height: 100%;
+      transform: translate(-50%, -50%) scale(1);
+      transform-origin: center center;
+      user-select: none;
+      -webkit-user-drag: none;
+      pointer-events: none;
+      will-change: transform;
+    }
+    .document-preview-zoom-wrap.is-transitioning .document-preview-zoom-img { transition: transform .15s ease-out; }
+    .document-preview-zoom-controls {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      display: flex;
+      gap: 4px;
+      z-index: 2;
+    }
+    .document-preview-zoom-controls button {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      border: 1px solid #c7d2fe;
+      background: rgba(255,255,255,.92);
+      color: #3730a3;
+      font-weight: 800;
+      font-size: 15px;
+      line-height: 1;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .document-preview-zoom-controls button:hover { background: #ffffff; }
+    .document-preview-zoom-hint {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      z-index: 2;
+      font-size: 10px;
+      font-weight: 700;
+      color: #e2e8f0;
+      background: rgba(15,23,42,.55);
+      padding: 3px 7px;
+      border-radius: 999px;
+      pointer-events: none;
+    }
+    body.dark-mode .document-preview-expanded { background: #0f172a; color: #e2e8f0; }
+    body.dark-mode .document-preview-expanded-header { border-color: #334155; color: #e2e8f0; }
     .document-upload-row { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
     .document-upload-row input[type="file"] { flex: 1 1 320px; }
     .document-upload-row .ocr-action-btn { flex: 0 0 auto; min-height: 44px; padding: 10px 16px; background: #eef2ff; color: #4f46e5; border-color: #818cf8; font-weight: 800; }
@@ -1161,7 +1342,7 @@
     body.dark-mode .document-preview-card-header { border-color: #334155; color: #e2e8f0; }
     @media (max-width: 980px) {
       .entry-notes-preview-grid { grid-template-columns: 1fr; }
-      .document-preview-panel { position: static; }
+      .document-preview-panel { position: static; min-height: 0; }
     }
     @media (max-width: 600px) {
       .document-preview-header { flex-direction: column; }
@@ -1169,6 +1350,8 @@
       .handover-note-input { flex-direction: column; }
       .handover-note-input button { width: 100%; }
       .document-upload-row .ocr-action-btn { flex: 1 1 100%; width: 100%; }
+      .document-preview-expanded iframe,
+      .document-preview-zoom-wrap { height: 320px; }
     }
     /* --- End Entry Document Preview --- */
 
@@ -1521,6 +1704,7 @@
                 </div>
                 <div id="documentPreviewEmpty" class="document-preview-empty">Customer Documents မှ ပုံ/PDF ရွေးပြီး OCR လုပ်ပါ။<br />အဟောင်း record ဖြစ်လျှင် ယခင်တင်ထားသော document ကို ပြပါမည်။</div>
                 <div id="documentPreviewGrid" class="document-preview-grid"></div>
+                <div id="documentPreviewExpanded" class="document-preview-expanded" style="display:none;"></div>
               </div>
             </div>
 
@@ -1532,7 +1716,7 @@
                   🔍 OCR ဖြင့် Auto-fill ဖြည့်မည်
                 </button>
               </div>
-              <small>ပုံများ သို့မဟုတ် PDF ဖိုင်များကို တစ်ပြိုင်နက်တည်း အများကြီး ရွေးချယ်တင်နိုင်ပါသည်။ PDF ကို စာမျက်နှာပုံအဖြစ် ပြောင်းပြီး OCR ဖတ်ပါမည်။ (Google Drive နှင့် Telegram သို့ ရောက်သွားပါမည်)</small>
+              <small>ပုံများ သို့မဟုတ် PDF ဖိုင်များကို တစ်ပြိုင်နက်တည်း အများကြီး ရွေးချယ်တင်နိုင်ပါသည်။ Copy ထားသောပုံကို Ctrl+V ဖြင့်လည်း ထည့်နိုင်ပါသည်။ PDF ကို စာမျက်နှာပုံအဖြစ် ပြောင်းပြီး OCR ဖတ်ပါမည်။ (Google Drive နှင့် Telegram သို့ ရောက်သွားပါမည်)</small>
               <div id="existingFilesContainer" class="existing-files-container" aria-hidden="true"></div>
             </div>
 
@@ -2903,6 +3087,10 @@
     function entryCleanName(value) {
       let name = String(value || "").replace(/\s+/g, " ").trim();
       const months = "JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC";
+      // OCR စာမျက်နှာပေါ်ရှိ "Country Code MMR" ကဲ့သို့သော label စာသားများ Name ရှေ့/အလယ်တွင် ပါလာတတ်သောကြောင့် ဖယ်ရှားသည်။
+      name = name.replace(/\bCOUNTRY\s*CODE\s*[A-Z]{2,4}\b/gi, " ");
+      name = name.replace(/\b(?:SURNAME|GIVEN\s*NAMES?|TYPE|CODE)\s*[:#-]?\s*/gi, " ");
+      name = name.replace(/\s+/g, " ").trim();
       // OCR က Name value နောက်တွင် မွေးသက္ကရာဇ်ပါ တစ်ဆက်တည်းပြန်ပေးပါက date မှစ၍ ဖြတ်သည်။
       name = name.replace(new RegExp(`\\s+\\d{1,2}\\s+(?:${months})\\s+\\d{4}.*$`, "i"), "");
       name = name.replace(/\s+\d{1,2}[\\/.-]\d{1,2}[\\/.-]\d{2,4}.*$/, "");
@@ -2914,8 +3102,8 @@
     function entryParseLabeledFields(lines, rawText) {
       const result = { name: "", docNumber: "", warnings: [] };
       const joined = lines.join(" ");
-      const nameLabel = /\b(?:FULL\s+NAME|NAME)\s*[:#-]?\s*(.+?)(?=\s+(?:NATIONALITY|DATE|SEX|GENDER|PASSPORT|DOCUMENT|ID|NO|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i;
-      const titleName = /\b(?:MR|MS|MRS|MISS)\.?\s+([A-Z][A-Z\s]*?)(?=\s+(?:PASSPORT|DOCUMENT|NO|NATIONALITY|DATE|SEX|GENDER|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i;
+      const nameLabel = /\b(?:FULL\s+NAME|NAME)\s*[:#-]?\s*(.+?)(?=\s+(?:NATIONALITY|COUNTRY|DATE|SEX|GENDER|PASSPORT|DOCUMENT|ID|NO|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i;
+      const titleName = /\b(?:MR|MS|MRS|MISS)\.?\s+([A-Z][A-Z\s]*?)(?=\s+(?:PASSPORT|DOCUMENT|NO|NATIONALITY|COUNTRY|DATE|SEX|GENDER|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i;
       const nameMatch = joined.match(nameLabel) || joined.match(titleName);
       if (nameMatch && nameMatch[1]) result.name = entryCleanName(nameMatch[1]);
 
@@ -3007,15 +3195,217 @@
     // --- Entry document preview helpers ---
     let documentPreviewObjectUrls = [];
 
+    // base64 data ကို Blob URL အဖြစ်ပြောင်းသည် (data: URI ကို tab အသစ်ဖြင့်ဖွင့်ရင် blank ဖြစ်တတ်သောကြောင့်
+    // Blob URL ကိုသာ target="_blank" link များတွင် အသုံးပြုသင့်သည်)
+    function base64ToBlobUrl(base64, mimeType) {
+      try {
+        const byteChars = atob(base64);
+        const byteNumbers = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
+        const blob = new Blob([new Uint8Array(byteNumbers)], { type: mimeType || "application/octet-stream" });
+        const url = URL.createObjectURL(blob);
+        documentPreviewObjectUrls.push(url);
+        return url;
+      } catch (e) {
+        console.warn("base64ToBlobUrl failed:", e);
+        return `data:${mimeType || "application/octet-stream"};base64,${base64}`;
+      }
+    }
+
     function clearDocumentPreview() {
       documentPreviewObjectUrls.forEach(url => { try { URL.revokeObjectURL(url); } catch (e) {} });
       documentPreviewObjectUrls = [];
       const grid = $("documentPreviewGrid");
+      const expanded = $("documentPreviewExpanded");
       const empty = $("documentPreviewEmpty");
-      const status = $("documentPreviewStatus");
-      if (grid) grid.innerHTML = "";
+      if (grid) { grid.innerHTML = ""; grid.style.display = "flex"; }
+      if (expanded) { expanded.innerHTML = ""; expanded.style.display = "none"; }
       if (empty) empty.style.display = "flex";
+      const status = $("documentPreviewStatus");
       if (status) status.textContent = "ပုံမရှိသေးပါ";
+    }
+
+    function showDocumentPreviewGrid() {
+      const grid = $("documentPreviewGrid");
+      const expanded = $("documentPreviewExpanded");
+      if (expanded) { expanded.style.display = "none"; expanded.innerHTML = ""; }
+      if (grid) grid.style.display = "flex";
+    }
+
+    function expandDocumentPreview({ src, name, isIframe, openUrl }) {
+      const grid = $("documentPreviewGrid");
+      const expanded = $("documentPreviewExpanded");
+      const empty = $("documentPreviewEmpty");
+      if (!expanded || !src) return;
+      if (empty) empty.style.display = "none";
+      if (grid) grid.style.display = "none";
+
+      expanded.innerHTML = "";
+      const header = document.createElement("div");
+      header.className = "document-preview-expanded-header";
+      const title = document.createElement("span");
+      title.textContent = name || "Document";
+      const closeBtn = document.createElement("button");
+      closeBtn.type = "button";
+      closeBtn.className = "document-preview-expanded-close";
+      closeBtn.textContent = "✕ ပိတ်မည်";
+      closeBtn.addEventListener("click", showDocumentPreviewGrid);
+      header.append(title, closeBtn);
+      expanded.appendChild(header);
+
+      if (isIframe) {
+        const frame = document.createElement("iframe");
+        frame.src = src;
+        frame.title = name || "document preview";
+        frame.loading = "lazy";
+        expanded.appendChild(frame);
+      } else {
+        const wrap = document.createElement("div");
+        wrap.className = "document-preview-zoom-wrap";
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = name || "document preview";
+        img.className = "document-preview-zoom-img";
+        wrap.appendChild(img);
+
+        const hint = document.createElement("div");
+        hint.className = "document-preview-zoom-hint";
+        hint.textContent = "🔍 Scroll / Pinch ဖြင့် Zoom လုပ်ပါ";
+        wrap.appendChild(hint);
+
+        const controls = document.createElement("div");
+        controls.className = "document-preview-zoom-controls";
+        const btnOut = document.createElement("button");
+        btnOut.type = "button"; btnOut.textContent = "−"; btnOut.title = "Zoom Out";
+        const btnReset = document.createElement("button");
+        btnReset.type = "button"; btnReset.textContent = "⤢"; btnReset.title = "Reset";
+        const btnIn = document.createElement("button");
+        btnIn.type = "button"; btnIn.textContent = "+"; btnIn.title = "Zoom In";
+        controls.append(btnOut, btnReset, btnIn);
+        wrap.appendChild(controls);
+
+        expanded.appendChild(wrap);
+        const zoomApi = setupImagePanZoom(wrap, img);
+        btnOut.addEventListener("click", () => zoomApi.zoomBy(-0.5));
+        btnIn.addEventListener("click", () => zoomApi.zoomBy(0.5));
+        btnReset.addEventListener("click", () => zoomApi.reset());
+      }
+
+      const footer = document.createElement("div");
+      footer.className = "document-preview-card-footer";
+      const open = document.createElement("a");
+      open.href = openUrl || src;
+      open.target = "_blank";
+      open.rel = "noopener noreferrer";
+      open.textContent = "🔗 Tab အသစ်ဖြင့်ဖွင့်မည်";
+      footer.appendChild(open);
+      expanded.appendChild(footer);
+
+      expanded.style.display = "block";
+    }
+
+    // ပုံကို Zoom in/out နှင့် ဆွဲ (pan) ကြည့်နိုင်ရန် (Wheel, Drag, Pinch, ခလုတ်များ ပံ့ပိုးသည်)
+    function setupImagePanZoom(wrap, img) {
+      const MIN_SCALE = 1, MAX_SCALE = 5;
+      let scale = 1, originX = 0, originY = 0;
+      let isDragging = false, startX = 0, startY = 0, startOriginX = 0, startOriginY = 0;
+      let pinchStartDist = 0, pinchStartScale = 1;
+
+      function apply(withTransition) {
+        wrap.classList.toggle("is-transitioning", !!withTransition);
+        wrap.classList.toggle("is-zoomed", scale > 1.001);
+        img.style.transform = `translate(calc(-50% + ${originX}px), calc(-50% + ${originY}px)) scale(${scale})`;
+      }
+
+      function clampOrigin() {
+        // ပုံသည် box ပြင်ပသို့ လွန်ကဲစွာ မရွေ့စေရန် ကန့်သတ်ချက် (ခန့်မှန်းတွက်ချက်မှု)
+        const maxOffset = (scale - 1) * (wrap.clientWidth / 2) + 40;
+        if (maxOffset <= 0) { originX = 0; originY = 0; return; }
+        originX = Math.max(-maxOffset, Math.min(maxOffset, originX));
+        originY = Math.max(-maxOffset, Math.min(maxOffset, originY));
+      }
+
+      function setScale(next) {
+        scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, next));
+        if (scale <= 1.001) { scale = 1; originX = 0; originY = 0; }
+        clampOrigin();
+        apply(true);
+      }
+
+      function reset() { scale = 1; originX = 0; originY = 0; apply(true); }
+      function zoomBy(delta) { setScale(scale + delta); }
+
+      wrap.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.35 : -0.35;
+        setScale(scale + delta);
+      }, { passive: false });
+
+      wrap.addEventListener("dblclick", () => {
+        setScale(scale > 1 ? 1 : 2.2);
+      });
+
+      wrap.addEventListener("mousedown", (e) => {
+        if (scale <= 1) return;
+        isDragging = true;
+        wrap.classList.add("is-dragging");
+        wrap.classList.remove("is-transitioning");
+        startX = e.clientX; startY = e.clientY;
+        startOriginX = originX; startOriginY = originY;
+        e.preventDefault();
+      });
+      window.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        originX = startOriginX + (e.clientX - startX);
+        originY = startOriginY + (e.clientY - startY);
+        clampOrigin();
+        apply(false);
+      });
+      window.addEventListener("mouseup", () => {
+        if (isDragging) { isDragging = false; wrap.classList.remove("is-dragging"); }
+      });
+
+      function touchDist(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.hypot(dx, dy);
+      }
+
+      wrap.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 2) {
+          pinchStartDist = touchDist(e.touches);
+          pinchStartScale = scale;
+        } else if (e.touches.length === 1 && scale > 1) {
+          isDragging = true;
+          startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+          startOriginX = originX; startOriginY = originY;
+        }
+      }, { passive: true });
+
+      wrap.addEventListener("touchmove", (e) => {
+        if (e.touches.length === 2) {
+          e.preventDefault();
+          const dist = touchDist(e.touches);
+          if (pinchStartDist > 0) {
+            wrap.classList.remove("is-transitioning");
+            setScale(pinchStartScale * (dist / pinchStartDist));
+          }
+        } else if (e.touches.length === 1 && isDragging) {
+          e.preventDefault();
+          originX = startOriginX + (e.touches[0].clientX - startX);
+          originY = startOriginY + (e.touches[0].clientY - startY);
+          clampOrigin();
+          apply(false);
+        }
+      }, { passive: false });
+
+      wrap.addEventListener("touchend", () => {
+        isDragging = false;
+        pinchStartDist = 0;
+      });
+
+      apply(false);
+      return { reset, zoomBy };
     }
 
     function drivePreviewUrl(link) {
@@ -3023,7 +3413,21 @@
       return value.replace(/\/view(?:\?.*)?$/, "/preview").replace(/\/view.*/, "/preview");
     }
 
-    function appendDocumentPreviewCard({ src, name, source, isPdf, openUrl }) {
+    function driveFileIdFromLink(link) {
+      const value = String(link || "");
+      let m = value.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+      if (m) return m[1];
+      m = value.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+      if (m) return m[1];
+      return null;
+    }
+
+    function driveThumbnailUrl(link) {
+      const id = driveFileIdFromLink(link);
+      return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w200-h200` : null;
+    }
+
+    function appendDocumentPreviewCard({ src, name, source, isPdf, openUrl, onRemove }) {
       const grid = $("documentPreviewGrid");
       const empty = $("documentPreviewEmpty");
       if (!grid || !src) return;
@@ -3057,6 +3461,14 @@
 
       const footer = document.createElement("div");
       footer.className = "document-preview-card-footer";
+      if (typeof onRemove === "function") {
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "document-preview-remove-btn";
+        removeBtn.textContent = "✕ ဖယ်ရှားမည်";
+        removeBtn.addEventListener("click", onRemove);
+        footer.appendChild(removeBtn);
+      }
       const open = document.createElement("a");
       open.href = openUrl || src;
       open.target = "_blank";
@@ -3067,53 +3479,147 @@
       grid.appendChild(card);
     }
 
+    function appendDocumentThumb({ src, name, isPdf, openUrl, onRemove, expandSrc, expandIsIframe, matched }) {
+      const grid = $("documentPreviewGrid");
+      const empty = $("documentPreviewEmpty");
+      if (!grid) return;
+      if (empty) empty.style.display = "none";
+
+      const thumb = document.createElement("div");
+      thumb.className = "document-preview-thumb" + (matched ? " matched" : "");
+      thumb.title = name || "Document";
+
+      if (!isPdf && src) {
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = name || "document";
+        img.loading = "lazy";
+        thumb.appendChild(img);
+      } else {
+        const icon = document.createElement("div");
+        icon.className = "thumb-file-icon";
+        icon.textContent = "📄";
+        thumb.appendChild(icon);
+      }
+
+      const label = document.createElement("div");
+      label.className = "thumb-name";
+      label.textContent = name || "";
+      thumb.appendChild(label);
+
+      thumb.addEventListener("click", () => {
+        expandDocumentPreview({
+          src: expandSrc || src,
+          name,
+          isIframe: !!expandIsIframe,
+          openUrl: openUrl || expandSrc || src
+        });
+      });
+
+      if (matched) {
+        const badge = document.createElement("div");
+        badge.className = "thumb-ocr-badge";
+        badge.textContent = "✓";
+        badge.title = "OCR ဖတ်ထားသောပုံ";
+        thumb.appendChild(badge);
+      }
+
+      if (typeof onRemove === "function") {
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "thumb-remove";
+        removeBtn.textContent = "✕";
+        removeBtn.addEventListener("click", (e) => { e.stopPropagation(); onRemove(); });
+        thumb.appendChild(removeBtn);
+      }
+
+      grid.appendChild(thumb);
+    }
+
     function renderDocumentPreviews(fileList = [], savedLinks = []) {
       clearDocumentPreview();
       const files = Array.from(fileList || []).filter(file => file && (file.type.startsWith("image/") || file.type === "application/pdf"));
       const links = Array.from(savedLinks || []).filter(Boolean);
 
-      // ဖိုင် ၁၀ ပုံတင်လျှင် အားလုံးမပြဘဲ ပထမရွေးထားသော document တစ်ခုသာ ပြသည်။
-      const file = files[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        documentPreviewObjectUrls.push(url);
-        appendDocumentPreviewCard({
-          src: url,
-          name: file.name,
-          source: files.length > 1 ? `ရွေးထားသောဖိုင် (ပထမ ၁ ခုသာပြ)` : "ရွေးထားသောဖိုင်",
-          isPdf: file.type === "application/pdf",
-          openUrl: url
+      // ရွေးထားသော ဖိုင်များကို thumbnail အသေးလေးအဖြစ်ပြသည် (UI မရှည်စေရန်)၊ နှိပ်လျှင် Box ထဲမှာဘဲ အပြည့်ပြသည်။
+      if (files.length > 0) {
+        files.forEach(file => {
+          const isPdf = file.type === "application/pdf";
+          const url = URL.createObjectURL(file);
+          documentPreviewObjectUrls.push(url);
+          appendDocumentThumb({
+            src: isPdf ? null : url,
+            name: file.name,
+            isPdf,
+            openUrl: url,
+            expandSrc: url,
+            expandIsIframe: isPdf,
+            matched: ocrMatchedFileKeys.has(fileKey(file)),
+            onRemove: () => removeAccumulatedCustomerFile(fileKey(file))
+          });
         });
         const status = $("documentPreviewStatus");
-        if (status) status.textContent = files.length > 1 ? `1 ဖိုင်သာပြထားသည် (${files.length} ဖိုင်ရွေးထား)` : "1 ဖိုင်";
+        if (status) status.textContent = `${files.length} ဖိုင် ရွေးထားသည်`;
         return;
       }
 
-      // Old record တွင်လည်း document တစ်ခုသာ preview ပြမည်။
-      const link = links[0];
-      if (link) {
-        appendDocumentPreviewCard({
-          src: drivePreviewUrl(link),
-          name: "Saved document 1",
-          source: links.length > 1 ? `ယခင် record (ပထမ ၁ ခုသာပြ)` : "ယခင် record",
-          isPdf: true,
-          openUrl: link
+      // Old record ၏ document များကိုလည်း thumbnail အသေးလေးအဖြစ် ပြသည် (Drive thumbnail ပုံမှန်ပြပေးမည်)။
+      if (links.length > 0) {
+        links.forEach((link, idx) => {
+          const thumbSrc = driveThumbnailUrl(link);
+          appendDocumentThumb({
+            src: thumbSrc,
+            name: `Saved document ${idx + 1}`,
+            isPdf: !thumbSrc,
+            openUrl: link,
+            expandSrc: drivePreviewUrl(link),
+            expandIsIframe: true,
+            matched: currentSavedMatchedLinks.includes(link)
+          });
         });
         const status = $("documentPreviewStatus");
-        if (status) status.textContent = links.length > 1 ? `1 ဖိုင်သာပြထားသည် (${links.length} ဖိုင်ရှိ)` : "1 ဖိုင်";
+        if (status) status.textContent = `${links.length} ဖိုင် ရှိသည်`;
       }
+    }
+
+    // --- Customer file selection ၏ ဖိုင်များ လက်ရှိစုစည်းထားမှု (input ရွေးလိုက်တိုင်း အစားထိုးမနေအောင်) ---
+    let accumulatedCustomerFiles = [];
+    let ocrMatchedFileKeys = new Set(); // OCR အမှန်တကယ်ဖတ်ထားသော ဖိုင်(များ)ကို thumbnail ပေါ်တွင် အမှတ်အသားလုပ်ရန် (ဖိုင်များစွာ ရနိုင်သည်)
+    let currentSavedMatchedLinks = []; // Edit/Duplicate အတွင်း OCR ဖတ်ခဲ့သော saved document link များ
+
+    function fileKey(f) {
+      return `${f.name}_${f.size}_${f.lastModified}`;
+    }
+
+    function syncCustomerFilesInput() {
+      const input = $("customerFiles");
+      if (!input) return;
+      try {
+        const dt = new DataTransfer();
+        accumulatedCustomerFiles.forEach(f => dt.items.add(f));
+        input.files = dt.files;
+      } catch (e) {
+        console.warn("DataTransfer sync failed:", e);
+      }
+    }
+
+    function removeAccumulatedCustomerFile(key) {
+      accumulatedCustomerFiles = accumulatedCustomerFiles.filter(f => fileKey(f) !== key);
+      syncCustomerFilesInput();
+      renderDocumentPreviews(accumulatedCustomerFiles, getExistingDocumentLinks());
     }
 
     function renderOcrPayloadPreview(payload, name, source = "OCR ဖတ်နေသည်") {
       if (!payload || !payload.base64) return;
       clearDocumentPreview();
       const src = `data:${payload.mimeType || "image/jpeg"};base64,${payload.base64}`;
+      const blobUrl = base64ToBlobUrl(payload.base64, payload.mimeType || "image/jpeg");
       appendDocumentPreviewCard({
         src,
         name: name || payload.filename || "OCR document",
         source,
         isPdf: false,
-        openUrl: src
+        openUrl: blobUrl
       });
       const status = $("documentPreviewStatus");
       if (status) status.textContent = source;
@@ -3125,10 +3631,72 @@
       } catch (e) { return []; }
     }
 
+    function addFilesToCustomerSelection(newFiles) {
+      const existingKeys = new Set(accumulatedCustomerFiles.map(fileKey));
+      let addedCount = 0;
+      newFiles.forEach(f => {
+        const k = fileKey(f);
+        if (!existingKeys.has(k)) {
+          accumulatedCustomerFiles.push(f);
+          existingKeys.add(k);
+          addedCount++;
+        }
+      });
+      if (addedCount > 0) {
+        syncCustomerFilesInput();
+        renderDocumentPreviews(accumulatedCustomerFiles, getExistingDocumentLinks());
+      }
+      return addedCount;
+    }
+
     const customerFilesPreviewInput = $("customerFiles");
     if (customerFilesPreviewInput) {
       customerFilesPreviewInput.addEventListener("change", () => {
-        renderDocumentPreviews(customerFilesPreviewInput.files, getExistingDocumentLinks());
+        // Browser က ဖိုင်အသစ်ရွေးတိုင်း FileList ကို အစားထိုးလိုက်သဖြင့်၊
+        // ယခင်ရွေးထားသော ဖိုင်များကို ဆုံးရှုံးမသွားအောင် ကိုယ်ပိုင် array ထဲ ပေါင်းထည့်ပါမည်။
+        addFilesToCustomerSelection(Array.from(customerFilesPreviewInput.files || []));
+      });
+    }
+
+    // Customer Documents area ထဲသို့ Copy/Paste (Ctrl+V) ဖြင့် ပုံထည့်နိုင်ရန်။
+    document.addEventListener("paste", (e) => {
+      const input = $("customerFiles");
+      // Upload row လက်ရှိမြင်နေရသော tab ပေါ်တွင်သာ လုပ်ဆောင်မည် (တခြား tab ပေါ်ရှိစဉ် သက်ရောက်မှုမရှိစေရန်)။
+      if (!input || input.offsetParent === null) return;
+
+      const items = (e.clipboardData && e.clipboardData.items) || [];
+      const pastedFiles = [];
+      for (const item of items) {
+        if (item.kind === "file") {
+          const file = item.getAsFile();
+          if (file && (file.type.startsWith("image/") || file.type === "application/pdf")) {
+            pastedFiles.push(file);
+          }
+        }
+      }
+      if (pastedFiles.length === 0) return; // စာသားကူးထားခြင်းမျိုးဆို ပုံမှန်အတိုင်း paste ဖြစ်စေမည်။
+
+      e.preventDefault();
+      const named = pastedFiles.map((f, idx) => {
+        if (f.name && f.name !== "image.png" && f.name !== "blob") return f;
+        const ext = (f.type.split("/")[1] || "png").replace("jpeg", "jpg");
+        return new File([f], `pasted-${Date.now()}-${idx}.${ext}`, { type: f.type, lastModified: f.lastModified || Date.now() });
+      });
+      const added = addFilesToCustomerSelection(named);
+      const msg = $("message");
+      if (msg && added > 0) {
+        msg.textContent = `📋 Copy ထားသော ပုံ ${added} ခု ထည့်ပြီးပါပြီ။`;
+        msg.className = "message success";
+      }
+    });
+
+    // Form ကို reset() ခေါ်တိုင်း (New Entry / Save အပြီး) စုစည်းထားသော ဖိုင်များကိုပါ ရှင်းမည်။
+    if ($("appointmentForm")) {
+      $("appointmentForm").addEventListener("reset", () => {
+        accumulatedCustomerFiles = [];
+        ocrMatchedFileKeys.clear();
+        currentSavedMatchedLinks = [];
+        clearDocumentPreview();
       });
     }
 
@@ -3154,7 +3722,7 @@
 
         try {
           const ocrWarnings = [];
-          clearDocumentPreview();
+          ocrMatchedFileKeys.clear();
           for (let i = 0; i < files.length; i++) {
             const file = files[i];
             if (!file.type.startsWith("image/") && file.type !== "application/pdf") continue;
@@ -3182,8 +3750,7 @@
               }
 
               if (parsed.name || parsed.docNumber) {
-                const pageLabel = ocrPayloads.length > 1 ? ` — Page ${pageIndex + 1}` : "";
-                renderOcrPayloadPreview(previewPayload, `${file.name}${pageLabel}`, parsed.mrzValid ? "OCR အောင်မြင်ပါပြီ" : "OCR ဖတ်ပြီး စစ်ဆေးရန်");
+                ocrMatchedFileKeys.add(fileKey(file));
               }
               if (parsed.name && !$("name").value) $("name").value = parsed.name.toUpperCase();
               if (parsed.docNumber && !$("docNumber").value) $("docNumber").value = parsed.docNumber.toUpperCase();
@@ -3193,6 +3760,8 @@
             }
             if ($("name").value && $("docNumber").value) break;
           }
+          // ဖတ်ပြီးသော ပုံများကို ✓ badge ဖြင့် thumbnail grid ပြန်ပြသည် (တင်ထားသောပုံအားလုံး ပျောက်မသွားစေရန်)
+          renderDocumentPreviews(accumulatedCustomerFiles, getExistingDocumentLinks());
           if ($("name").value || $("docNumber").value) {
               let foundExisting = false;
               let docToSearch = $("docNumber").value.trim();
@@ -3370,6 +3939,8 @@
       if ($("phoneSuggestions")) { $("phoneSuggestions").style.display = "none"; $("phoneSuggestions").innerHTML = ""; }
 
       delete form.dataset.dupLinks; 
+      delete form.dataset.dupMatchedLinks;
+      currentSavedMatchedLinks = [];
     });
 
     const compressImageIfNeed = (file, options = {}) => new Promise((resolve, reject) => {
@@ -3626,6 +4197,7 @@
       try {
         const fileInput = $("customerFiles");
         let uploadedDriveLinks = [];
+        let uploadedMatchedLinks = []; // OCR ဖတ်ထားသော ဖိုင်များနှင့် သက်ဆိုင်သော drive link များ
 
         if (fileInput && fileInput.files.length > 0) {
            $("saveBtn").disabled = true;
@@ -3638,7 +4210,10 @@
                const compressedObj = await compressImageIfNeed(filesToUpload[i]);
                const driveLink = await uploadToGoogleDrive(compressedObj);
                await uploadToTelegramDocument(compressedObj.file, invoiceId);
-               if (driveLink) uploadedDriveLinks.push(driveLink);
+               if (driveLink) {
+                 uploadedDriveLinks.push(driveLink);
+                 if (ocrMatchedFileKeys.has(fileKey(filesToUpload[i]))) uploadedMatchedLinks.push(driveLink);
+               }
              } catch (err) {
                console.error("Upload error:", err);
                alert(`ဖိုင် (အမှတ် ${i+1}) တင်ရာတွင် အမှားအယွင်းရှိပါသည်: ${err.message}`);
@@ -3650,11 +4225,13 @@
           const canEditDelete = currentRole === "admin" || currentRole === "manager";
           if(!canEditDelete) throw new Error("Permission denied to edit.");
           
+          const editedAppt = cachedAppointments.find(x => x.id === editingDocId);
           if (uploadedDriveLinks.length > 0) {
-             let appt = cachedAppointments.find(x => x.id === editingDocId);
-             let existingLinks = (appt && appt.documentLinks) ? appt.documentLinks : [];
+             let existingLinks = (editedAppt && editedAppt.documentLinks) ? editedAppt.documentLinks : [];
              data.documentLinks = [...existingLinks, ...uploadedDriveLinks];
           }
+          const existingMatchedLinks = (editedAppt && editedAppt.ocrMatchedLinks) ? editedAppt.ocrMatchedLinks : [];
+          data.ocrMatchedLinks = [...existingMatchedLinks, ...uploadedMatchedLinks];
 
           data.updatedAt = serverTimestamp();
           data.updatedBy = currentUserName;
@@ -3687,7 +4264,12 @@
           if (form.dataset.dupLinks) {
             try { oldDupLinks = JSON.parse(form.dataset.dupLinks); } catch(e){}
           }
+          let oldDupMatchedLinks = [];
+          if (form.dataset.dupMatchedLinks) {
+            try { oldDupMatchedLinks = JSON.parse(form.dataset.dupMatchedLinks); } catch(e){}
+          }
           data.documentLinks = [...oldDupLinks, ...uploadedDriveLinks];
+          data.ocrMatchedLinks = [...oldDupMatchedLinks, ...uploadedMatchedLinks];
           data.notesLog = pendingNewNotes;
           data.reminderSent = false;
 
@@ -4455,10 +5037,14 @@
           });
           filesDiv.innerHTML = linksHtml;
         }
+        currentSavedMatchedLinks = a.ocrMatchedLinks || [];
         renderDocumentPreviews([], a.documentLinks || []);
       }
+      accumulatedCustomerFiles = [];
+      ocrMatchedFileKeys.clear();
       if($("customerFiles")) $("customerFiles").value = "";
       $("appointmentForm").dataset.dupLinks = JSON.stringify(a.documentLinks || []);
+      $("appointmentForm").dataset.dupMatchedLinks = JSON.stringify(a.ocrMatchedLinks || []);
 
       $("name").value = a.name || ""; 
       $("docNumber").value = a.docNumber || "";
@@ -4599,8 +5185,14 @@
           });
           filesDiv.innerHTML = linksHtml;
         }
+        currentSavedMatchedLinks = a.ocrMatchedLinks || [];
         renderDocumentPreviews([], a.documentLinks || []);
       }
+      accumulatedCustomerFiles = [];
+      ocrMatchedFileKeys.clear();
+      if($("customerFiles")) $("customerFiles").value = "";
+      $("appointmentForm").dataset.dupLinks = JSON.stringify(a.documentLinks || []);
+      $("appointmentForm").dataset.dupMatchedLinks = JSON.stringify(a.ocrMatchedLinks || []);
 
       $("date").value = a.date || ""; 
       $("appointmentDate").value = a.appointmentDate || ""; 
@@ -5015,6 +5607,42 @@
       $("createNewAccBtn").disabled = false;
     });
 
+    // Passport Scanner tab ထဲသို့ Copy/Paste (Ctrl+V) ဖြင့် Passport ပုံ ထည့်နိုင်ရန်။
+    document.addEventListener("paste", (e) => {
+      const scanInput = $("scanInputFile");
+      // Scanner tab လက်ရှိမြင်နေရသည့်အခါသာ လုပ်ဆောင်မည်။
+      if (!scanInput || scanInput.offsetParent === null) return;
+
+      const items = (e.clipboardData && e.clipboardData.items) || [];
+      let pastedFile = null;
+      for (const item of items) {
+        if (item.kind === "file") {
+          const file = item.getAsFile();
+          if (file && file.type.startsWith("image/")) { pastedFile = file; break; }
+        }
+      }
+      if (!pastedFile) return; // စာသားကူးထားခြင်းမျိုးဆို ပုံမှန်အတိုင်း paste ဖြစ်စေမည်။
+
+      e.preventDefault();
+      const named = (pastedFile.name && pastedFile.name !== "image.png" && pastedFile.name !== "blob")
+        ? pastedFile
+        : new File([pastedFile], `pasted-${Date.now()}.${(pastedFile.type.split("/")[1] || "png").replace("jpeg", "jpg")}`, { type: pastedFile.type, lastModified: pastedFile.lastModified || Date.now() });
+
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(named);
+        scanInput.files = dt.files;
+      } catch (err) {
+        console.warn("Scanner paste sync failed:", err);
+      }
+
+      const msg = $("scanMessage");
+      if (msg) {
+        msg.textContent = "📋 Copy ထားသော Passport ပုံ ထည့်ပြီးပါပြီ — Scan Passport ကိုနှိပ်ပါ။";
+        msg.className = "message success";
+      }
+    });
+
     // --- Passport Scanner အလုပ်လုပ်စေမည့် အသက်သွေးကြောကုဒ် ---
     const btnRunScanner = $("btnRunScanner");
     if (btnRunScanner) {
@@ -5174,11 +5802,18 @@
 
             // Name Fallback
             if (!extName) {
-                let nameMatch = fullText.match(/NAME[^\w]*([A-Z\s]+?)(?=\s+NATIONALITY|\s+DATE|\s+M\b|\s+F\b|\s+[0-9])/);
+                let nameMatch = fullText.match(/NAME[^\w]*([A-Z\s]+?)(?=\s+NATIONALITY|\s+COUNTRY|\s+DATE|\s+M\b|\s+F\b|\s+[0-9])/);
                 if (nameMatch && nameMatch[1]) {
                     extName = nameMatch[1].trim();
                 }
             }
+
+            // OCR စာမျက်နှာပေါ်ရှိ "Country Code MMR" ကဲ့သို့သော label စာသားများ Name ထဲပါလာတတ်သောကြောင့် ဖယ်ရှားသည်။
+            extName = String(extName || "")
+              .replace(/\bCOUNTRY\s*CODE\s*[A-Z]{2,4}\b/gi, " ")
+              .replace(/\b(?:SURNAME|GIVEN\s*NAMES?|TYPE|CODE)\s*[:#-]?\s*/gi, " ")
+              .replace(/\s+/g, " ")
+              .trim();
 
             if (!extDocNo && !extName && !extDob) {
                 throw new Error("ပုံထဲတွင် Passport ၏ အချက်အလက်များကို ရှာမတွေ့ပါ။ ပုံအကြည်ဖြင့် ပြန်စမ်းကြည့်ပါ။");
