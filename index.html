@@ -797,6 +797,63 @@
     #tab-invoice .invoice-controls .actions { margin-top: 14px !important; }
     #tab-invoice .invoice-card { box-shadow: 0 10px 24px rgba(15,23,42,.16); }
 
+    /* Invoice text layout: keep QR and Burmese amount labels inside their columns */
+    #invoiceCard .invoice-total {
+      min-width: 0;
+      gap: 12px;
+      overflow: visible;
+    }
+    #invoiceCard .invoice-qr {
+      flex: 0 0 96px;
+      width: 96px;
+      min-width: 96px;
+      max-width: 96px;
+      padding-right: 10px !important;
+      box-sizing: border-box;
+    }
+    #invoiceCard .invoice-qr img {
+      display: block;
+      width: 78px !important;
+      height: 78px !important;
+      margin: 0 auto;
+    }
+    #invoiceCard .invoice-qr-caption {
+      display: block;
+      width: 78px;
+      max-width: 78px;
+      margin: 4px auto 0;
+      font-size: 10px !important;
+      line-height: 1.45;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: normal;
+      text-align: center;
+    }
+    #invoiceCard .invoice-amounts {
+      flex: 1 1 auto;
+      min-width: 0;
+      margin-left: 0 !important;
+    }
+    #invoiceCard .invoice-amounts > div {
+      min-width: 0;
+      gap: 8px;
+    }
+    #invoiceCard #lblTotal,
+    #invoiceCard #lblDeposit,
+    #invoiceCard #lblBalance {
+      min-width: 0;
+      max-width: 100%;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+    #invoiceCard #invTotalAmount,
+    #invoiceCard #invDepositAmount,
+    #invoiceCard #invBalanceAmount,
+    #invoiceCard #invMmkAmount {
+      flex: 0 0 auto;
+    }
+
     /* Users and logs */
     #tab-users .settings-block { background: #f8fafc; border-style: solid; border-color: #e2e8f0; }
     #tab-users .inline-row > input,
@@ -861,6 +918,59 @@
       #tab-invoice .invoice-controls { padding: 12px; }
       #tab-invoice .invoice-card { flex-basis: 100%; min-height: 520px; }
       #tab-invoice .invoice-grid { grid-template-columns: 1fr; }
+
+      /* Phone layout: keep every invoice label on one line */
+      #invoiceCard .invoice-total {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 10px;
+      }
+      #invoiceCard .invoice-qr {
+        flex: 0 0 auto;
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        padding: 0 0 10px !important;
+        border-right: 0 !important;
+        border-bottom: 1px dashed #d4d4d8;
+      }
+      #invoiceCard .invoice-qr-caption {
+        width: 100%;
+        max-width: 100%;
+        font-size: clamp(8px, 3vw, 11px) !important;
+        line-height: 1.25;
+        white-space: nowrap;
+        overflow: visible;
+      }
+      #invoiceCard .invoice-amounts {
+        width: 100%;
+        flex: 0 0 auto;
+      }
+      #invoiceCard .invoice-amounts > div {
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 5px;
+      }
+      #invoiceCard #lblTotal,
+      #invoiceCard #lblDeposit,
+      #invoiceCard #lblBalance {
+        flex: 1 1 auto;
+        width: auto;
+        max-width: none;
+        min-width: 0;
+        font-size: clamp(8px, 2.8vw, 13px);
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: visible;
+      }
+      #invoiceCard #invTotalAmount,
+      #invoiceCard #invDepositAmount,
+      #invoiceCard #invBalanceAmount,
+      #invoiceCard #invMmkAmount {
+        flex: 0 0 auto;
+        margin-left: auto;
+        font-size: clamp(14px, 4.6vw, 19px) !important;
+      }
       #tab-scanner .field.full-width[style*="background"] > div { align-items: stretch !important; }
       #tab-scanner .field.full-width[style*="background"] input[type="file"],
       #tab-scanner .field.full-width[style*="background"] button { width: 100%; }
@@ -1915,12 +2025,12 @@
 
                 <div class="invoice-total" style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 15px;">
                   
-                  <div id="qrCodeContainer" style="display:none; text-align:center; padding-right: 15px; border-right: 1px dashed #d4d4d8;">
+                  <div id="qrCodeContainer" class="invoice-qr" style="display:none; text-align:center; border-right: 1px dashed #d4d4d8;">
     <img id="invDynamicQR" src="" style="width: 85px; height: 85px; border: 2px solid #4f46e5; border-radius: 8px; padding: 3px; object-fit: contain;" />
-    <div style="font-size: 11px; color: #4f46e5; font-weight: 800; margin-top: 4px;">ငွေပေးချေရန် Scan ဖတ်ပါ</div>
+    <div class="invoice-qr-caption" style="color: #4f46e5; font-weight: 800;">ငွေပေးချေရန် Scan ဖတ်ပါ</div>
 </div>
 
-                  <div style="flex-grow: 1; margin-left: 15px; display: flex; flex-direction: column; justify-content: flex-end;">
+                  <div class="invoice-amounts" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end;">
                     
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div style="font-weight:900;" id="lblTotal">စုစုပေါင်း (THB)</div>
