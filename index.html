@@ -2991,6 +2991,7 @@
       } catch (e) { console.error("Load settings error:", e); }
 
       renderDropdowns();
+      syncEntrySettlementUI();
 
       if ($("statusesSetting")) $("statusesSetting").value = dropdownSettings.customerStatuses.join("\n");
       if ($("channelsSetting")) $("channelsSetting").value = dropdownSettings.customerChannels.join("\n");
@@ -3082,6 +3083,7 @@
         await setDoc(doc(db, "settings", "telegram"), telegramSettings, { merge: true });
         await setDoc(doc(db, "settings", "servicePricing"), { services: servicePricing }, { merge: true });
         renderDropdowns();
+        syncEntrySettlementUI();
         msg.textContent = "✅ Settings များကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။"; msg.className = "message success";
       } catch(e) { msg.textContent = "❌ Save failed: " + e.message; msg.className = "message error"; }
     });
@@ -4146,6 +4148,13 @@
     ["appointmentDate","expiryDate"].forEach(id => $(id)?.addEventListener("input", syncEntryDateDisplays));
     syncEntryDateDisplays();
 
+    function fillSavedNameOptions(el, names, selected) {
+      if (!el) return;
+      const values = [...new Set((names || []).filter(Boolean))];
+      el.innerHTML = values.map(n => `<option value="${String(n).replace(/"/g,'&quot;')}">${n}</option>`).join("");
+      el.value = values.includes(selected) ? selected : (values[0] || "");
+    }
+
     // --- Optional Entry settlement behavior: closed unless explicitly enabled ---
     function syncEntrySettlementUI() {
       const enabled = !!$("entrySettlementEnabled")?.checked;
@@ -4153,9 +4162,18 @@
       if (fields) fields.style.display = enabled ? "grid" : "none";
       const source = $("agentName");
       const handler = $("serviceProviderName");
-      if (typeof fillOptions === "function" && typeof dropdownSettings !== "undefined") {
-        if (source) fillOptions(source, [...new Set(["Direct / ကိုယ်တိုင်ရ", ...(dropdownSettings.sourceList || [])])], source.value || "Direct / ကိုယ်တိုင်ရ");
-        if (handler) fillOptions(handler, [...new Set(["ကိုယ်တိုင်လုပ်", ...(dropdownSettings.handlerList || [])])], handler.value || "ကိုယ်တိုင်လုပ်");
+      if (typeof dropdownSettings !== "undefined") {
+        if (source) fillSavedNameOptions(source, ["Direct / ကိုယ်တိုင်ရ", ...(dropdownSettings.sourceList || [])], source.value || "Direct / ကိုယ်တိုင်ရ");
+        if (handler) fillSavedNameOptions(handler, ["ကိုယ်တိုင်လုပ်", ...(dropdownSettings.handlerList || [])], handler.value || "ကိုယ်တိုင်လုပ်");
+      }
+      const isDirect = !source || !source.value || source.value === "Direct / ကိုယ်တိုင်ရ";
+      const agentStatusField = $("agentSettlementStatus")?.closest(".field");
+      const agentAmountField = $("agentPayable")?.closest(".field");
+      if (agentStatusField) agentStatusField.style.display = isDirect ? "none" : "block";
+      if (agentAmountField) agentAmountField.style.display = isDirect ? "none" : "block";
+      if (isDirect) {
+        if ($("agentPayable")) $("agentPayable").value = "";
+        if ($("agentSettlementStatus")) $("agentSettlementStatus").value = "pending";
       }
       if (!enabled) {
         if (source) source.value = "Direct / ကိုယ်တိုင်ရ";
@@ -4182,6 +4200,7 @@
       }
     }
     $("entrySettlementEnabled")?.addEventListener("change", syncEntrySettlementUI);
+    $("agentName")?.addEventListener("change", syncEntrySettlementUI);
     $("appointmentForm")?.addEventListener("reset", () => setTimeout(() => { syncEntrySettlementUI(); syncEntryDateDisplays(); }, 0));
     $("serviceProviderSettlementType")?.addEventListener("change", () => {
       syncSettlementInputState();
@@ -4873,6 +4892,18 @@
       if($("sumExpiring")) $("sumExpiring").textContent = expiringCount;
     }
 
+    function syncDashboardAgentUI() {
+      const directSource = !$('dashSourceName') || !$('dashSourceName').value || $('dashSourceName').value === "Direct / ကိုယ်တိုင်ရ";
+      const dashAgentStatusField = $('dashAgentStatus')?.closest('.field');
+      const dashAgentAmountField = $('dashAgentPayable')?.closest('.field');
+      if (dashAgentStatusField) dashAgentStatusField.style.display = directSource ? 'none' : 'block';
+      if (dashAgentAmountField) dashAgentAmountField.style.display = directSource ? 'none' : 'block';
+      if (directSource) {
+        if ($('dashAgentPayable')) $('dashAgentPayable').value = "";
+        if ($('dashAgentStatus')) $('dashAgentStatus').value = "pending";
+      }
+    }
+
     function loadDashboardSettlementEditor() {
       const id = $("settlementAppointmentSelect")?.value || "";
       const fields = $("settlementEditorFields");
@@ -4902,6 +4933,7 @@
       if (info) info.textContent = `Date: ${a.date || "-"}  |  Customer: ${a.name || "-"}  |  Service: ${a.serviceType || "-"}  |  Customer Status: ${a.customerStatus || "-"}  |  Default Cost: ${defaultCost != null ? Number(defaultCost).toFixed(2) + " THB" : "-"}`;
       $("dashProviderAmount").disabled = !$("dashProviderType").value;
       $("dashProviderName").disabled = false;
+      syncDashboardAgentUI();
     }
 
     let settlementSummaryFilter = "";
@@ -5822,6 +5854,7 @@
       setTimeout(() => win.print(), 400);
     });
     $("settlementAppointmentSelect")?.addEventListener("change", loadDashboardSettlementEditor);
+    $("dashSourceName")?.addEventListener("change", syncDashboardAgentUI);
     $("settlementAppointmentSearch")?.addEventListener("input", () => {
       if ($("settlementAppointmentSelect")) $("settlementAppointmentSelect").value = "";
       renderSettlementDashboard();
