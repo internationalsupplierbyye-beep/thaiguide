@@ -583,6 +583,8 @@
     .settings-tab-panels { min-height: 250px; }
     .settings-tab-panel { display: none; animation: fadeIn .16s ease-out; }
     .settings-tab-panel.active { display: block; }
+    .settings-tab-panel > .panel-card,
+    .user-access-panel { margin: 0 !important; max-width: none; box-shadow: none; border: 0; background: transparent; padding: 0; }
     .settings-section-intro {
       display: flex;
       align-items: baseline;
@@ -1012,7 +1014,25 @@
     /* --- Entry Input Design Polish --- */
     #appointmentForm {
       gap: 16px 16px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      justify-content: center;
     }
+    @media (max-width: 1200px) {
+      #appointmentForm { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 1000px) {
+      #appointmentForm { grid-template-columns: repeat(2, minmax(0, 360px)); }
+    }
+    @media (max-width: 600px) {
+      #appointmentForm { grid-template-columns: 1fr; }
+    }
+    #appointmentForm input[type="date"] { max-width: 320px; }
+    .entry-date-format { display:block; margin-top:4px; color:#64748b; font-size:11px; font-weight:700; }
+    .entry-schedule-row { grid-column: 1 / -1; display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px 14px; align-items:start; width:100%; }
+    .entry-schedule-row .field { min-width:0; }
+    @media (max-width: 1200px) { .entry-schedule-row { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 1000px) { .entry-schedule-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 600px) { .entry-schedule-row { grid-template-columns: 1fr; } }
     #appointmentForm > .field,
     #appointmentForm .field {
       min-width: 0;
@@ -1740,6 +1760,7 @@
               </select>
             </div>
 
+            <div class="entry-schedule-row full-width">
             <div class="field">
               <label for="location">ဝန်ဆောင်မှုယူမည့်နေရာ</label>
               <select id="location" required></select>
@@ -1748,6 +1769,7 @@
             <div class="field">
               <label for="appointmentDate">ဝန်ဆောင်မှုရယူမည့်ရက်</label>
               <input type="date" id="appointmentDate" />
+              <small id="appointmentDateDisplay" class="entry-date-format">dd/mm/yyyy</small>
               <small>ရက်မသေချာသေးပါက မရွေးဘဲထားနိုင်သည်</small>
             </div>
 
@@ -1763,16 +1785,19 @@
             <div class="field">
               <label for="expiryDate">Expiry Date (သက်တမ်းကုန်မည့်ရက်)</label>
               <input type="date" id="expiryDate" />
+              <small id="expiryDateDisplay" class="entry-date-format">dd/mm/yyyy</small>
               <small>Visa / MOU ကဲ့သို့ သက်တမ်းကုန်မည့် ဝန်ဆောင်မှုများအတွက်</small>
             </div>
             
             <div class="field">
               <label for="alertDays">Alert Before (Days)</label>
-              <input type="number" id="alertDays" value="30" min="1" />
+              <input type="number" id="alertDays" value="" min="1" placeholder="Optional" />
               <small>သက်တမ်းမကုန်ခင် ဘယ်နှရက်အလိုမှာ သတိပေးရမလဲ</small>
             </div>
             
-            <div class="field full-width" style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 8px;">
+            </div>
+
+            <div class="field full-width" style="background: #f8fafc; padding: 22px 16px 16px; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 12px;">
               <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--primary);">💰 ဈေးနှုန်းနှင့် ငွေပေးချေမှု</h4>
               
               <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 18px;">
@@ -1818,6 +1843,23 @@
                   <select id="paymentType" required></select>
                 </div>
 
+              </div>
+            </div>
+
+            <div class="field full-width" style="background:#fff7ed; padding:14px 16px; border-radius:12px; border:1px dashed #fdba74; margin-top:8px;">
+              <label class="toggle" style="font-weight:800; color:#9a3412;">
+                <input type="checkbox" id="entrySettlementEnabled" />
+                💼 Agent / Service Provider Settlement ကို ဒီ Entry မှာ ဖြည့်မည်
+              </label>
+              <small style="display:block; margin-top:6px; color:#9a3412;">လိုအပ်တဲ့ Appointment တွေမှာပဲ ဖွင့်ပါ။ Save လုပ်ပြီးတာနဲ့ Settlement Tab ထဲကို အလိုအလျောက်ပါလာပါမယ်။</small>
+              <div id="entrySettlementFields" style="display:none; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:10px;">
+                <div class="field"><label for="agentName">Source / Agent</label><select id="agentName"><option value="Direct / ကိုယ်တိုင်ရ">Direct / ကိုယ်တိုင်ရ</option></select></div>
+                <div class="field"><label for="agentSettlementStatus">Agent Status</label><select id="agentSettlementStatus"><option value="pending">မရှင်းရသေး</option><option value="settled">ရှင်းပြီး</option></select></div>
+                <div class="field"><label for="agentPayable">Agent ကော်မရှင် / ပေးရန်</label><input type="number" id="agentPayable" min="0" step="0.01" placeholder="0.00" /></div>
+                <div class="field"><label for="serviceProviderName">Service Handler</label><select id="serviceProviderName"><option value="ကိုယ်တိုင်လုပ်">ကိုယ်တိုင်လုပ်</option></select></div>
+                <div class="field"><label for="serviceProviderSettlementType">Handler ငွေဘက်</label><select id="serviceProviderSettlementType"><option value="">-- မရှိပါ --</option><option value="payable">Handler ကို ပေးရန်</option><option value="receivable">Handler ဆီမှ ရရန်</option></select></div>
+                <div class="field"><label for="serviceProviderSettlementAmount">Handler ငွေပမာဏ</label><input type="number" id="serviceProviderSettlementAmount" min="0" step="0.01" placeholder="Cost / Profit" /></div>
+                <div class="field"><label for="serviceProviderSettlementStatus">Handler Status</label><select id="serviceProviderSettlementStatus"><option value="pending">မရှင်းရသေး</option><option value="settled">ရှင်းပြီး</option></select></div>
               </div>
             </div>
 
@@ -2362,7 +2404,7 @@
           </div>
 
             <div id="settings-panel-users" class="settings-tab-panel" role="tabpanel" hidden>
-        <div class="panel-card">
+        <div class="user-access-panel">
           <div class="panel-header">
             <div>
               <div class="panel-title"><span>👥 User Management</span> <span class="badge">Admin Access</span></div>
@@ -4092,22 +4134,65 @@
 
     const form = $("appointmentForm");
     const messageDiv = $("message");
+    function formatEntryDateDMY(value) {
+      if (!value) return "dd/mm/yyyy";
+      const parts = String(value).split("-");
+      return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : "dd/mm/yyyy";
+    }
+    function syncEntryDateDisplays() {
+      if ($("appointmentDateDisplay")) $("appointmentDateDisplay").textContent = formatEntryDateDMY($("appointmentDate")?.value);
+      if ($("expiryDateDisplay")) $("expiryDateDisplay").textContent = formatEntryDateDMY($("expiryDate")?.value);
+    }
+    ["appointmentDate","expiryDate"].forEach(id => $(id)?.addEventListener("input", syncEntryDateDisplays));
+    syncEntryDateDisplays();
 
-    // --- Settlement input behavior: provider can be payable OR receivable, never both ---
+    // --- Optional Entry settlement behavior: closed unless explicitly enabled ---
+    function syncEntrySettlementUI() {
+      const enabled = !!$("entrySettlementEnabled")?.checked;
+      const fields = $("entrySettlementFields");
+      if (fields) fields.style.display = enabled ? "grid" : "none";
+      const source = $("agentName");
+      const handler = $("serviceProviderName");
+      if (typeof fillOptions === "function" && typeof dropdownSettings !== "undefined") {
+        if (source) fillOptions(source, [...new Set(["Direct / ကိုယ်တိုင်ရ", ...(dropdownSettings.sourceList || [])])], source.value || "Direct / ကိုယ်တိုင်ရ");
+        if (handler) fillOptions(handler, [...new Set(["ကိုယ်တိုင်လုပ်", ...(dropdownSettings.handlerList || [])])], handler.value || "ကိုယ်တိုင်လုပ်");
+      }
+      if (!enabled) {
+        if (source) source.value = "Direct / ကိုယ်တိုင်ရ";
+        if ($("agentPayable")) $("agentPayable").value = "";
+        if (handler) handler.value = "ကိုယ်တိုင်လုပ်";
+        if ($("serviceProviderSettlementType")) $("serviceProviderSettlementType").value = "";
+        if ($("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = "";
+        if ($("agentSettlementStatus")) $("agentSettlementStatus").value = "pending";
+        if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = "pending";
+      }
+      syncSettlementInputState();
+    }
     function syncSettlementInputState() {
-      const type = $("serviceProviderSettlementType")?.value || "";
+      const enabled = !!$("entrySettlementEnabled")?.checked;
+      const type = enabled ? ($("serviceProviderSettlementType")?.value || "") : "";
       const amount = $("serviceProviderSettlementAmount");
       const name = $("serviceProviderName");
       if (amount) amount.disabled = !type;
       if (name) name.disabled = !type;
-      if (!type) {
+      if (!type && enabled) {
         if (amount) amount.value = "";
-        if (name) name.value = "";
+        if (name) name.value = "ကိုယ်တိုင်လုပ်";
         if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = "pending";
       }
     }
-    $("serviceProviderSettlementType")?.addEventListener("change", syncSettlementInputState);
-    syncSettlementInputState();
+    $("entrySettlementEnabled")?.addEventListener("change", syncEntrySettlementUI);
+    $("appointmentForm")?.addEventListener("reset", () => setTimeout(() => { syncEntrySettlementUI(); syncEntryDateDisplays(); }, 0));
+    $("serviceProviderSettlementType")?.addEventListener("change", () => {
+      syncSettlementInputState();
+      if (!( $("entrySettlementEnabled")?.checked )) return;
+      const type = $("serviceProviderSettlementType").value;
+      const cost = Number($("cost")?.value || 0);
+      const price = Number($("price")?.value || 0);
+      const amount = type === "receivable" ? Math.max(price - cost, 0) : cost;
+      if (amount > 0 && $("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = amount.toFixed(2);
+    });
+    syncEntrySettlementUI();
 
     // --- 🚀 NEW: Handover Notes Log ---
     function renderNotesLog(notesArr) {
@@ -4405,7 +4490,7 @@
         appointmentDate: $("appointmentDate").value, 
         appointmentTime: $("appointmentTime").value || null,
         expiryDate: $("expiryDate").value || null,
-        alertDays: $("alertDays").value || 30,
+        alertDays: $("alertDays").value ? Number($("alertDays").value) : null,
         name: $("name").value.trim(), 
         docNumber: $("docNumber").value.trim() || null,
         socialName: $("socialName").value.trim() || null,
@@ -4425,13 +4510,14 @@
         remark: $("remark").value.trim() || null,
         internalRemark: $("internalRemark").value.trim() || null,
         assignedTo: $("assignedTo") ? ($("assignedTo").value || null) : null,
-        agentName: $("agentName") ? ($("agentName").value.trim() || null) : null,
-        agentPayable: $("agentPayable") ? Number($("agentPayable").value || 0) : 0,
-        agentSettlementStatus: $("agentSettlementStatus") ? ($("agentSettlementStatus").value || "pending") : "pending",
-        serviceProviderName: $("serviceProviderName") ? ($("serviceProviderName").value.trim() || null) : null,
-        serviceProviderSettlementType: $("serviceProviderSettlementType") ? ($("serviceProviderSettlementType").value || null) : null,
-        serviceProviderSettlementAmount: $("serviceProviderSettlementAmount") ? Number($("serviceProviderSettlementAmount").value || 0) : 0,
-        serviceProviderSettlementStatus: $("serviceProviderSettlementStatus") ? ($("serviceProviderSettlementStatus").value || "pending") : "pending"
+        entrySettlementEnabled: !!$("entrySettlementEnabled")?.checked,
+        agentName: $("entrySettlementEnabled")?.checked && $("agentName") ? ($("agentName").value.trim() || null) : null,
+        agentPayable: $("entrySettlementEnabled")?.checked && $("agentPayable") ? Number($("agentPayable").value || 0) : 0,
+        agentSettlementStatus: $("entrySettlementEnabled")?.checked && $("agentSettlementStatus") ? ($("agentSettlementStatus").value || "pending") : "pending",
+        serviceProviderName: $("entrySettlementEnabled")?.checked && $("serviceProviderName") ? ($("serviceProviderName").value.trim() || null) : null,
+        serviceProviderSettlementType: $("entrySettlementEnabled")?.checked && $("serviceProviderSettlementType") ? ($("serviceProviderSettlementType").value || null) : null,
+        serviceProviderSettlementAmount: $("entrySettlementEnabled")?.checked && $("serviceProviderSettlementAmount") ? Number($("serviceProviderSettlementAmount").value || 0) : 0,
+        serviceProviderSettlementStatus: $("entrySettlementEnabled")?.checked && $("serviceProviderSettlementStatus") ? ($("serviceProviderSettlementStatus").value || "pending") : "pending"
       };
 
       if (!invoiceId || !data.date || !data.name || !data.phone || !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
@@ -5447,10 +5533,10 @@
 
       $("date").value = todayISO(); 
       
-      $("appointmentDate").value = ""; 
+      $("appointmentDate").value = ""; syncEntryDateDisplays();
       $("appointmentTime").value = "";
       $("expiryDate").value = "";
-      $("alertDays").value = a.alertDays || "30";
+      $("alertDays").value = a.alertDays != null ? a.alertDays : "";
 
       const filesDiv = $("existingFilesContainer");
       if (filesDiv) {
@@ -5505,7 +5591,8 @@
       if ($("serviceProviderSettlementType")) $("serviceProviderSettlementType").value = a.serviceProviderSettlementType || "";
       if ($("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = a.serviceProviderSettlementAmount != null ? a.serviceProviderSettlementAmount : "";
       if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = a.serviceProviderSettlementStatus || "pending";
-      syncSettlementInputState();
+      if ($("entrySettlementEnabled")) $("entrySettlementEnabled").checked = !!(a.entrySettlementEnabled || a.agentName || Number(a.agentPayable || 0) > 0 || a.serviceProviderName || a.serviceProviderSettlementType);
+      syncEntrySettlementUI();
       $("remark").value = a.remark || ""; updateDepositUI();
       $("internalRemark").value = a.internalRemark || "";
 
@@ -5628,10 +5715,10 @@
       $("appointmentForm").dataset.dupMatchedLinks = JSON.stringify(a.ocrMatchedLinks || []);
 
       $("date").value = a.date || ""; 
-      $("appointmentDate").value = a.appointmentDate || ""; 
+      $("appointmentDate").value = a.appointmentDate || ""; syncEntryDateDisplays(); 
       $("appointmentTime").value = a.appointmentTime || "";
-      $("expiryDate").value = a.expiryDate || "";
-      $("alertDays").value = a.alertDays || "30";
+      $("expiryDate").value = a.expiryDate || ""; syncEntryDateDisplays();
+      $("alertDays").value = a.alertDays != null ? a.alertDays : "";
 
       $("name").value = a.name || ""; 
       $("docNumber").value = a.docNumber || "";
@@ -5667,7 +5754,8 @@
       if ($("serviceProviderSettlementType")) $("serviceProviderSettlementType").value = a.serviceProviderSettlementType || "";
       if ($("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = a.serviceProviderSettlementAmount != null ? a.serviceProviderSettlementAmount : "";
       if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = a.serviceProviderSettlementStatus || "pending";
-      syncSettlementInputState();
+      if ($("entrySettlementEnabled")) $("entrySettlementEnabled").checked = !!(a.entrySettlementEnabled || a.agentName || Number(a.agentPayable || 0) > 0 || a.serviceProviderName || a.serviceProviderSettlementType);
+      syncEntrySettlementUI();
       $("remark").value = a.remark || ""; updateDepositUI();
       if ($("assignedTo")) { ensureOption($("assignedTo"), a.assignedTo); $("assignedTo").value = a.assignedTo || ""; }
       pendingNewNotes = [];
@@ -5716,16 +5804,20 @@
       const exportTable = document.createElement("table");
       exportTable.innerHTML = `<thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Service</th><th>Person</th><th>အမျိုးအစား</th><th>Amount</th><th>Status</th></tr></thead><tbody></tbody>`;
       const exportBody = exportTable.querySelector("tbody");
+      let payableTotal = 0, receivableTotal = 0;
       bodyRows.forEach(tr => {
         const cells = tr.children;
         const statusSelect = cells[8]?.querySelector("select");
         const direction = statusSelect?.dataset.direction || "";
+        const amount = Number((cells[7]?.textContent || "").replace(/[^0-9.-]/g, "")) || 0;
+        if (direction === "provider_receivable") receivableTotal += amount; else payableTotal += amount;
         const person = direction === "agent_payable" ? cells[4]?.textContent?.trim() : cells[5]?.textContent?.trim();
         exportBody.insertAdjacentHTML("beforeend", `<tr><td>${cells[0]?.innerHTML || ""}</td><td>${cells[1]?.innerHTML || ""}</td><td>${cells[2]?.innerHTML || ""}</td><td>${cells[3]?.innerHTML || ""}</td><td>${person || "-"}</td><td>${cells[6]?.innerHTML || ""}</td><td>${cells[7]?.innerHTML || ""}</td><td>${statusSelect?.selectedOptions?.[0]?.textContent || ""}</td></tr>`);
       });
+      const reportTotals = `<div class="report-totals"><div><strong>စုစုပေါင်း ပေးရန်:</strong> ${payableTotal.toFixed(2)} THB</div><div><strong>စုစုပေါင်း ရရန်:</strong> ${receivableTotal.toFixed(2)} THB</div><div><strong>Net (ရရန် − ပေးရန်):</strong> ${(receivableTotal - payableTotal).toFixed(2)} THB</div></div>`;
       const win = window.open("", "_blank", "width=1100,height=800");
       if (!win) return showToast("PDF window ဖွင့်မရပါ။ Browser popup ကို Allow လုပ်ပါ", "error");
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Settlement Report</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111827}h1{font-size:20px;margin:0 0 6px}p{color:#475569}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left;font-size:12px}th{background:#e0e7ff} @media print{button{display:none}}</style></head><body><h1>Settlement Report</h1><p>Date: ${from} → ${to}</p>${exportTable.outerHTML}<p style="margin-top:20px">Generated from Thailand Guide Appointment Hub</p><button onclick="window.print()">Print / Save as PDF</button></body></html>`);
+      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Settlement Report</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111827}h1{font-size:20px;margin:0 0 6px}p{color:#475569}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left;font-size:12px}th{background:#e0e7ff}.report-totals{display:flex;gap:24px;margin-top:18px;padding:12px;border:1px solid #cbd5e1;background:#f8fafc;font-size:13px} @media print{button{display:none}}</style></head><body><h1>Settlement Report</h1><p>Date: ${from} → ${to}</p>${exportTable.outerHTML}${reportTotals}<p style="margin-top:20px">Generated from Thailand Guide Appointment Hub</p><button onclick="window.print()">Print / Save as PDF</button></body></html>`);
       win.document.close();
       setTimeout(() => win.print(), 400);
     });
