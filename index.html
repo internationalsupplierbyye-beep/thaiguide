@@ -73,7 +73,15 @@
       flex-wrap: wrap; 
       justify-content:flex-end;
     }
-    .tabs{display:flex;gap:6px;background:rgba(15,23,42,.05);padding:3px;border-radius:999px}
+    .tabs{display:flex;gap:6px;background:rgba(255,255,255,.96);padding:3px;border-radius:999px;overflow-x:auto;max-width:100%;box-shadow:0 3px 10px rgba(15,23,42,.08)}
+    .tabs.is-fixed{position:fixed;top:0;left:50%;transform:translateX(-50%);width:min(calc(100vw - 20px),1350px);max-width:none;border-radius:0 0 12px 12px;z-index:1000;box-shadow:0 5px 16px rgba(15,23,42,.22)}
+    #tab-entry small:not(.entry-date-format){display:none !important}
+    #tab-dashboard table th,#tab-dashboard table td{padding:2px 4px !important;line-height:1.12 !important;font-size:11px !important}
+    #tab-dashboard table tr{height:26px}
+    #tab-dashboard table td > div{margin-top:0 !important;margin-bottom:0 !important;gap:2px !important;line-height:1.08 !important}
+    #tab-dashboard table td small{font-size:10px !important;line-height:1.05 !important;margin-top:0 !important}
+    #tab-dashboard table .status-select{padding:1px 4px !important;font-size:10px !important;line-height:1.15 !important}
+    #tab-dashboard table .btn{padding:2px 5px !important;font-size:10px !important;line-height:1.15 !important}
     .tab-btn{
       border:none;background:transparent;
       padding:6px 14px;border-radius:999px;
@@ -746,7 +754,9 @@
       gap: 12px;
       margin-bottom: 16px;
     }
-    #tab-dashboard .summary-card { min-height: 96px; padding: 16px; border-radius: 14px; }
+    #tab-dashboard .summary-card { min-height: 76px; padding: 10px 12px; border-radius: 12px; gap: 2px; }
+    #tab-dashboard .summary-card .summary-value { font-size: 22px; }
+    #tab-dashboard .summary-card .summary-title { font-size: 10px; }
     #tab-dashboard .summary-value { font-size: 25px; }
     #statusTabsContainer {
       width: 100% !important;
@@ -918,7 +928,11 @@
     }
     @media (max-width: 600px) {
       #tab-dashboard .summary-grid { grid-template-columns: 1fr; }
-      #tab-dashboard .summary-card { min-height: 78px; }
+      #tab-dashboard .summary-card { min-height: 66px; padding: 8px 10px; }
+      #tab-dashboard .summary-card .summary-value { font-size: 20px; }
+      #tab-dashboard table th,#tab-dashboard table td{padding:2px 3px !important;font-size:10px !important;line-height:1.08 !important}
+      #tab-dashboard table tr{height:24px}
+      .tabs.is-fixed{width:100vw;border-radius:0}
       #tab-invoice .invoice-controls { padding: 12px; }
       #tab-invoice .invoice-card { flex-basis: 100%; min-height: 520px; }
       #tab-invoice .invoice-grid { grid-template-columns: 1fr; }
@@ -1745,7 +1759,6 @@
               <select id="assignedTo">
                 <option value="">-- Unassigned --</option>
               </select>
-              <small>Settings &gt; Staff List တွင် နာမည်များ ထည့်နိုင်ပါသည်</small>
             </div>
 
             <div class="field">
@@ -1770,7 +1783,6 @@
               <label for="appointmentDate">ဝန်ဆောင်မှုရယူမည့်ရက်</label>
               <input type="date" id="appointmentDate" />
               <small id="appointmentDateDisplay" class="entry-date-format">dd/mm/yyyy</small>
-              <small>ရက်မသေချာသေးပါက မရွေးဘဲထားနိုင်သည်</small>
             </div>
 
             <div class="field">
@@ -1779,20 +1791,17 @@
                 <input type="time" id="appointmentTime" step="300" style="flex:1;" />
                 <button type="button" class="btn btn-outline" onclick="document.getElementById('appointmentTime').value=''" style="padding: 8px 12px; font-size: 14px;" title="အချိန်ကို ဖျက်မည်">✖</button>
               </div>
-              <small>မရွေးလည်း Save ရပါတယ် (Optional)</small>
             </div>
 
             <div class="field">
               <label for="expiryDate">Expiry Date (သက်တမ်းကုန်မည့်ရက်)</label>
               <input type="date" id="expiryDate" />
               <small id="expiryDateDisplay" class="entry-date-format">dd/mm/yyyy</small>
-              <small>Visa / MOU ကဲ့သို့ သက်တမ်းကုန်မည့် ဝန်ဆောင်မှုများအတွက်</small>
             </div>
             
             <div class="field">
               <label for="alertDays">Alert Before (Days)</label>
               <input type="number" id="alertDays" value="" min="1" placeholder="Optional" />
-              <small>သက်တမ်းမကုန်ခင် ဘယ်နှရက်အလိုမှာ သတိပေးရမလဲ</small>
             </div>
             
             </div>
@@ -1857,8 +1866,8 @@
                 <div class="field"><label for="agentSettlementStatus">Agent Status</label><select id="agentSettlementStatus"><option value="pending">မရှင်းရသေး</option><option value="settled">ရှင်းပြီး</option></select></div>
                 <div class="field"><label for="agentPayable">Agent ကော်မရှင် / ပေးရန်</label><input type="number" id="agentPayable" min="0" step="0.01" placeholder="0.00" /></div>
                 <div class="field"><label for="serviceProviderName">Service Handler</label><select id="serviceProviderName"><option value="ကိုယ်တိုင်လုပ်">ကိုယ်တိုင်လုပ်</option></select></div>
-                <div class="field"><label for="serviceProviderSettlementType">Handler ငွေဘက်</label><select id="serviceProviderSettlementType"><option value="">-- မရှိပါ --</option><option value="payable">Handler ကို ပေးရန်</option><option value="receivable">Handler ဆီမှ ရရန်</option></select></div>
-                <div class="field"><label for="serviceProviderSettlementAmount">Handler ငွေပမာဏ</label><input type="number" id="serviceProviderSettlementAmount" min="0" step="0.01" placeholder="Cost / Profit" /></div>
+                <div class="field"><label for="serviceProviderSettlementType">Handler ငွေဘက်</label><select id="serviceProviderSettlementType" disabled><option value="">-- Handler ရွေးပြီးမှ ရွေးပါ --</option><option value="payable">Handler ကို ပေးရန်</option><option value="receivable">Handler ဆီမှ ရရန်</option></select></div>
+                <div class="field"><label for="serviceProviderSettlementAmount">Handler ငွေပမာဏ</label><input type="number" id="serviceProviderSettlementAmount" min="0" step="0.01" placeholder="Cost / Profit" disabled /></div>
                 <div class="field"><label for="serviceProviderSettlementStatus">Handler Status</label><select id="serviceProviderSettlementStatus"><option value="pending">မရှင်းရသေး</option><option value="settled">ရှင်းပြီး</option></select></div>
               </div>
             </div>
@@ -1936,6 +1945,9 @@
             </div>
             <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
               <button class="btn btn-secondary" id="reloadAppointments">Reload Data</button>
+              <label class="toggle" style="font-size:12px; gap:5px; white-space:nowrap;">
+                <input type="checkbox" id="exportIncludeSettlement" /> Settlement ပါဝင်စေမည်
+              </label>
               <button class="btn btn-secondary action-export-ui" id="exportCsv" style="display:none;">Export CSV (Excel)</button>
             </div>
           </div>
@@ -2026,12 +2038,13 @@
                   <th>Deposit</th>
                   <th>Balance</th>
                   <th>Profit</th>
+                  <th>Settlement</th>
                   <th>Remark</th>
                 </tr>
               </thead>
               <tbody id="appointmentsTableBody">
                 <tr>
-                  <td colspan="15" style="text-align:center; padding:10px;">
+                  <td colspan="16" style="text-align:center; padding:10px;">
                     Data မရှိသေးပါ… "Reload Data" ကိုနှိပ်ပါ
                   </td>
                 </tr>
@@ -2496,6 +2509,31 @@
       </div>
     </div>
 
+    <div id="quickSettlementModal" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width: 760px; width: calc(100% - 28px);">
+        <div class="modal-header">
+          <h3>💼 Settlement ဖြည့်ရန်</h3>
+          <button class="close-btn" id="closeQuickSettlementModal" type="button">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="quickSettlementInfo" style="margin-bottom:12px; padding:9px 11px; background:#eef2ff; border-radius:8px; color:#3730a3; font-size:12px;"></div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px;">
+            <div class="field"><label for="quickSourceName">Source / Agent</label><select id="quickSourceName"><option value="Direct / ကိုယ်တိုင်ရ">Direct / ကိုယ်တိုင်ရ</option></select></div>
+            <div class="field" id="quickAgentStatusWrap"><label for="quickAgentStatus">Agent Status</label><select id="quickAgentStatus"><option value="pending">မရှင်းရသေး</option><option value="settled">ရှင်းပြီး</option></select></div>
+            <div class="field" id="quickAgentAmountWrap"><label for="quickAgentAmount">Agent ကော်မရှင် / ပေးရန်</label><input id="quickAgentAmount" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+            <div class="field"><label for="quickHandlerName">Service Handler</label><select id="quickHandlerName"><option value="ကိုယ်တိုင်လုပ်">ကိုယ်တိုင်လုပ်</option></select></div>
+            <div class="field"><label for="quickHandlerType">Handler ငွေဘက်</label><select id="quickHandlerType" disabled><option value="">-- Handler ရွေးပြီးမှ ရွေးပါ --</option><option value="payable">Handler ကို ပေးရန်</option><option value="receivable">Handler ဆီမှ ရရန်</option></select></div>
+            <div class="field"><label for="quickHandlerAmount">Handler ငွေပမာဏ</label><input id="quickHandlerAmount" type="number" min="0" step="0.01" placeholder="Cost / Profit" disabled /></div>
+            <div class="field"><label for="quickHandlerStatus">Handler Status</label><select id="quickHandlerStatus"><option value="pending">မရှင်းရသေး</option><option value="settled">ရှင်းပြီး</option></select></div>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+            <button class="btn btn-outline" type="button" id="cancelQuickSettlementModal">Cancel</button>
+            <button class="btn btn-primary" type="button" id="saveQuickSettlementBtn">Save Settlement</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="docsModal" class="modal-overlay hidden">
       <div class="modal-content" style="max-width: 800px; height: 90vh;">
         <div class="modal-header">
@@ -2665,7 +2703,7 @@
         
         cachedAppointments = [];
         const tbody = $("appointmentsTableBody");
-        if (tbody) tbody.innerHTML = `<tr><td colspan="15" style="text-align:center; padding:10px;">🔒 Data ကြည့်ရန် Login ဝင်ပါ</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="16" style="text-align:center; padding:10px;">🔒 Data ကြည့်ရန် Login ဝင်ပါ</td></tr>`;
         const form = $("appointmentForm");
         if (form) form.reset();
         if ($("loadMoreBtn")) $("loadMoreBtn").style.display = "none";
@@ -2784,6 +2822,25 @@
         $("tab-" + tab).classList.add("active");
       });
     });
+
+    function initFixedTabBar() {
+      const tabBar = document.querySelector(".tabs");
+      if (!tabBar) return;
+      let originalTop = 0;
+      const measure = () => {
+        tabBar.classList.remove("is-fixed");
+        originalTop = tabBar.getBoundingClientRect().top + window.scrollY;
+        if (window.scrollY > originalTop + 2) tabBar.classList.add("is-fixed");
+      };
+      const sync = () => {
+        if (window.scrollY > originalTop + 2) tabBar.classList.add("is-fixed");
+        else tabBar.classList.remove("is-fixed");
+      };
+      measure();
+      window.addEventListener("scroll", sync, { passive: true });
+      window.addEventListener("resize", measure);
+    }
+    initFixedTabBar();
 
     function addRequiredFieldMarkers() {
       const form = document.getElementById("appointmentForm");
@@ -4191,17 +4248,23 @@
       const type = enabled ? ($("serviceProviderSettlementType")?.value || "") : "";
       const amount = $("serviceProviderSettlementAmount");
       const name = $("serviceProviderName");
-      if (amount) amount.disabled = !type;
-      if (name) name.disabled = !type;
-      if (!type && enabled) {
+      const hasHandler = !!(enabled && name && name.value && name.value !== "ကိုယ်တိုင်လုပ်");
+      const direction = $("serviceProviderSettlementType");
+      if (name) name.disabled = !enabled;
+      if (direction) direction.disabled = !hasHandler;
+      if (amount) amount.disabled = !hasHandler || !type;
+      if (!hasHandler && enabled) {
+        if (direction) direction.value = "";
         if (amount) amount.value = "";
-        if (name) name.value = "ကိုယ်တိုင်လုပ်";
         if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = "pending";
       }
     }
     $("entrySettlementEnabled")?.addEventListener("change", syncEntrySettlementUI);
     $("agentName")?.addEventListener("change", syncEntrySettlementUI);
     $("appointmentForm")?.addEventListener("reset", () => setTimeout(() => { syncEntrySettlementUI(); syncEntryDateDisplays(); }, 0));
+    $("serviceProviderName")?.addEventListener("change", () => {
+      syncSettlementInputState();
+    });
     $("serviceProviderSettlementType")?.addEventListener("change", () => {
       syncSettlementInputState();
       if (!( $("entrySettlementEnabled")?.checked )) return;
@@ -4801,7 +4864,7 @@
       const loadBtn = $("loadMoreBtn");
       
       if (!isLoadMore) {
-        body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Loading...</td></tr>`;
+        body.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:8px;">Loading...</td></tr>`;
         $("dashboardMessage").textContent = "";
         cachedAppointments = [];
         lastVisibleDoc = null;
@@ -4832,11 +4895,11 @@
           if (loadBtn) loadBtn.style.display = (snap.docs.length === fetchLimit) ? "inline-block" : "none";
         } else {
           if (loadBtn) loadBtn.style.display = "none";
-          if (!isLoadMore) body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
+          if (!isLoadMore) body.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
         }
       } catch(e) { 
         console.error(e);
-        if(!isLoadMore) body.innerHTML = `<tr><td colspan="15" style="text-align:center;color:#b91c1c;">Error loading: ${e.message}</td></tr>`; 
+        if(!isLoadMore) body.innerHTML = `<tr><td colspan="16" style="text-align:center;color:#b91c1c;">Error loading: ${e.message}</td></tr>`; 
       }
       
       if (loadBtn && loadBtn.style.display !== "none") loadBtn.textContent = "Load More (နောက်ထပ်ခေါ်ရန်)";
@@ -5057,6 +5120,109 @@
       }));
     }
 
+    function syncQuickAgentUI() {
+      const source = $("quickSourceName")?.value || "Direct / ကိုယ်တိုင်ရ";
+      const direct = source === "Direct / ကိုယ်တိုင်ရ";
+      if ($("quickAgentStatusWrap")) $("quickAgentStatusWrap").style.display = direct ? "none" : "block";
+      if ($("quickAgentAmountWrap")) $("quickAgentAmountWrap").style.display = direct ? "none" : "block";
+      if (direct) {
+        if ($("quickAgentAmount")) $("quickAgentAmount").value = "";
+        if ($("quickAgentStatus")) $("quickAgentStatus").value = "pending";
+      }
+    }
+
+    function syncQuickHandlerUI() {
+      const enabled = !!$("quickSettlementModal") && !$('quickSettlementModal').classList.contains('hidden');
+      const name = $("quickHandlerName")?.value || "ကိုယ်တိုင်လုပ်";
+      const hasHandler = enabled && name !== "ကိုယ်တိုင်လုပ်";
+      if ($("quickHandlerType")) $("quickHandlerType").disabled = !hasHandler;
+      if ($("quickHandlerAmount")) $("quickHandlerAmount").disabled = !hasHandler || !( $("quickHandlerType")?.value );
+      if (!hasHandler) {
+        if ($("quickHandlerType")) $("quickHandlerType").value = "";
+        if ($("quickHandlerAmount")) $("quickHandlerAmount").value = "";
+        if ($("quickHandlerStatus")) $("quickHandlerStatus").value = "pending";
+      }
+    }
+
+    function openQuickSettlementModal(id) {
+      const a = (cachedAppointments || []).find(x => x.id === id);
+      const modal = $("quickSettlementModal");
+      if (!a || !modal) return;
+      const sourceNames = ["Direct / ကိုယ်တိုင်ရ", ...(dropdownSettings.sourceList || []), a.sourceName || a.agentName || ""];
+      const handlerNames = ["ကိုယ်တိုင်လုပ်", ...(dropdownSettings.handlerList || []), a.handlerName || a.serviceProviderName || ""];
+      fillSavedNameOptions($("quickSourceName"), sourceNames, a.sourceName || a.agentName || "Direct / ကိုယ်တိုင်ရ");
+      fillSavedNameOptions($("quickHandlerName"), handlerNames, a.handlerName || a.serviceProviderName || "ကိုယ်တိုင်လုပ်");
+      $("quickAgentStatus").value = a.sourceStatus || a.agentSettlementStatus || "pending";
+      $("quickAgentAmount").value = a.agentCommission != null ? a.agentCommission : (a.agentPayable || "");
+      const handlerType = a.handlerSettlementType || a.serviceProviderSettlementType || "";
+      $("quickHandlerType").value = handlerType;
+      const defaultCost = servicePricing[a.servicePackage ? `${a.serviceType}::${a.servicePackage}` : a.serviceType]?.cost;
+      const profitAmount = a.serviceProfit != null ? Number(a.serviceProfit) : ((a.price != null && a.serviceCost != null) ? Number(a.price) - Number(a.serviceCost) : 0);
+      const savedAmount = a.handlerSettlementAmount != null ? a.handlerSettlementAmount : a.serviceProviderSettlementAmount;
+      const defaultAmount = handlerType === "receivable" ? profitAmount : defaultCost;
+      $("quickHandlerAmount").value = savedAmount != null ? savedAmount : (defaultAmount != null ? Number(defaultAmount).toFixed(2) : "");
+      $("quickHandlerStatus").value = a.handlerSettlementStatus || a.serviceProviderSettlementStatus || "pending";
+      $("quickSettlementInfo").textContent = `${a.date || "-"} · ${(a.invoiceId || a.id || "").toUpperCase()} · ${a.name || "-"} · ${a.serviceType || "-"} · Status: ${a.customerStatus || "-"}`;
+      modal.dataset.appointmentId = id;
+      modal.classList.remove("hidden");
+      syncQuickAgentUI();
+      syncQuickHandlerUI();
+    }
+
+    function closeQuickSettlementModal() { $("quickSettlementModal")?.classList.add("hidden"); }
+    $("closeQuickSettlementModal")?.addEventListener("click", closeQuickSettlementModal);
+    $("cancelQuickSettlementModal")?.addEventListener("click", closeQuickSettlementModal);
+    $("quickSourceName")?.addEventListener("change", syncQuickAgentUI);
+    $("quickHandlerName")?.addEventListener("change", syncQuickHandlerUI);
+    $("quickHandlerType")?.addEventListener("change", () => {
+      syncQuickHandlerUI();
+      const id = $("quickSettlementModal")?.dataset.appointmentId;
+      const a = (cachedAppointments || []).find(x => x.id === id);
+      if (!a || !$("quickHandlerType").value) return;
+      const defaultCost = servicePricing[a.servicePackage ? `${a.serviceType}::${a.servicePackage}` : a.serviceType]?.cost;
+      const profitAmount = a.serviceProfit != null ? Number(a.serviceProfit) : ((a.price != null && a.serviceCost != null) ? Number(a.price) - Number(a.serviceCost) : 0);
+      const amount = $("quickHandlerType").value === "receivable" ? profitAmount : defaultCost;
+      if (amount != null) $("quickHandlerAmount").value = Number(amount).toFixed(2);
+      syncQuickHandlerUI();
+    });
+    $("saveQuickSettlementBtn")?.addEventListener("click", async () => {
+      const id = $("quickSettlementModal")?.dataset.appointmentId;
+      const a = (cachedAppointments || []).find(x => x.id === id);
+      if (!a) return;
+      const source = $("quickSourceName").value || "Direct / ကိုယ်တိုင်ရ";
+      const agentAmount = source === "Direct / ကိုယ်တိုင်ရ" ? 0 : Number($("quickAgentAmount").value || 0);
+      const handler = $("quickHandlerName").value || "ကိုယ်တိုင်လုပ်";
+      const handlerType = $("quickHandlerType").value || null;
+      const handlerAmount = Number($("quickHandlerAmount").value || 0);
+      if (source !== "Direct / ကိုယ်တိုင်ရ" && agentAmount > 0 && !source) return showToast("Source/Agent ကို ရွေးပါ", "error");
+      if ((agentAmount > 0 && source === "Direct / ကိုယ်တိုင်ရ") || (handlerType && (handler === "ကိုယ်တိုင်လုပ်" || handlerAmount <= 0)) || (!handlerType && handlerAmount > 0)) return showToast("Source/Agent နဲ့ Service Handler အချက်အလက်၊ ငွေဘက်၊ ငွေပမာဏကို မှန်ကန်စွာ ဖြည့်ပါ", "error");
+      const patch = {
+        sourceName: source === "Direct / ကိုယ်တိုင်ရ" ? "Direct / ကိုယ်တိုင်ရ" : source,
+        agentName: source === "Direct / ကိုယ်တိုင်ရ" ? null : source,
+        agentCommission: agentAmount,
+        agentPayable: agentAmount,
+        sourceStatus: source === "Direct / ကိုယ်တိုင်ရ" ? "pending" : $("quickAgentStatus").value,
+        agentSettlementStatus: source === "Direct / ကိုယ်တိုင်ရ" ? "pending" : $("quickAgentStatus").value,
+        handlerName: handler === "ကိုယ်တိုင်လုပ်" ? null : handler,
+        serviceProviderName: handler === "ကိုယ်တိုင်လုပ်" ? null : handler,
+        handlerSettlementType: handlerType,
+        serviceProviderSettlementType: handlerType,
+        handlerSettlementAmount: handlerType ? handlerAmount : 0,
+        serviceProviderSettlementAmount: handlerType ? handlerAmount : 0,
+        handlerSettlementStatus: handlerType ? $("quickHandlerStatus").value : "pending",
+        serviceProviderSettlementStatus: handlerType ? $("quickHandlerStatus").value : "pending",
+        entrySettlementEnabled: !!(source !== "Direct / ကိုယ်တိုင်ရ" || agentAmount || handlerType)
+      };
+      try {
+        await updateDoc(doc(db, "appointments", id), { ...patch, updatedAt: serverTimestamp(), updatedBy: currentUserName });
+        Object.assign(a, patch);
+        closeQuickSettlementModal();
+        renderAppointmentsTable();
+        renderSettlementDashboard();
+        showToast("Settlement သိမ်းပြီးပါပြီ", "success");
+      } catch (e) { showToast("Settlement သိမ်းမရပါ: " + e.message, "error"); }
+    });
+
     function renderAppointmentsTable() {
       const body = $("appointmentsTableBody"); body.innerHTML = "";
       
@@ -5141,7 +5307,7 @@
       });
 
       lastFilteredAppointments = finalFiltered;
-      if (!finalFiltered.length) { body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`; return; }
+      if (!finalFiltered.length) { body.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`; return; }
       
       const canViewProfit = currentRole === "admin" || currentRole === "manager";
       const canEditDelete = currentRole === "admin" || currentRole === "manager";
@@ -5268,6 +5434,22 @@
            </div>`;
         }
 
+        const settlementHasAgent = Number(a.agentCommission != null ? a.agentCommission : (a.agentPayable || 0)) > 0 || !!(a.agentName && a.agentName !== "Direct / ကိုယ်တိုင်ရ");
+        const settlementHasHandler = !!((a.handlerSettlementType || a.serviceProviderSettlementType) && Number(a.handlerSettlementAmount != null ? a.handlerSettlementAmount : (a.serviceProviderSettlementAmount || 0)) > 0);
+        const handlerSummaryName = a.handlerName || a.serviceProviderName || "";
+        const handlerSummaryType = a.handlerSettlementType || a.serviceProviderSettlementType || "";
+        const handlerSummaryAmount = Number(a.handlerSettlementAmount != null ? a.handlerSettlementAmount : (a.serviceProviderSettlementAmount || 0));
+        const agentSummaryAmount = Number(a.agentCommission != null ? a.agentCommission : (a.agentPayable || 0));
+        const settlementDetail = settlementHasHandler
+          ? `<small style="display:block;margin-top:2px;color:#475569;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;">${handlerSummaryName || "Handler"} · ${handlerSummaryType === "receivable" ? "ရရန်" : "ပေးရန်"} · ${handlerSummaryAmount.toFixed(2)} THB</small>`
+          : settlementHasAgent
+            ? `<small style="display:block;margin-top:2px;color:#475569;font-size:10px;white-space:nowrap;">Agent · ${agentSummaryAmount.toFixed(2)} THB</small>`
+            : "";
+        const settlementBadge = `<button type="button" class="settlement-quick-open" data-settlement-id="${id}" style="border:0;background:transparent;padding:0;text-align:left;cursor:pointer;display:inline-block;">
+          <span class="tag" style="background:${settlementHasAgent || settlementHasHandler ? "#ecfdf5" : "#f8fafc"};color:${settlementHasAgent || settlementHasHandler ? "#047857" : "#94a3b8"};border-color:${settlementHasAgent || settlementHasHandler ? "#a7f3d0" : "#cbd5e1"};white-space:nowrap;font-size:10px;">${settlementHasAgent || settlementHasHandler ? "💼 Settlement ရှိ" : "မထည့်ရသေး"}</span>
+          ${settlementDetail}
+        </button>`;
+
         const tr = document.createElement("tr");
         if(isHighlighted) tr.className = "highlighted-row";
 
@@ -5337,6 +5519,7 @@
           <td>${dep}</td>
           <td>${bal}</td>
           <td class="profit-cell" data-profit="${profitText}">${displayProfit}</td>
+          <td>${settlementBadge}</td>
           <td title="Inv: ${a.remark || "-"}&#10;Int: ${a.internalRemark || "-"}">
   <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px; font-size:11px; line-height:1.4;">
     <span style="color:var(--primary); font-weight:bold;">Inv:</span> ${a.remark || "-"}<br/>
@@ -5350,6 +5533,8 @@
            setTimeout(() => tr.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
         }
 
+        const quickSettlementBtn = tr.querySelector(".settlement-quick-open");
+        if (quickSettlementBtn) quickSettlementBtn.addEventListener("click", () => openQuickSettlementModal(id));
         const docsBtn = tr.querySelector(".view-docs-btn");
         if (docsBtn) {
           docsBtn.addEventListener("click", () => {
@@ -5934,10 +6119,14 @@
     $("exportCsv").addEventListener("click", () => {
       const canEditDelete = currentRole === "admin" || currentRole === "manager";
       if (!canEditDelete || !lastFilteredAppointments.length) return alert("Export လုပ်မယ့် data မရှိပါ။");
-      const rows = [["Invoice ID","Service Date","Appointment Date","Appointment Time","Expiry Date","Alert Days","Status","Name", "Doc Number", "Social Name", "Phone","Channel","Location","Service Type","Payment Type","Total","Deposit","Balance","Service Cost","Service Profit","Agent Name","Agent Payable","Agent Settlement Status","Service Provider","Provider Settlement Type","Provider Settlement Amount","Provider Settlement Status","Remark"]];
+      const includeSettlement = !!$("exportIncludeSettlement")?.checked;
+      const rows = [["Invoice ID","Service Date","Appointment Date","Appointment Time","Expiry Date","Alert Days","Status","Name", "Doc Number", "Social Name", "Phone","Channel","Location","Service Type","Payment Type","Total","Deposit","Balance","Service Cost","Service Profit","Remark"]];
+      if (includeSettlement) rows[0].splice(20, 0, "Source / Agent", "Agent Commission", "Agent Status", "Service Handler", "Handler Direction", "Handler Amount", "Handler Status");
       lastFilteredAppointments.forEach(a => {
         const sType = a.servicePackage ? `${a.serviceType} (${a.servicePackage})` : a.serviceType;
-        rows.push([(a.invoiceId || a.id || "").toUpperCase(), a.date || "", a.appointmentDate || "", a.appointmentTime || "", a.expiryDate || "", a.alertDays || "", a.customerStatus || "", a.name || "", a.docNumber || "", a.socialName || "", a.phone || "", a.channel || "", a.location || "", sType || "", a.paymentType || "", a.price != null ? a.price : "", a.depositAmount != null ? a.depositAmount : "", a.balanceAmount != null ? a.balanceAmount : "", a.serviceCost != null ? a.serviceCost : "", a.serviceProfit != null ? a.serviceProfit : "", a.agentName || "", a.agentPayable != null ? a.agentPayable : "", a.agentSettlementStatus || "", a.serviceProviderName || "", a.serviceProviderSettlementType || "", a.serviceProviderSettlementAmount != null ? a.serviceProviderSettlementAmount : "", a.serviceProviderSettlementStatus || "", a.remark || ""]);
+        const row = [(a.invoiceId || a.id || "").toUpperCase(), a.date || "", a.appointmentDate || "", a.appointmentTime || "", a.expiryDate || "", a.alertDays || "", a.customerStatus || "", a.name || "", a.docNumber || "", a.socialName || "", a.phone || "", a.channel || "", a.location || "", sType || "", a.paymentType || "", a.price != null ? a.price : "", a.depositAmount != null ? a.depositAmount : "", a.balanceAmount != null ? a.balanceAmount : "", a.serviceCost != null ? a.serviceCost : "", a.serviceProfit != null ? a.serviceProfit : "", a.remark || ""];
+        if (includeSettlement) row.splice(20, 0, a.sourceName || a.agentName || "Direct / ကိုယ်တိုင်ရ", a.agentCommission != null ? a.agentCommission : (a.agentPayable != null ? a.agentPayable : 0), a.sourceStatus || a.agentSettlementStatus || "", a.handlerName || a.serviceProviderName || "", a.handlerSettlementType || a.serviceProviderSettlementType || "", a.handlerSettlementAmount != null ? a.handlerSettlementAmount : (a.serviceProviderSettlementAmount != null ? a.serviceProviderSettlementAmount : 0), a.handlerSettlementStatus || a.serviceProviderSettlementStatus || "");
+        rows.push(row);
       });
       const csv = rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",")).join("\r\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" }); const url = URL.createObjectURL(blob);
