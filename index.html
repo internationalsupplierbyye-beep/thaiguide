@@ -80,6 +80,9 @@
     #tab-dashboard table tr{height:26px}
     #tab-dashboard table td > div{margin-top:0 !important;margin-bottom:0 !important;gap:2px !important;line-height:1.08 !important}
     #tab-dashboard table td small{font-size:10px !important;line-height:1.05 !important;margin-top:0 !important}
+    #tab-dashboard .dashboard-customer-cell,#tab-dashboard .dashboard-contact-cell{line-height:1.35 !important}
+    #tab-dashboard .dashboard-customer-cell > div,#tab-dashboard .dashboard-contact-cell > div{margin:0 !important;line-height:1.35 !important}
+    #tab-dashboard .dashboard-customer-cell .dashboard-chat-link{display:block !important;width:max-content;margin-top:2px !important;margin-left:0 !important}
     #tab-dashboard table .status-select{padding:1px 4px !important;font-size:10px !important;line-height:1.15 !important}
     #tab-dashboard table .btn{padding:2px 5px !important;font-size:10px !important;line-height:1.15 !important}
     .tab-btn{
@@ -2109,6 +2112,8 @@
                   <div class="summary-card profit-card settlement-summary-clickable" id="settlementReceivableCard" title="ရရန်စာရင်းကို Filter ကြည့်ရန်"><div class="summary-title">စုစုပေါင်း ရရန်</div><div class="summary-value" id="settlementReceivableTotal">0.00</div><small>နှိပ်ပြီး ရရန်စာရင်းကိုသာ ကြည့်ပါ</small></div>
                   <div class="summary-card"><div class="summary-title">Net (ရရန် − ပေးရန်)</div><div class="summary-value" id="settlementNetTotal">0.00</div></div>
                   <div class="summary-card"><div class="summary-title">စာရင်းအရေအတွက်</div><div class="summary-value" id="settlementCount">0</div></div>
+                  <div class="summary-card settlement-summary-clickable" id="settlementSettledCard" title="ရှင်းပြီးစာရင်းကို Filter ကြည့်ရန်"><div class="summary-title">✅ ရှင်းပြီး</div><div class="summary-value" id="settlementSettledTotal">0.00</div><small id="settlementSettledCount">0 စာရင်း</small></div>
+                  <div class="summary-card pending-card settlement-summary-clickable" id="settlementPendingCard" title="မရှင်းရသေးစာရင်းကို Filter ကြည့်ရန်"><div class="summary-title">⏳ မရှင်းရသေး</div><div class="summary-value" id="settlementPendingTotal">0.00</div><small id="settlementPendingCount">0 စာရင်း</small></div>
                 </div>
                 <div style="max-height:300px; overflow:auto; border:1px solid #e2e8f0; border-radius:10px; background:#fff;">
                   <table><thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Service</th><th>Source / Agent</th><th>Service Handler</th><th>အမျိုးအစား</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody id="settlementTableBody"><tr><td colspan="10" style="text-align:center; padding:10px;">Settlement စာရင်းမရှိသေးပါ</td></tr></tbody></table>
@@ -5064,12 +5069,30 @@
       const status = $("settlementStatusFilter")?.value || "";
       const from = $("settlementDateFrom")?.value || "";
       const to = $("settlementDateTo")?.value || "";
+      const baseRows = rows.filter(r => {
+        if (sourceSelect?.value && r.source !== sourceSelect.value) return false;
+        if (handlerSelect?.value && r.handler !== handlerSelect.value) return false;
+        if (serviceSelect?.value && r.service !== serviceSelect.value) return false;
+        if (from && r.date < from) return false;
+        if (to && r.date > to) return false;
+        return true;
+      });
+      const settledRows = baseRows.filter(r => r.status === "settled");
+      const pendingRows = baseRows.filter(r => r.status !== "settled");
+      const settledTotal = settledRows.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+      const pendingTotal = pendingRows.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+      if ($("settlementSettledTotal")) $("settlementSettledTotal").textContent = settledTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+      if ($("settlementPendingTotal")) $("settlementPendingTotal").textContent = pendingTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+      if ($("settlementSettledCount")) $("settlementSettledCount").textContent = `${settledRows.length} စာရင်း`;
+      if ($("settlementPendingCount")) $("settlementPendingCount").textContent = `${pendingRows.length} စာရင်း`;
       const filtered = rows.filter(r => {
         if (sourceSelect?.value && r.source !== sourceSelect.value) return false;
         if (handlerSelect?.value && r.handler !== handlerSelect.value) return false;
         if (serviceSelect?.value && r.service !== serviceSelect.value) return false;
         if (settlementSummaryFilter === "payable" && !["agent_payable","provider_payable"].includes(r.direction)) return false;
         if (settlementSummaryFilter === "receivable" && r.direction !== "provider_receivable") return false;
+        if (settlementSummaryFilter === "settled" && r.status !== "settled") return false;
+        if (settlementSummaryFilter === "pending" && r.status === "settled") return false;
         if (direction && r.direction !== direction) return false;
         if (status && r.status !== status) return false;
         if (from && r.date < from) return false;
@@ -5093,8 +5116,9 @@
         <td>${esc(r.date || "-")}</td><td>${esc(r.invoice)}</td><td>${esc(r.customer)}</td><td>${esc(r.service)}</td><td>${esc(r.source)}</td><td>${esc(r.handler || "-")}</td>
         <td>${esc(r.label)}</td><td style="font-weight:800; color:${r.direction === "provider_receivable" ? "#15803d" : "#c2410c"};">${r.amount.toFixed(2)} THB</td>
         <td><select class="settlement-status-select" data-id="${esc(r.id)}" data-direction="${esc(r.direction)}"><option value="pending" ${r.status === "pending" ? "selected" : ""}>မရှင်းရသေး</option><option value="settled" ${r.status === "settled" ? "selected" : ""}>ရှင်းပြီး</option></select></td>
-        <td>${canDeleteSettlement ? `<button type="button" class="btn btn-danger settlement-row-delete" data-id="${esc(r.id)}" data-direction="${esc(r.direction)}" style="padding:4px 8px;font-size:11px;">Delete</button>` : "-"}</td>
+        <td><div style="display:flex;gap:4px;flex-wrap:wrap;">${(currentRole === "admin" || currentRole === "manager" || currentRole === "finance") ? `<button type="button" class="btn btn-outline settlement-row-edit" data-id="${esc(r.id)}" style="padding:4px 8px;font-size:11px;">Edit</button>` : ""}${canDeleteSettlement ? `<button type="button" class="btn btn-danger settlement-row-delete" data-id="${esc(r.id)}" data-direction="${esc(r.direction)}" style="padding:4px 8px;font-size:11px;">Delete</button>` : "-"}</div></td>
       </tr>`).join("");
+      table.querySelectorAll(".settlement-row-edit").forEach(btn => btn.addEventListener("click", () => openQuickSettlementModal(btn.dataset.id)));
       table.querySelectorAll(".settlement-status-select").forEach(sel => sel.addEventListener("change", async () => {
         const isAgent = sel.dataset.direction === "agent_payable";
         const patch = isAgent ? { sourceStatus: sel.value, agentSettlementStatus: sel.value } : { handlerSettlementStatus: sel.value, serviceProviderSettlementStatus: sel.value };
@@ -5408,19 +5432,19 @@
         if (viewMode === "expiring") {
            const tabTag = isArchive ? `<span class="tag" style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;font-size:9px;">[Archive]</span>` : `<span class="tag" style="background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;font-size:9px;">[Active]</span>`;
            nameHtml = `
-             <span class="jump-link" style="cursor:pointer; color:var(--error); font-weight:800; text-decoration:underline;" data-jumpid="${id}" data-targettab="${isArchive ? 'archive' : 'active'}" title="Jump to original tab">📍 ${a.name || "-"}</span> <br/>
-             <div style="margin: 2px 0;">${tabTag}</div>
-             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-top:2px;">
-                <small title="${a.socialName ? 'Social: ' + a.socialName : ""}" style="color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 140px;">${a.socialName ? 'Social: ' + a.socialName : ""}</small>
-                ${linkIcon}
+             <div class="dashboard-customer-cell">
+               <div class="dashboard-customer-name"><span class="jump-link" style="cursor:pointer; color:var(--error); font-weight:800; text-decoration:underline;" data-jumpid="${id}" data-targettab="${isArchive ? 'archive' : 'active'}" title="Jump to original tab">📍 ${a.name || "-"}</span></div>
+               <div class="dashboard-customer-social" style="color:var(--muted); font-weight:600;">${a.socialName ? 'Social: ' + a.socialName : ""}</div>
+               <div class="dashboard-customer-chat">${linkIcon ? linkIcon.replace('style="', 'class="dashboard-chat-link" style="') : ""}</div>
+               <div style="margin:2px 0;">${tabTag}</div>
              </div>
            `;
         } else {
            nameHtml = `
-             <span class="history-link" style="cursor:pointer; color:var(--primary); font-weight:700; text-decoration:underline;" data-phone="${a.phone}" data-name="${a.name}" title="${a.name || "-"}">${a.name || "-"}</span><br/>
-             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-top:2px;">
-                <small title="${a.socialName ? 'Social: ' + a.socialName : ""}" style="color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 140px;">${a.socialName ? 'Social: ' + a.socialName : ""}</small>
-                ${linkIcon}
+             <div class="dashboard-customer-cell">
+               <div class="dashboard-customer-name"><span class="history-link" style="cursor:pointer; color:var(--primary); font-weight:700; text-decoration:underline;" data-phone="${a.phone}" data-name="${a.name}" title="${a.name || "-"}">${a.name || "-"}</span></div>
+               <div class="dashboard-customer-social" style="color:var(--muted); font-weight:600;">${a.socialName ? 'Social: ' + a.socialName : ""}</div>
+               <div class="dashboard-customer-chat">${linkIcon ? linkIcon.replace('style="', 'class="dashboard-chat-link" style="') : ""}</div>
              </div>
            `;
         }
@@ -5440,13 +5464,18 @@
         const handlerSummaryType = a.handlerSettlementType || a.serviceProviderSettlementType || "";
         const handlerSummaryAmount = Number(a.handlerSettlementAmount != null ? a.handlerSettlementAmount : (a.serviceProviderSettlementAmount || 0));
         const agentSummaryAmount = Number(a.agentCommission != null ? a.agentCommission : (a.agentPayable || 0));
+        const settlementAgentStatus = a.sourceStatus || a.agentSettlementStatus || "pending";
+        const settlementHandlerStatus = a.handlerSettlementStatus || a.serviceProviderSettlementStatus || "pending";
+        const settlementStatuses = [settlementHasAgent ? settlementAgentStatus : null, settlementHasHandler ? settlementHandlerStatus : null].filter(Boolean);
+        const settlementIsSettled = settlementStatuses.length > 0 && settlementStatuses.every(s => s === "settled");
+        const settlementStatusIcon = settlementIsSettled ? "✅" : "⏳";
         const settlementDetail = settlementHasHandler
-          ? `<small style="display:block;margin-top:2px;color:#475569;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;">${handlerSummaryName || "Handler"} · ${handlerSummaryType === "receivable" ? "ရရန်" : "ပေးရန်"} · ${handlerSummaryAmount.toFixed(2)} THB</small>`
+          ? `<small class="settlement-detail-lines" style="display:block;margin-top:2px;color:#475569;font-size:10px;line-height:1.25;white-space:normal;max-width:150px;">${handlerSummaryName || "Handler"} ·<br/>${handlerSummaryType === "receivable" ? "ရရန်" : "ပေးရန်"} ·<br/>${handlerSummaryAmount.toFixed(2)} THB</small>`
           : settlementHasAgent
-            ? `<small style="display:block;margin-top:2px;color:#475569;font-size:10px;white-space:nowrap;">Agent · ${agentSummaryAmount.toFixed(2)} THB</small>`
+            ? `<small class="settlement-detail-lines" style="display:block;margin-top:2px;color:#475569;font-size:10px;line-height:1.25;white-space:normal;">Agent ·<br/>${agentSummaryAmount.toFixed(2)} THB</small>`
             : "";
         const settlementBadge = `<button type="button" class="settlement-quick-open" data-settlement-id="${id}" style="border:0;background:transparent;padding:0;text-align:left;cursor:pointer;display:inline-block;">
-          <span class="tag" style="background:${settlementHasAgent || settlementHasHandler ? "#ecfdf5" : "#f8fafc"};color:${settlementHasAgent || settlementHasHandler ? "#047857" : "#94a3b8"};border-color:${settlementHasAgent || settlementHasHandler ? "#a7f3d0" : "#cbd5e1"};white-space:nowrap;font-size:10px;">${settlementHasAgent || settlementHasHandler ? "💼 Settlement ရှိ" : "မထည့်ရသေး"}</span>
+          <span class="tag" style="background:${settlementHasAgent || settlementHasHandler ? "#ecfdf5" : "#f8fafc"};color:${settlementHasAgent || settlementHasHandler ? "#047857" : "#94a3b8"};border-color:${settlementHasAgent || settlementHasHandler ? "#a7f3d0" : "#cbd5e1"};white-space:nowrap;font-size:10px;">${settlementHasAgent || settlementHasHandler ? `💼 Settlement ရှိ ${settlementStatusIcon}` : "မထည့်ရသေး"}</span>
           ${settlementDetail}
         </button>`;
 
@@ -5503,9 +5532,9 @@
             </select>
           </td>
           <td>${nameHtml}</td>
-          <td>
-            <span title="${a.phone || ""}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 120px;">${a.phone || ""}</span>
-            <small title="${a.channel ? 'Via: ' + a.channel : ""}" style="color:var(--muted); font-weight:600; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 120px;">${a.channel ? 'Via: ' + a.channel : ""}</small>
+          <td class="dashboard-contact-cell">
+            <div title="${a.phone || ""}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px;">${a.phone || ""}</div>
+            <div title="${a.channel ? 'Via: ' + a.channel : ""}" style="color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px;">${a.channel ? 'Via: ' + a.channel : ""}</div>
           </td>
           <td>
             <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start; max-width: 130px;">
@@ -6021,17 +6050,21 @@
       const exportTable = document.createElement("table");
       exportTable.innerHTML = `<thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Service</th><th>Person</th><th>အမျိုးအစား</th><th>Amount</th><th>Status</th></tr></thead><tbody></tbody>`;
       const exportBody = exportTable.querySelector("tbody");
-      let payableTotal = 0, receivableTotal = 0;
+      let payableTotal = 0, receivableTotal = 0, settledTotal = 0, pendingTotal = 0, settledCount = 0, pendingCount = 0;
       bodyRows.forEach(tr => {
         const cells = tr.children;
         const statusSelect = cells[8]?.querySelector("select");
         const direction = statusSelect?.dataset.direction || "";
         const amount = Number((cells[7]?.textContent || "").replace(/[^0-9.-]/g, "")) || 0;
         if (direction === "provider_receivable") receivableTotal += amount; else payableTotal += amount;
+        const statusText = statusSelect?.value || "pending";
+        if (statusText === "settled") { settledTotal += amount; settledCount++; } else { pendingTotal += amount; pendingCount++; }
         const person = direction === "agent_payable" ? cells[4]?.textContent?.trim() : cells[5]?.textContent?.trim();
         exportBody.insertAdjacentHTML("beforeend", `<tr><td>${cells[0]?.innerHTML || ""}</td><td>${cells[1]?.innerHTML || ""}</td><td>${cells[2]?.innerHTML || ""}</td><td>${cells[3]?.innerHTML || ""}</td><td>${person || "-"}</td><td>${cells[6]?.innerHTML || ""}</td><td>${cells[7]?.innerHTML || ""}</td><td>${statusSelect?.selectedOptions?.[0]?.textContent || ""}</td></tr>`);
       });
-      const reportTotals = `<div class="report-totals"><div><strong>စုစုပေါင်း ပေးရန်:</strong> ${payableTotal.toFixed(2)} THB</div><div><strong>စုစုပေါင်း ရရန်:</strong> ${receivableTotal.toFixed(2)} THB</div><div><strong>Net (ရရန် − ပေးရန်):</strong> ${(receivableTotal - payableTotal).toFixed(2)} THB</div></div>`;
+      const exportStatus = $("settlementStatusFilter")?.value || (settlementSummaryFilter === "settled" ? "settled" : settlementSummaryFilter === "pending" ? "pending" : "all");
+      const exportStatusLabel = exportStatus === "settled" ? "✅ ရှင်းပြီး" : exportStatus === "pending" ? "⏳ မရှင်းရသေး" : "အားလုံး";
+      const reportTotals = `<div class="report-totals"><div><strong>Export Status:</strong> ${exportStatusLabel}</div><div><strong>✅ ရှင်းပြီး:</strong> ${settledTotal.toFixed(2)} THB (${settledCount})</div><div><strong>⏳ မရှင်းရသေး:</strong> ${pendingTotal.toFixed(2)} THB (${pendingCount})</div><div><strong>စုစုပေါင်း ပေးရန်:</strong> ${payableTotal.toFixed(2)} THB</div><div><strong>စုစုပေါင်း ရရန်:</strong> ${receivableTotal.toFixed(2)} THB</div><div><strong>Net (ရရန် − ပေးရန်):</strong> ${(receivableTotal - payableTotal).toFixed(2)} THB</div></div>`;
       const win = window.open("", "_blank", "width=1100,height=800");
       if (!win) return showToast("PDF window ဖွင့်မရပါ။ Browser popup ကို Allow လုပ်ပါ", "error");
       win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Settlement Report</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111827}h1{font-size:20px;margin:0 0 6px}p{color:#475569}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left;font-size:12px}th{background:#e0e7ff}.report-totals{display:flex;gap:24px;margin-top:18px;padding:12px;border:1px solid #cbd5e1;background:#f8fafc;font-size:13px} @media print{button{display:none}}</style></head><body><h1>Settlement Report</h1><p>Date: ${from} → ${to}</p>${exportTable.outerHTML}${reportTotals}<p style="margin-top:20px">Generated from Thailand Guide Appointment Hub</p><button onclick="window.print()">Print / Save as PDF</button></body></html>`);
@@ -6058,6 +6091,8 @@
     });
     $("settlementPayableCard")?.addEventListener("click", () => { settlementSummaryFilter = settlementSummaryFilter === "payable" ? "" : "payable"; renderSettlementDashboard(); });
     $("settlementReceivableCard")?.addEventListener("click", () => { settlementSummaryFilter = settlementSummaryFilter === "receivable" ? "" : "receivable"; renderSettlementDashboard(); });
+    $("settlementSettledCard")?.addEventListener("click", () => { settlementSummaryFilter = settlementSummaryFilter === "settled" ? "" : "settled"; renderSettlementDashboard(); });
+    $("settlementPendingCard")?.addEventListener("click", () => { settlementSummaryFilter = settlementSummaryFilter === "pending" ? "" : "pending"; renderSettlementDashboard(); });
     $("saveSettlementBtn")?.addEventListener("click", async () => {
       const id = $("settlementAppointmentSelect")?.value || "";
       const a = (cachedAppointments || []).find(x => x.id === id);
