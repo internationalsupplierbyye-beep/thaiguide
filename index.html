@@ -87,9 +87,7 @@
     #tab-settlement .settlement-summary-grid .summary-title{font-size:11px;line-height:1.15}
     #tab-settlement .settlement-summary-grid .summary-value{font-size:18px;line-height:1.05}
     #tab-settlement .settlement-summary-grid .summary-card small{font-size:9px;line-height:1.1}
-    #tab-settlement .settlement-source-cell{background:#eef2ff;color:#3730a3;font-weight:700;border-left:3px solid #818cf8}
-    #tab-settlement .settlement-handler-cell{background:#ecfdf5;color:#047857;font-weight:700;border-left:3px solid #34d399}
-    #tab-settlement .settlement-source-label,#tab-settlement .settlement-handler-label{display:block;font-size:9px;font-weight:800;opacity:.75;margin-bottom:2px}
+    #tab-settlement .settlement-source-cell,#tab-settlement .settlement-handler-cell{background:transparent;color:inherit;font-weight:400;border-left:0}
     #tab-settlement .settlement-total-block{display:grid;grid-template-columns:repeat(3,minmax(150px,1fr));gap:8px;margin-top:12px}
     #tab-settlement .settlement-total-item{padding:9px 11px;border-radius:8px;border:1px solid #dbe3ef;background:#f8fafc}
     #tab-settlement .settlement-total-item strong{display:block;font-size:11px;margin-bottom:2px}
@@ -803,7 +801,11 @@
       box-shadow: 0 3px 10px rgba(15,23,42,.04);
     }
     #tab-dashboard table { min-width: 1180px; }
-    #tab-dashboard thead { position: sticky; top: var(--dashboard-thead-offset, 0px); z-index: 2; }
+    #dashboardTableScroller{max-height:450px;overflow:auto;border-radius:10px;border:1px solid #e5e7eb;position:relative;isolation:isolate}
+    #tab-dashboard #dashboardTableScroller thead{position:sticky;top:0;z-index:20}
+    #tab-dashboard #dashboardTableScroller thead th{position:sticky;top:0;z-index:21;background:#dbeafe !important;color:#0f172a !important;font-weight:800;text-shadow:none;box-shadow:0 1px 0 #93c5fd;border-bottom:1px solid #93c5fd}
+    body.dark-mode #tab-dashboard #dashboardTableScroller thead th{background:#1e3a8a !important;color:#ffffff !important;border-bottom-color:#60a5fa;box-shadow:0 1px 0 #60a5fa}
+    #tab-dashboard #dashboardTableScroller::-webkit-scrollbar{height:10px;width:10px}
 
     /* Invoice */
     #tab-invoice .invoice-wrap {
@@ -2034,7 +2036,7 @@
             <button class="btn btn-outline" id="clearFilterBtn" style="border-color:#dc2626; color:#dc2626; margin-left: 8px;">✖ Clear Filter</button>
           </div>
 
-          <div style="max-height: 450px; overflow:auto; border-radius:10px; border:1px solid #e5e7eb;">
+          <div id="dashboardTableScroller">
             <table>
               <thead>
                 <tr>
@@ -2513,10 +2515,11 @@
                 <tr><td colspan="3" style="text-align:center;">Loading...</td></tr>
               </tbody>
             </table>
-          </div>
+                    </div>
+          <div class="panel-header" style="margin-top:18px;"><div><div class="panel-title">🧾 Appointment / Settlement Audit History</div><div class="panel-desc">Case Status, Settlement Status, amount နဲ့ အခြားအရေးကြီးပြောင်းလဲမှုများကို စစ်နိုင်ပါသည်။</div></div><button class="btn btn-secondary" id="reloadAuditBtn">Reload Audit</button></div>
+          <div style="max-height:450px;overflow:auto;border-radius:10px;border:1px solid #e5e7eb;"><table><thead><tr><th>အချိန်</th><th>Invoice / Appointment</th><th>လုပ်ဆောင်ချက်</th><th>ပြောင်းသူ</th><th>ပြောင်းလဲမှု</th></tr></thead><tbody id="auditLogTableBody"><tr><td colspan="5" style="text-align:center;">Audit history မရှိသေးပါ။</td></tr></tbody></table></div>
         </div>
       </section>
-    
     <div id="historyModal" class="modal-overlay hidden">
       <div class="modal-content">
         <div class="modal-header">
@@ -2635,6 +2638,60 @@
     let lastVisibleDoc = null; 
 
     const $ = (id) => document.getElementById(id);
+    // --- Normalized case/settlement model and audit helpers ---
+    function getCaseStatus(data = {}) { return data.caseStatus || data.customerStatus || "Pending"; }
+    function normalizeAppointmentModel(data = {}) {
+      const caseStatus = data.caseStatus || data.customerStatus || "Pending";
+      const sourceName = data.sourceName || data.agentName || "Direct / ကိုယ်တိုင်ရ";
+      const sourceAmount = Number(data.agentCommission != null ? data.agentCommission : (data.agentPayable || 0));
+      const sourceStatus = data.sourceStatus || data.agentSettlementStatus || "pending";
+      const handlerName = data.handlerName || data.serviceProviderName || "";
+      const handlerType = data.handlerSettlementType || data.serviceProviderSettlementType || "";
+      const handlerAmount = Number(data.handlerSettlementAmount != null ? data.handlerSettlementAmount : (data.serviceProviderSettlementAmount || 0));
+      const handlerStatus = data.handlerSettlementStatus || data.serviceProviderSettlementStatus || "pending";
+      const records = [];
+      if (sourceName !== "Direct / ကိုယ်တိုင်ရ" && sourceAmount > 0) records.push({ role:"source_agent", person:sourceName, direction:"payable", amount:sourceAmount, status:sourceStatus });
+      if (handlerName && handlerName !== "ကိုယ်တိုင်လုပ်" && handlerType && handlerAmount > 0) records.push({ role:"service_handler", person:handlerName, direction:handlerType === "receivable" ? "receivable" : "payable", amount:handlerAmount, status:handlerStatus });
+      const settlementStatus = records.length ? (records.every(r => r.status === "settled") ? "settled" : "pending") : "none";
+      return { caseStatus, settlementStatus, settlementRecords: records, settlementModelVersion: 1 };
+    }
+    function auditChanges(before = {}, after = {}, fields = []) {
+      const changes = {};
+      fields.forEach(field => { const a = before?.[field] ?? null; const b = after?.[field] ?? null; if (JSON.stringify(a) !== JSON.stringify(b)) changes[field] = { before:a, after:b }; });
+      return changes;
+    }
+    async function writeAuditLog(action, entityId, before = {}, after = {}, fields = [], extra = {}) {
+      try {
+        const changes = auditChanges(before, after, fields);
+        if (!Object.keys(changes).length && action !== "create") return;
+        const auditId = `${entityId}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+        await setDoc(doc(db, "auditLogs", auditId), { action, entity:"appointment", entityId, changes, actor:currentUserName, actorRole:currentRole, createdAt:serverTimestamp(), ...extra });
+      } catch (e) { console.warn("Audit log write failed", e); }
+    }
+    async function syncSettlementRecords(id, data = {}) {
+      try {
+        const model = normalizeAppointmentModel(data);
+        const base = { appointmentId:id, invoiceId:data.invoiceId || id, customerName:data.name || "", service:data.serviceType || "", date:data.date || "", updatedBy:currentUserName, updatedAt:serverTimestamp(), modelVersion:1 };
+        const records = {
+          source_agent: model.settlementRecords.find(r => r.role === "source_agent"),
+          service_handler: model.settlementRecords.find(r => r.role === "service_handler")
+        };
+        for (const role of Object.keys(records)) {
+          const record = records[role];
+          await setDoc(doc(db, "settlements", `${id}_${role}`), { ...base, role, active:!!record, ...(record || { person:"", direction:"", amount:0, status:"pending" }) }, { merge:true });
+        }
+      } catch (e) { console.warn("Normalized settlement mirror unavailable", e); }
+    }
+    async function updateAppointmentWithAudit(id, patch = {}, action = "update") {
+      const before = (cachedAppointments || []).find(a => a.id === id) || {};
+      const normalized = normalizeAppointmentModel({ ...before, ...patch });
+      const finalPatch = { ...patch, ...normalized, updatedAt: serverTimestamp(), updatedBy: currentUserName };
+      await updateDoc(doc(db, "appointments", id), finalPatch);
+      const local = (cachedAppointments || []).find(a => a.id === id); if (local) Object.assign(local, finalPatch);
+      await syncSettlementRecords(id, { ...before, ...finalPatch });
+      await writeAuditLog(action, id, before, { ...before, ...finalPatch }, Object.keys(finalPatch));
+      return finalPatch;
+    }
     // --- 🚀 NEW: Toast Notification Function ---
     function showToast(msg, type = 'info') {
       let container = document.getElementById('toast-container');
@@ -4654,6 +4711,7 @@
 
       data.serviceCost = Number($("cost").value || 0);
       data.serviceProfit = data.price - data.serviceCost;
+      Object.assign(data, normalizeAppointmentModel(data));
 
       data.updatedAt = serverTimestamp();
       data.updatedBy = currentUserName;
@@ -4702,7 +4760,10 @@
           data.updatedAt = serverTimestamp();
           data.updatedBy = currentUserName;
 
+          const beforeEdit = editedAppt ? { ...editedAppt } : {};
           await setDoc(doc(db, "appointments", editingDocId), data, { merge: true });
+          await syncSettlementRecords(editingDocId, { ...beforeEdit, ...data });
+          await writeAuditLog("update", editingDocId, beforeEdit, { ...beforeEdit, ...data }, ["caseStatus","customerStatus","sourceName","sourceStatus","agentCommission","handlerName","handlerSettlementType","handlerSettlementAmount","handlerSettlementStatus","settlementStatus"]);
           lastSavedDocId = editingDocId; 
           lastSavedData = { ...data, id: editingDocId };
           
@@ -4740,6 +4801,8 @@
           data.reminderSent = false;
 
           await setDoc(doc(db, "appointments", invoiceId), data);
+          await syncSettlementRecords(invoiceId, data);
+          await writeAuditLog("create", invoiceId, {}, data, ["caseStatus","customerStatus","sourceName","sourceStatus","agentCommission","handlerName","handlerSettlementType","handlerSettlementAmount","handlerSettlementStatus","settlementStatus"]);
           lastSavedDocId = invoiceId; 
           lastSavedData = { ...data, id: invoiceId };
           
@@ -5156,7 +5219,7 @@
         const isAgent = sel.dataset.direction === "agent_payable";
         const patch = isAgent ? { sourceStatus: sel.value, agentSettlementStatus: sel.value } : { handlerSettlementStatus: sel.value, serviceProviderSettlementStatus: sel.value };
         try {
-          await updateDoc(doc(db, "appointments", sel.dataset.id), { ...patch, updatedAt: serverTimestamp(), updatedBy: currentUserName });
+          await updateAppointmentWithAudit(sel.dataset.id, patch, "settlement_status_update");
           const local = cachedAppointments.find(a => a.id === sel.dataset.id); if (local) Object.assign(local, patch);
           renderAppointmentsTable();
           renderSettlementDashboard();
@@ -5273,7 +5336,7 @@
         entrySettlementEnabled: !!(source !== "Direct / ကိုယ်တိုင်ရ" || agentAmount || handlerType)
       };
       try {
-        await updateDoc(doc(db, "appointments", id), { ...patch, updatedAt: serverTimestamp(), updatedBy: currentUserName });
+        await updateAppointmentWithAudit(id, patch, "quick_settlement_save");
         Object.assign(a, patch);
         closeQuickSettlementModal();
         renderAppointmentsTable();
@@ -5300,7 +5363,7 @@
         let ok = true;
         if (searchText) ok = `${a.name||""} ${a.socialName||""} ${a.phone||""} ${a.docNumber||""} ${a.invoiceId||a.id||""}`.toLowerCase().includes(searchText);
         if (ok && filterService) ok = a.serviceType === filterService;
-        if (ok && filterStatus) ok = (a.customerStatus||"") === filterStatus;
+        if (ok && filterStatus) ok = getCaseStatus(a) === filterStatus;
         
         if (ok && (apptFrom || apptTo)) {
           const d = a.appointmentDate || "";
@@ -5351,7 +5414,7 @@
       renderSettlementDashboard();
 
       const finalFiltered = baseFiltered.filter(a => {
-         const s = (a.customerStatus || "").toLowerCase();
+         const s = getCaseStatus(a).toLowerCase();
          
          let isExpiring = false;
          if (a.expiryDate && a.alertDays && s !== "cancel" && s !== "completed" && s !== "done") {
@@ -5381,7 +5444,7 @@
         const apptDT = `${a.appointmentDate || ""}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
         const id = (a.invoiceId || a.id || "").toUpperCase();
 
-        const s = (a.customerStatus || "").toLowerCase(); 
+         const s = getCaseStatus(a).toLowerCase(); 
         const isArchive = (s === "completed" || s === "done" || s === "cancel");
 
         let apptHtml = apptDT || "-";
@@ -5403,7 +5466,7 @@
 
         let statusOptions = "";
         dropdownSettings.customerStatuses.forEach(s_opt => {
-          statusOptions += `<option value="${s_opt}" ${a.customerStatus === s_opt ? 'selected' : ''}>${s_opt}</option>`;
+          statusOptions += `<option value="${s_opt}" ${getCaseStatus(a) === s_opt ? 'selected' : ''}>${s_opt}</option>`;
         });
 
         let expHtml = "";
@@ -5562,7 +5625,7 @@
           <td>${a.date || ""}</td>
           <td>${apptHtml}${expHtml}</td>
           <td>
-            <select class="status-select ${(a.customerStatus||'').toLowerCase()}" data-statusid="${id}" data-oldstatus="${a.customerStatus}">
+            <select class="status-select ${getCaseStatus(a).toLowerCase()}" data-statusid="${id}" data-oldstatus="${getCaseStatus(a)}">
               ${statusOptions}
             </select>
           </td>
@@ -5701,17 +5764,14 @@
           e.target.disabled = true;
           try {
             // Firestore ပေါ်တွင် Status အပြင် Update လုပ်တဲ့အချိန်ကိုပါ သိမ်းမည်
-            await updateDoc(doc(db, "appointments", docId), { 
-                customerStatus: newVal,
-                updatedAt: serverTimestamp(),
-                updatedBy: currentUserName
-            });
+            await updateAppointmentWithAudit(docId, { customerStatus: newVal, caseStatus: newVal }, "case_status_update");
             e.target.className = `status-select ${newVal.toLowerCase()}`;
             e.target.dataset.oldstatus = newVal;
 
             const idx = cachedAppointments.findIndex(x => x.id === docId);
             if (idx > -1) {
               cachedAppointments[idx].customerStatus = newVal;
+              cachedAppointments[idx].caseStatus = newVal;
               // Local Cache တွင်ပါ အချိန်ကို ချက်ချင်း Update လုပ်ပေးမည်
               cachedAppointments[idx].updatedAt = { 
                   toDate: () => new Date(), 
@@ -5912,7 +5972,7 @@
         }
         
         list.forEach(a => {
-           const status = a.customerStatus || "Pending";
+           const status = getCaseStatus(a);
            const sLower = status.toLowerCase();
            let pillClass = "status-pending";
            
@@ -6007,10 +6067,10 @@
       $("socialLink").value = a.socialLink || ""; 
       $("phone").value = a.phone || ""; 
 
-      ensureOption($("customerStatus"), a.customerStatus);
+      ensureOption($("customerStatus"), getCaseStatus(a));
       ensureOption($("channel"), a.channel); ensureOption($("location"), a.location); ensureOption($("serviceType"), a.serviceType); ensureOption($("paymentType"), a.paymentType);
 
-      $("customerStatus").value = a.customerStatus || ""; 
+      $("customerStatus").value = getCaseStatus(a) || ""; 
       $("channel").value = a.channel || ""; $("location").value = a.location || ""; 
 
       $("serviceType").value = a.serviceType || "";
@@ -6144,7 +6204,7 @@
         ? { sourceStatus: nextStatus, agentSettlementStatus: nextStatus }
         : { handlerSettlementStatus: nextStatus, serviceProviderSettlementStatus: nextStatus });
       try {
-        await Promise.all(selected.map((check, i) => updateDoc(doc(db, "appointments", check.dataset.id), { ...patches[i], updatedAt: serverTimestamp(), updatedBy: currentUserName })));
+        await Promise.all(selected.map((check, i) => updateAppointmentWithAudit(check.dataset.id, patches[i], "bulk_settlement_status")));
         selected.forEach((check, i) => { const local = cachedAppointments.find(a => a.id === check.dataset.id); if (local) Object.assign(local, patches[i]); });
         if ($("settlementBulkStatus")) $("settlementBulkStatus").value = "";
         renderAppointmentsTable();
@@ -6183,7 +6243,7 @@
         updatedAt: serverTimestamp(), updatedBy: currentUserName
       };
       try {
-        await updateDoc(doc(db, "appointments", id), patch);
+        await updateAppointmentWithAudit(id, patch, "settlement_save");
         Object.assign(a, patch); delete a.updatedAt;
         renderSettlementDashboard();
         showToast("Settlement သိမ်းပြီးပါပြီ", "success");
@@ -6529,8 +6589,28 @@
       }
     }
 
-    if ($("logsTabBtn")) $("logsTabBtn").addEventListener("click", loadTrackerLogs);
+    async function loadAuditLogs() {
+      if (currentRole !== "admin") return;
+      const tbody = $("auditLogTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Loading audit history...</td></tr>`;
+      try {
+        const snap = await getDocs(query(collection(db, "auditLogs"), orderBy("createdAt", "desc"), limit(150)));
+        if (snap.empty) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Audit history မရှိသေးပါ။</td></tr>`; return; }
+        tbody.innerHTML = "";
+        snap.forEach(s => {
+          const d = s.data();
+          const time = d.createdAt?.toDate ? d.createdAt.toDate().toLocaleString() : "အချိန်မသိ";
+          const changes = Object.entries(d.changes || {}).map(([field, v]) => `<div><b>${field}</b>: ${String(v.before ?? "-")} → ${String(v.after ?? "-")}</div>`).join("") || "-";
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td style="white-space:nowrap;font-size:11px;">${time}</td><td>${d.entityId || "-"}</td><td><span class="tag">${d.action || "update"}</span></td><td>${d.actor || "-"}<br/><small>${d.actorRole || "-"}</small></td><td style="font-size:11px;line-height:1.35;">${changes}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (e) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">Audit history ဖတ်မရပါ: ${e.message}</td></tr>`; console.error(e); }
+    }
+    if ($("logsTabBtn")) $("logsTabBtn").addEventListener("click", () => { loadTrackerLogs(); loadAuditLogs(); });
     if ($("reloadLogsBtn")) $("reloadLogsBtn").addEventListener("click", loadTrackerLogs);
+    if ($("reloadAuditBtn")) $("reloadAuditBtn").addEventListener("click", loadAuditLogs);
 
     $("createNewAccBtn")?.addEventListener("click", async () => {
       if (currentRole !== "admin") return;
