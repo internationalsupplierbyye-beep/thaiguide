@@ -795,6 +795,9 @@
     }
     #tab-dashboard .toolbar input,
     #tab-dashboard .toolbar select { height: 30px; border-color: #dbe3ef; background: #fff; }
+    #tab-dashboard .toolbar .date-range-group{flex:1 1 210px;display:flex;align-items:center;gap:4px;min-width:205px}
+    #tab-dashboard .toolbar .date-range-group input{width:86px;min-width:0;padding:3px 5px;font-size:11px}
+    #tab-dashboard .toolbar .date-range-group span:first-child{white-space:nowrap;font-size:11px}
     #tab-dashboard .toolbar button { min-height: 34px; }
     #tab-dashboard .panel-card > div[style*="max-height: 450px"] {
       border-color: #dbe3ef !important;
@@ -2011,17 +2014,23 @@
                 <option value="">All</option>
               </select>
             </div>
-            <div class="toolbar-group">
-              <span style="color:var(--primary); font-weight:bold;">Service Date</span>
-              <input type="date" id="filterServiceDateFrom" />
+            <div class="toolbar-group date-range-group">
+              <span style="color:var(--primary); font-weight:bold;">Entry Date</span>
+              <input type="date" id="filterServiceDateFrom" title="Entry Date From" />
               <span>→</span>
-              <input type="date" id="filterServiceDateTo" />
+              <input type="date" id="filterServiceDateTo" title="Entry Date To" />
             </div>
-            <div class="toolbar-group">
+            <div class="toolbar-group date-range-group">
               <span>Appt Date</span>
               <input type="date" id="filterApptFrom" />
               <span>→</span>
               <input type="date" id="filterApptTo" />
+            </div>
+            <div class="toolbar-group date-range-group">
+              <span>Expiry</span>
+              <input type="date" id="filterExpiryFrom" title="Expiry Date From" />
+              <span>→</span>
+              <input type="date" id="filterExpiryTo" title="Expiry Date To" />
             </div>
             
             <div class="toolbar-group" id="completedSortGroup" style="display:none; margin-left: 8px; border-left: 2px solid #e5e7eb; padding-left: 10px;">
@@ -2042,7 +2051,7 @@
                 <tr>
                   <th>Invoice ID</th>
                   <th>Action</th>
-                  <th>Service Date</th>
+                  <th>Entry Date</th>
                   <th>Appt / Expiry</th>
                   <th>Status (Change)</th>
                   <th>Customer</th>
@@ -5355,6 +5364,8 @@
       const apptTo = $("filterApptTo")?.value || "";
       const serviceDateFrom = $("filterServiceDateFrom")?.value || "";
       const serviceDateTo = $("filterServiceDateTo")?.value || "";
+      const expiryFrom = $("filterExpiryFrom")?.value || "";
+      const expiryTo = $("filterExpiryTo")?.value || "";
 
       const today = new Date();
       today.setHours(0,0,0,0);
@@ -5371,12 +5382,16 @@
           if (apptTo && d > apptTo) ok = false;
         }
 
-        if (ok && (serviceDateFrom || serviceDateTo)) {
-          const sd = a.date || ""; 
-          if (serviceDateFrom && sd < serviceDateFrom) ok = false;
-          if (serviceDateTo && sd > serviceDateTo) ok = false;
+                if (ok && (serviceDateFrom || serviceDateTo)) {
+          const entryDate = a.date || "";
+          if (serviceDateFrom && entryDate < serviceDateFrom) ok = false;
+          if (serviceDateTo && entryDate > serviceDateTo) ok = false;
         }
-        
+        if (ok && (expiryFrom || expiryTo)) {
+          const expiryDate = a.expiryDate || "";
+          if (expiryFrom && (!expiryDate || expiryDate < expiryFrom)) ok = false;
+          if (expiryTo && (!expiryDate || expiryDate > expiryTo)) ok = false;
+        }
         return ok;
       });
 
@@ -5830,6 +5845,8 @@
               $("filterApptTo").value = "";
               $("filterServiceDateFrom").value = ""; 
               $("filterServiceDateTo").value = "";
+              $("filterExpiryFrom").value = "";
+              $("filterExpiryTo").value = "";
               
               viewMode = "all"; // Error မတက်စေရန် All ဆီသို့ ပို့ပေးပါမည်
               updateDashboardTabsUI();
@@ -5925,14 +5942,15 @@
       else $("exchangeRateWrapper").style.display = "none";
 
       $("paymentType").value = a.paymentType || ""; $("cost").value = a.serviceCost != null ? a.serviceCost : ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
-      if ($("agentName")) $("agentName").value = a.agentName || "";
-      if ($("agentPayable")) $("agentPayable").value = a.agentPayable != null ? a.agentPayable : "";
-      if ($("agentSettlementStatus")) $("agentSettlementStatus").value = a.agentSettlementStatus || "pending";
-      if ($("serviceProviderName")) $("serviceProviderName").value = a.serviceProviderName || "";
-      if ($("serviceProviderSettlementType")) $("serviceProviderSettlementType").value = a.serviceProviderSettlementType || "";
-      if ($("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = a.serviceProviderSettlementAmount != null ? a.serviceProviderSettlementAmount : "";
-      if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = a.serviceProviderSettlementStatus || "pending";
-      if ($("entrySettlementEnabled")) $("entrySettlementEnabled").checked = !!(a.entrySettlementEnabled || a.agentName || Number(a.agentPayable || 0) > 0 || a.serviceProviderName || a.serviceProviderSettlementType);
+      // Duplicate mode intentionally starts without the original Settlement data.
+      if ($("agentName")) $("agentName").value = "Direct / ကိုယ်တိုင်ရ";
+      if ($("agentPayable")) $("agentPayable").value = "";
+      if ($("agentSettlementStatus")) $("agentSettlementStatus").value = "pending";
+      if ($("serviceProviderName")) $("serviceProviderName").value = "ကိုယ်တိုင်လုပ်";
+      if ($("serviceProviderSettlementType")) $("serviceProviderSettlementType").value = "";
+      if ($("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = "";
+      if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = "pending";
+      if ($("entrySettlementEnabled")) $("entrySettlementEnabled").checked = false;
       syncEntrySettlementUI();
       $("remark").value = a.remark || ""; updateDepositUI();
       $("internalRemark").value = a.internalRemark || "";
@@ -6262,6 +6280,8 @@
         if($("filterStatus")) $("filterStatus").value = "";
         if($("filterServiceDateFrom")) $("filterServiceDateFrom").value = "";
         if($("filterServiceDateTo")) $("filterServiceDateTo").value = "";
+        if($("filterExpiryFrom")) $("filterExpiryFrom").value = "";
+        if($("filterExpiryTo")) $("filterExpiryTo").value = "";
         if($("filterApptFrom")) $("filterApptFrom").value = "";
         if($("filterApptTo")) $("filterApptTo").value = "";
     };
