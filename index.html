@@ -808,7 +808,13 @@
     #tab-dashboard #dashboardTableScroller thead{position:sticky;top:0;z-index:20}
     #tab-dashboard #dashboardTableScroller thead th{position:sticky;top:0;z-index:21;background:#dbeafe !important;color:#0f172a !important;font-weight:800;text-shadow:none;box-shadow:0 1px 0 #93c5fd;border-bottom:1px solid #93c5fd}
     body.dark-mode #tab-dashboard #dashboardTableScroller thead th{background:#1e3a8a !important;color:#ffffff !important;border-bottom-color:#60a5fa;box-shadow:0 1px 0 #60a5fa}
-    #tab-dashboard #dashboardTableScroller::-webkit-scrollbar{height:10px;width:10px}
+    #tab-dashboard #dashboardTableScroller{scrollbar-width:auto;scrollbar-color:#64748b #e2e8f0}
+    #tab-dashboard #dashboardTableScroller::-webkit-scrollbar{height:14px;width:10px}
+    #tab-dashboard #dashboardTableScroller::-webkit-scrollbar-track{background:#e2e8f0;border-radius:8px}
+    #tab-dashboard #dashboardTableScroller::-webkit-scrollbar-thumb{background:#64748b;border-radius:8px;border:3px solid #e2e8f0}
+    body.dark-mode #tab-dashboard #dashboardTableScroller{scrollbar-color:#94a3b8 #1e293b}
+    body.dark-mode #tab-dashboard #dashboardTableScroller::-webkit-scrollbar-track{background:#1e293b}
+    body.dark-mode #tab-dashboard #dashboardTableScroller::-webkit-scrollbar-thumb{background:#94a3b8;border-color:#1e293b}
 
     /* Invoice */
     #tab-invoice .invoice-wrap {
@@ -2577,6 +2583,16 @@
         </div>
         <div class="modal-body" id="docsModalBody" style="background:#f1f5f9; padding: 15px;">
         </div>
+      </div>
+    </div>
+
+    <div id="invoicePreviewModal" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width:900px;width:calc(100% - 24px);max-height:90vh;">
+        <div class="modal-header">
+          <h3 id="invoicePreviewTitle">🔎 Invoice Details</h3>
+          <button class="close-btn" id="closeInvoicePreviewModal" type="button">&times;</button>
+        </div>
+        <div class="modal-body" id="invoicePreviewBody" style="overflow:auto;background:#f8fafc;padding:14px;"></div>
       </div>
     </div>
 
@@ -5126,15 +5142,16 @@
       (cachedAppointments || []).forEach(a => {
         const date = a.date || "";
         const service = a.serviceType || "";
+        const servicePackage = a.servicePackage || "";
         const invoice = (a.invoiceId || a.id || "").toUpperCase();
         const customer = a.name || "-";
         const agentAmount = Number(a.agentCommission != null ? a.agentCommission : (a.agentPayable || 0));
         const sourceName = a.sourceName || a.agentName || "Direct / ကိုယ်တိုင်ရ";
-        if (agentAmount > 0) rows.push({ id:a.id, date, invoice, customer, service, source:sourceName, handler:"", person:sourceName, direction:"agent_payable", label:"Source/Agent ကော်မရှင် ပေးရန်", amount:agentAmount, status:a.sourceStatus || a.agentSettlementStatus || "pending" });
+        if (agentAmount > 0) rows.push({ id:a.id, date, invoice, customer, service, servicePackage, source:sourceName, handler:"", person:sourceName, direction:"agent_payable", label:"Source/Agent ကော်မရှင် ပေးရန်", amount:agentAmount, status:a.sourceStatus || a.agentSettlementStatus || "pending" });
         const providerAmount = Number(a.handlerSettlementAmount != null ? a.handlerSettlementAmount : (a.serviceProviderSettlementAmount || 0));
         const providerType = a.handlerSettlementType || a.serviceProviderSettlementType || "";
         const handlerName = a.handlerName || a.serviceProviderName || "ကိုယ်တိုင်လုပ်";
-        if (providerAmount > 0 && providerType) rows.push({ id:a.id, date, invoice, customer, service, source:"", handler:handlerName, person:handlerName, direction:providerType === "payable" ? "provider_payable" : "provider_receivable", label:providerType === "payable" ? "Handler ကို ပေးရန်" : "Handler ဆီမှ ရရန်", amount:providerAmount, status:a.handlerSettlementStatus || a.serviceProviderSettlementStatus || "pending" });
+        if (providerAmount > 0 && providerType) rows.push({ id:a.id, date, invoice, customer, service, servicePackage, source:"", handler:handlerName, person:handlerName, direction:providerType === "payable" ? "provider_payable" : "provider_receivable", label:providerType === "payable" ? "Handler ကို ပေးရန်" : "Handler ဆီမှ ရရန်", amount:providerAmount, status:a.handlerSettlementStatus || a.serviceProviderSettlementStatus || "pending" });
       });
 
       const sourceSelect = $("settlementSourceFilter");
@@ -5208,7 +5225,7 @@
       const canDeleteSettlement = currentRole === "admin";
       table.innerHTML = filtered.map(r => `<tr>
         <td><input type="checkbox" class="settlement-row-check" data-id="${esc(r.id)}" data-direction="${esc(r.direction)}" aria-label="${esc(r.invoice)} ရွေးရန်"></td>
-        <td>${esc(r.date || "-")}</td><td>${esc(r.invoice)}</td><td>${esc(r.customer)}</td><td>${esc(r.service)}</td><td class="settlement-source-cell">${esc(r.source)}</td><td class="settlement-handler-cell">${esc(r.handler || "-")}</td>
+        <td>${esc(r.date || "-")}</td><td>${esc(r.invoice)}</td><td>${esc(r.customer)}</td><td><div>${esc(r.service)}</div>${r.servicePackage ? `<small style="display:block;color:#64748b;">Package: ${esc(r.servicePackage)}</small>` : ""}</td><td class="settlement-source-cell">${esc(r.source)}</td><td class="settlement-handler-cell">${esc(r.handler || "-")}</td>
         <td>${esc(r.label)}</td><td style="font-weight:800; color:${r.direction === "provider_receivable" ? "#15803d" : "#c2410c"};">${r.amount.toFixed(2)} THB</td>
         <td><select class="settlement-status-select" data-id="${esc(r.id)}" data-direction="${esc(r.direction)}"><option value="pending" ${r.status === "pending" ? "selected" : ""}>မရှင်းရသေး</option><option value="settled" ${r.status === "settled" ? "selected" : ""}>ရှင်းပြီး</option></select></td>
         <td><div style="display:flex;gap:4px;flex-wrap:wrap;">${(currentRole === "admin" || currentRole === "manager" || currentRole === "finance") ? `<button type="button" class="btn btn-outline settlement-row-edit" data-id="${esc(r.id)}" style="padding:4px 8px;font-size:11px;">Edit</button>` : ""}${canDeleteSettlement ? `<button type="button" class="btn btn-danger settlement-row-delete" data-id="${esc(r.id)}" data-direction="${esc(r.direction)}" style="padding:4px 8px;font-size:11px;">Delete</button>` : "-"}</div></td>
@@ -5564,10 +5581,11 @@
         
         let docsLinkHtml = "";
         if (a.documentLinks && a.documentLinks.length > 0) {
-          docsLinkHtml = `<div style="margin-top:6px;">
+          docsLinkHtml = `<div style="margin-top:6px;display:flex;gap:4px;align-items:center;">
              <button class="btn btn-outline view-docs-btn" style="padding:4px 10px; font-size:11px; background:#ecfdf5; border-color:#a7f3d0; color:#059669; border-radius:6px; font-weight:bold; cursor:pointer;" type="button">
                📁 View Docs (${a.documentLinks.length})
              </button>
+             <button class="btn btn-outline invoice-preview-btn" title="Invoice အချက်အလက်အပြည့်ကြည့်ရန်" aria-label="Invoice အချက်အလက်အပြည့်ကြည့်ရန်" style="padding:4px 8px;font-size:13px;background:#eef2ff;border-color:#c7d2fe;color:#4338ca;border-radius:6px;cursor:pointer;" type="button">🔎</button>
            </div>`;
         }
 
@@ -5677,6 +5695,8 @@
 
         const quickSettlementBtn = tr.querySelector(".settlement-quick-open");
         if (quickSettlementBtn) quickSettlementBtn.addEventListener("click", () => openQuickSettlementModal(id));
+        const previewBtn = tr.querySelector(".invoice-preview-btn");
+        if (previewBtn) previewBtn.addEventListener("click", () => openInvoicePreview(a));
         const docsBtn = tr.querySelector(".view-docs-btn");
         if (docsBtn) {
           docsBtn.addEventListener("click", () => {
@@ -6042,6 +6062,27 @@
       $("docsModalBody").innerHTML = ""; 
     });
 
+    function openInvoicePreview(a) {
+      const id = (a.invoiceId || a.id || "").toUpperCase();
+      const money = (v) => v === null || v === undefined || v === "" ? "-" : `${Number(v).toFixed(2)} ${a.currency || "THB"}`;
+      const row = (label, value) => `<div style="display:grid;grid-template-columns:170px 1fr;gap:8px;padding:7px 0;border-bottom:1px solid #e2e8f0;"><strong style="color:#475569;">${label}</strong><span style="word-break:break-word;">${value === null || value === undefined || value === "" ? "-" : value}</span></div>`;
+      const agent = a.sourceName || a.agentName || "Direct / ကိုယ်တိုင်ရ";
+      const handler = a.handlerName || a.serviceProviderName || "ကိုယ်တိုင်လုပ်";
+      const handlerType = a.handlerSettlementType || a.serviceProviderSettlementType || "";
+      const links = (a.documentLinks || []).map((link, i) => `<a href="${link}" target="_blank" rel="noopener" style="display:inline-block;margin:3px;padding:5px 8px;background:#ecfdf5;color:#047857;border-radius:6px;text-decoration:none;font-size:11px;">📄 Document ${i + 1}</a>`).join("");
+      $("invoicePreviewTitle").textContent = `🔎 ${id} · ${a.name || "Invoice Details"}`;
+      $("invoicePreviewBody").innerHTML = `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
+        ${row("Invoice ID", id)}${row("Entry Date", a.date)}${row("APPT Date", a.appointmentDate)}${row("Appointment Time", a.appointmentTime)}${row("Expiry Date", a.expiryDate)}${row("Case Status", getCaseStatus(a))}
+        ${row("Customer", a.name)}${row("Document No.", a.docNumber)}${row("Social Name", a.socialName)}${row("Phone", a.phone)}${row("Channel", a.channel)}${row("Location", a.location)}
+        ${row("Service", a.serviceType)}${row("Package", a.servicePackage)}${row("Payment", a.paymentType)}${row("Total", money(a.price))}${row("Deposit", money(a.depositAmount))}${row("Balance", money(a.balanceAmount))}${row("Cost", money(a.serviceCost))}${row("Profit", money(a.serviceProfit))}
+        ${row("Source / Agent", agent)}${row("Agent Amount", money(a.agentCommission != null ? a.agentCommission : a.agentPayable))}${row("Agent Status", a.sourceStatus || a.agentSettlementStatus)}
+        ${row("Service Handler", handler)}${row("Handler Direction", handlerType === "receivable" ? "ရရန်" : handlerType === "payable" ? "ပေးရန်" : "-")}${row("Handler Amount", money(a.handlerSettlementAmount != null ? a.handlerSettlementAmount : a.serviceProviderSettlementAmount))}${row("Handler Status", a.handlerSettlementStatus || a.serviceProviderSettlementStatus)}${row("Settlement Status", a.settlementStatus)}${row("Remark", a.remark)}${row("Internal Remark", a.internalRemark)}
+        <div style="padding-top:9px;"><strong style="color:#475569;">Documents</strong><div>${links || "-"}</div></div>
+      </div>`;
+      $("invoicePreviewModal").classList.remove("hidden");
+    }
+    $("closeInvoicePreviewModal").addEventListener("click", () => $("invoicePreviewModal").classList.add("hidden"));
+
     function ensureOption(select, value) {
       if (!value) return;
       if (!Array.from(select.options).some(o => o.value === value)) {
@@ -6161,7 +6202,7 @@
       const from = $("settlementDateFrom")?.value || "All";
       const to = $("settlementDateTo")?.value || "All";
       const exportTable = document.createElement("table");
-      exportTable.innerHTML = `<thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Service</th><th class="export-source-head">Source / Agent</th><th class="export-handler-head">Service Handler</th><th>အမျိုးအစား</th><th>Amount</th><th>Status</th></tr></thead><tbody></tbody>`;
+      exportTable.innerHTML = `<thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Service<br><small>Package</small></th><th class="export-source-head">Source / Agent</th><th class="export-handler-head">Service Handler</th><th>အမျိုးအစား</th><th>Amount</th><th>Status</th></tr></thead><tbody></tbody>`;
       const exportBody = exportTable.querySelector("tbody");
       let payableTotal = 0, receivableTotal = 0, settledTotal = 0, pendingTotal = 0, settledCount = 0, pendingCount = 0;
       bodyRows.forEach(tr => {
@@ -6176,7 +6217,8 @@
         if (statusText === "settled") { settledTotal += amount; settledCount++; } else { pendingTotal += amount; pendingCount++; }
         const sourceText = cells[5]?.textContent?.trim() || "-";
         const handlerText = cells[6]?.textContent?.trim() || "-";
-        exportBody.insertAdjacentHTML("beforeend", `<tr><td>${cells[1]?.innerHTML || ""}</td><td>${cells[2]?.innerHTML || ""}</td><td>${cells[3]?.innerHTML || ""}</td><td>${cells[4]?.innerHTML || ""}</td><td class="export-source-cell">${sourceText}</td><td class="export-handler-cell">${handlerText}</td><td>${cells[7]?.innerHTML || ""}</td><td>${cells[8]?.innerHTML || ""}</td><td>${statusSelect?.selectedOptions?.[0]?.textContent || ""}</td></tr>`);
+        const serviceHtml = cells[4]?.innerHTML || "";
+        exportBody.insertAdjacentHTML("beforeend", `<tr><td>${cells[1]?.innerHTML || ""}</td><td>${cells[2]?.innerHTML || ""}</td><td>${cells[3]?.innerHTML || ""}</td><td>${serviceHtml}</td><td class="export-source-cell">${sourceText}</td><td class="export-handler-cell">${handlerText}</td><td>${cells[7]?.innerHTML || ""}</td><td>${cells[8]?.innerHTML || ""}</td><td>${statusSelect?.selectedOptions?.[0]?.textContent || ""}</td></tr>`);
       });
       const exportStatus = $("settlementStatusFilter")?.value || (settlementSummaryFilter === "settled" ? "settled" : settlementSummaryFilter === "pending" ? "pending" : "all");
       const exportStatusLabel = exportStatus === "settled" ? "✅ ရှင်းပြီး" : exportStatus === "pending" ? "⏳ မရှင်းရသေး" : "အားလုံး";
