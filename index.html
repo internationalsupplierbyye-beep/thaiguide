@@ -2399,7 +2399,7 @@
                   <div class="field">
                     <label for="settingGasUrl">Google Drive Web App URL</label>
                     <input type="text" id="settingGasUrl" placeholder="https://script.google.com/macros/s/..../exec" />
-                    <small>Document ပုံ/PDF များကို Google Drive သို့ သိမ်းရန်</small>
+                    <small>Document ပုံ/PDF များကို Google Drive သို့ သိမ်းရန် — Apps Script Deployment ကို <b>Execute as: Me</b> နှင့် <b>Who has access: Anyone</b> ထားပြီး နောက်ဆုံး <code>/exec</code> URL ကိုသာ ထည့်ပါ။</small>
                   </div>
                   <div class="field">
                     <label for="settingSheetUrl">Google Sheets Web App URL</label>
@@ -2407,9 +2407,14 @@
                     <small>Appointment data Auto-Sync အတွက်</small>
                   </div>
                   <div class="field">
-                    <label for="settingOcrUrl">OCR Web App URL</label>
+                    <label for="settingGeminiApiKey">Gemini OCR API Key</label>
+                    <input type="password" id="settingGeminiApiKey" autocomplete="off" placeholder="AIza..." />
+                    <small>Passport / Work Permit OCR ဖတ်ရန်။ Gemini API Key ကို ဒီနေရာမှာသာ ထည့်ပြီး Save လုပ်ပါ။ Free tier quota အတွင်း အသုံးပြုပါမည်။</small>
+                  </div>
+                  <div class="field">
+                    <label for="settingOcrUrl">OCR Web App URL <span class="settings-optional">Legacy</span></label>
                     <input type="text" id="settingOcrUrl" placeholder="https://script.google.com/macros/s/..../exec" />
-                    <small>Passport / Work Permit OCR ဖတ်ရန်</small>
+                    <small>Gemini API Key မရှိမှသာ အရင် OCR Web App ကို fallback အဖြစ် သုံးမည်။</small>
                   </div>
                 </div>
               </div>
@@ -2652,7 +2657,7 @@
     let pendingNewNotes = [];
 
     let servicePricing = {};
-    let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "", sheetUrl: "", ocrUrl: "" };
+    let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "", sheetUrl: "", ocrUrl: "", geminiApiKey: "" };
     let paymentSettings = { promptPayId: "", mmQRs: "" };
 
     let cachedAppointments = [];
@@ -3182,6 +3187,7 @@
       if ($("settingGasUrl")) $("settingGasUrl").value = telegramSettings.gasUrl || "";
       if ($("settingSheetUrl")) $("settingSheetUrl").value = telegramSettings.sheetUrl || "";
       if ($("settingOcrUrl")) $("settingOcrUrl").value = telegramSettings.ocrUrl || "";
+      if ($("settingGeminiApiKey")) $("settingGeminiApiKey").value = telegramSettings.geminiApiKey || "";
 
       if ($("tgToken")) $("tgToken").value = telegramSettings.botToken || "";
       if ($("tgMainChatId")) $("tgMainChatId").value = telegramSettings.mainChatId || "";
@@ -3232,6 +3238,7 @@
       telegramSettings.gasUrl = $("settingGasUrl").value.trim();
       telegramSettings.sheetUrl = $("settingSheetUrl").value.trim();
       telegramSettings.ocrUrl = $("settingOcrUrl").value.trim();
+      telegramSettings.geminiApiKey = $("settingGeminiApiKey").value.trim();
       telegramSettings.botToken = $("tgToken").value.trim();
       telegramSettings.mainChatId = $("tgMainChatId").value.trim();
       telegramSettings.threadAppt = $("tgThreadAppt").value.trim();
@@ -3590,7 +3597,78 @@
       return parsed;
     }
 
+    let geminiModelCache = { keyFingerprint: "", models: [], fetchedAt: 0 };
+
+    function geminiModelRank(name) {
+      const n = String(name || "").toLowerCase();
+      if (/embedding|aqa|image|tts|audio|robotics|computer-use/.test(n)) return 999;
+      if (/flash-lite/.test(n)) return 1;
+      if (/flash/.test(n)) return 2;
+      if (/pro/.test(n)) return 3;
+      return 10;
+    }
+
+    async function listGeminiOcrModels(apiKey) {
+      const fingerprint = `${apiKey.length}:${apiKey.slice(-8)}`;
+      if (geminiModelCache.models.length && geminiModelCache.keyFingerprint === fingerprint && Date.now() - geminiModelCache.fetchedAt < 10 * 60 * 1000) {
+        return geminiModelCache.models;
+      }
+      const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000", {
+        headers: { "x-goog-api-key": apiKey }
+      });
+      const raw = await response.text();
+      let result;
+      try { result = JSON.parse(raw); } catch (e) { throw new Error("Gemini Models API က JSON response မပြန်ပါ။"); }
+      if (!response.ok) throw new Error(`Gemini Models Error: ${result?.error?.message || `HTTP ${response.status}`}`);
+      const models = (result.models || [])
+        .filter(m => (m.supportedGenerationMethods || []).includes("generateContent"))
+        .map(m => String(m.name || "").replace(/^models\//, ""))
+        .filter(Boolean)
+        .sort((a, b) => geminiModelRank(a) - geminiModelRank(b) || a.localeCompare(b));
+      if (!models.length) throw new Error("ဒီ API Key အတွက် generateContent ရတဲ့ Gemini model မတွေ့ပါ။");
+      geminiModelCache = { keyFingerprint: fingerprint, models, fetchedAt: Date.now() };
+      return models;
+    }
+
+    async function requestGeminiOcrPayload(payload) {
+      const apiKey = (telegramSettings.geminiApiKey || "").trim();
+      if (!apiKey) throw new Error("Gemini API Key မရှိသေးပါ။ Settings > Integrations မှာ ထည့်ပြီး Save လုပ်ပါ။");
+      const models = await listGeminiOcrModels(apiKey);
+      const prompt = [
+        "Read this passport, work permit, or identity document image carefully.",
+        "Return ONLY the visible text, preserving MRZ lines exactly when present.",
+        "Do not explain, translate, or invent missing values. Keep each field or MRZ line on its own line."
+      ].join(" ");
+      const errors = [];
+      for (const model of models) {
+        try {
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+            body: JSON.stringify({ contents: [{ parts: [
+              { text: prompt },
+              { inline_data: { mime_type: payload.mimeType || "image/jpeg", data: payload.base64 } }
+            ] }], generationConfig: { temperature: 0, maxOutputTokens: 1200 } })
+          });
+          const raw = await response.text();
+          let result;
+          try { result = JSON.parse(raw); } catch (e) { throw new Error("JSON response မပြန်ပါ။"); }
+          if (!response.ok) throw new Error(result?.error?.message || `HTTP ${response.status}`);
+          const text = (result?.candidates || []).flatMap(c => c?.content?.parts || [])
+            .map(p => p?.text || "").filter(Boolean).join("\n").trim();
+          if (!text) throw new Error("စာသားမပြန်ပါ။");
+          return { success: true, text, raw: result, model };
+        } catch (e) {
+          errors.push(`${model}: ${e.message}`);
+        }
+      }
+      throw new Error(`Gemini model အားလုံးနဲ့ မဖတ်နိုင်ပါ။ ${errors.slice(0, 2).join(" | ")}`);
+    }
+
     async function requestEntryOcrPayload(payload) {
+      if ((telegramSettings.geminiApiKey || "").trim()) return requestGeminiOcrPayload(payload);
+      if (!telegramSettings.ocrUrl) throw new Error("Gemini API Key သို့မဟုတ် OCR Web App URL တစ်ခုခုကို Settings မှာ ထည့်ပါ။");
       const response = await fetch(telegramSettings.ocrUrl, {
         method: "POST",
         body: JSON.stringify({ base64: payload.base64, mimeType: payload.mimeType })
@@ -4535,6 +4613,19 @@
       reader.onerror = error => reject(error);
     });
 
+    // Compression မအောင်မြင်သည့် WEBP/မူရင်းဖိုင်များအတွက် raw upload payload
+    const readRawUploadPayload = (file) => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({
+        file,
+        base64: String(reader.result || "").split(",")[1] || "",
+        mimeType: file.type || "application/octet-stream",
+        filename: file.name || `upload-${Date.now()}`
+      });
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
     // PDF OCR ကို browser ထဲမှာ စာမျက်နှာတစ်မျက်နှာချင်းစီ JPEG အဖြစ် render လုပ်ပြီး
     // လက်ရှိ OCR Web App သို့ image payload အဖြစ်ပို့သည်။ ထို့ကြောင့် Apps Script ဘက်က
     // image OCR ကိုသာ လက်ခံနေသော်လည်း PDF ကိုပါ ဖတ်နိုင်မည်ဖြစ်သည်။
@@ -4592,9 +4683,9 @@
     }
 
     async function uploadToGoogleDrive(fileObj) {
-      const webAppUrl = telegramSettings.gasUrl;
+      const webAppUrl = (telegramSettings.gasUrl || "").trim();
       
-      if (!webAppUrl || !webAppUrl.startsWith("https://script.google.com/")) {
+      if (!webAppUrl || !/^https:\/\/script\.google\.com\/macros\/s\/[^\s]+\/exec(?:\?.*)?$/i.test(webAppUrl)) {
         throw new Error("Admin Settings -> Google Drive Integration ထဲတွင် URL ထည့်သွင်းထားခြင်း မရှိပါ။");
       }
 
@@ -4612,7 +4703,11 @@
       try { 
         result = JSON.parse(text); 
       } catch(e) { 
-        throw new Error("GAS Script Error: Permission လိုအပ်နေခြင်း သို့မဟုတ် URL မှားယွင်းနေပါသည်။ (" + text.substring(0,40) + ")"); 
+        const looksLikePermissionPage = /<\s*!doctype\s+html|sign in|permission|access denied|authorization required|google accounts/i.test(text);
+        if (response.status === 401 || response.status === 403 || looksLikePermissionPage) {
+          throw new Error("Google Drive Upload မအောင်မြင်ပါ။ Apps Script Deployment တွင် Execute as = Me၊ Who has access = Anyone ထားပြီး /exec URL အသစ်ကို Settings တွင် ပြန်ထည့်ပါ။");
+        }
+        throw new Error("Google Drive Web App က JSON response မပြန်ပါ။ URL သည် Apps Script Web App ၏ /exec URL ဟုတ်မဟုတ် စစ်ပါ။");
       }
 
       if (result.error) throw new Error("Drive API Error: " + result.error);
@@ -4622,7 +4717,9 @@
     }
 
     async function uploadToTelegramDocument(file, invoiceId) {
-      if (!telegramSettings.botToken || !telegramSettings.mainChatId) return null;
+      if (!telegramSettings.botToken || !telegramSettings.mainChatId) {
+        throw new Error("Telegram Bot Token သို့မဟုတ် Main Group Chat ID မပြည့်စုံပါ။ Settings မှာ စစ်ပါ။");
+      }
       
       const formData = new FormData();
       formData.append("chat_id", telegramSettings.mainChatId);
@@ -4642,10 +4739,11 @@
           body: formData
         });
         const result = await response.json();
-        return result.ok ? "Telegram Uploaded" : null;
+        if (!response.ok || !result.ok) throw new Error(result.description || `Telegram HTTP ${response.status}`);
+        return "Telegram Uploaded";
       } catch(e) { 
         console.error("Telegram file upload error", e); 
-        return null; 
+        throw e;
       }
     }
 
@@ -4754,19 +4852,45 @@
            messageDiv.className = "message";
 
            const filesToUpload = Array.from(fileInput.files);
-           for (let i = 0; i < filesToUpload.length; i++) {
+           const uploadOneFile = async (originalFile, index) => {
+             // ပုံများကို JPG အဖြစ်ပြောင်းပြီး 1400px / quality 0.78 ဖြင့် အလေးချိန်လျှော့သည်။
+             // PDF/အခြား non-image ဖိုင်များကို မူရင်းအတိုင်းထားပြီး conversion မအောင်မြင်ပါက raw fallback သုံးသည်။
+             let uploadObj;
              try {
-               const compressedObj = await compressImageIfNeed(filesToUpload[i]);
-               const driveLink = await uploadToGoogleDrive(compressedObj);
-               await uploadToTelegramDocument(compressedObj.file, invoiceId);
-               if (driveLink) {
-                 uploadedDriveLinks.push(driveLink);
-                 if (ocrMatchedFileKeys.has(fileKey(filesToUpload[i]))) uploadedMatchedLinks.push(driveLink);
-               }
-             } catch (err) {
-               console.error("Upload error:", err);
-               alert(`ဖိုင် (အမှတ် ${i+1}) တင်ရာတွင် အမှားအယွင်းရှိပါသည်: ${err.message}`);
+               uploadObj = await compressImageIfNeed(originalFile, { maxWidth: 1400, maxHeight: 1400, quality: 0.78 });
+             } catch (compressionError) {
+               console.warn("Upload image compression failed; using original file:", compressionError);
+               uploadObj = await readRawUploadPayload(originalFile);
              }
+
+             // Drive အောင်/မအောင်နှင့် မသက်ဆိုင်ဘဲ Telegram ကို တစ်ပြိုင်နက်တည်း ပို့သည်။
+             const driveTask = uploadToGoogleDrive(uploadObj)
+               .then(driveLink => {
+                 if (driveLink) {
+                   uploadedDriveLinks.push(driveLink);
+                   if (ocrMatchedFileKeys.has(fileKey(originalFile))) uploadedMatchedLinks.push(driveLink);
+                 }
+                 return { ok: true, driveLink };
+               })
+               .catch(error => ({ ok: false, error }));
+             const telegramTask = uploadToTelegramDocument(uploadObj.file, invoiceId)
+               .then(() => ({ ok: true }))
+               .catch(error => ({ ok: false, error }));
+             const [driveResult, telegramResult] = await Promise.all([driveTask, telegramTask]);
+
+             const failed = [];
+             if (!driveResult.ok) { failed.push(`Google Drive: ${driveResult.error.message}`); console.error("Google Drive upload error:", driveResult.error); }
+             if (!telegramResult.ok) { failed.push(`Telegram: ${telegramResult.error.message}`); console.error("Telegram document upload error:", telegramResult.error); }
+             if (failed.length) alert(`ဖိုင် (အမှတ် ${index + 1}) Upload ရလဒ်\n${failed.join("\n")}`);
+           };
+
+           // ဖုန်း/Network မပင်ပန်းစေရန် တစ်ကြိမ်လျှင် ၃ ဖိုင်အထိသာ တစ်ပြိုင်နက်လုပ်သည်။
+           const batchSize = 3;
+           for (let start = 0; start < filesToUpload.length; start += batchSize) {
+             const batch = filesToUpload.slice(start, start + batchSize);
+             const completedBefore = start;
+             messageDiv.textContent = `⏳ Upload ${completedBefore + 1}-${Math.min(completedBefore + batch.length, filesToUpload.length)}/${filesToUpload.length}`;
+             await Promise.all(batch.map((file, offset) => uploadOneFile(file, completedBefore + offset)));
            }
         }
 
@@ -6775,8 +6899,8 @@
         const file = $("scanInputFile").files[0];
         const msg = $("scanMessage");
 
-        if (!telegramSettings.ocrUrl) {
-          msg.textContent = "⚠️ Settings ထဲတွင် Google OCR URL မရှိသေးပါ။"; msg.className = "message error"; return;
+        if (!(telegramSettings.geminiApiKey || "").trim() && !telegramSettings.ocrUrl) {
+          msg.textContent = "⚠️ Settings > Integrations မှာ Gemini API Key ထည့်ပြီး Save လုပ်ပါ။"; msg.className = "message error"; return;
         }
         if (!file) {
           msg.textContent = "⚠️ ကျေးဇူးပြု၍ Passport ပုံ ရွေးချယ်ပါ။"; msg.className = "message error"; return;
@@ -6786,13 +6910,10 @@
         btnRunScanner.disabled = true;
 
         try {
-            const compressedObj = await compressImageIfNeed(file);
-            const response = await fetch(telegramSettings.ocrUrl, {
-              method: "POST",
-              body: JSON.stringify({ base64: compressedObj.base64, mimeType: compressedObj.mimeType })
-            });
-            const result = await response.json();
-            if (!result.success) throw new Error(result.error);
+            const compressedObj = await compressImageIfNeed(file, { maxWidth: 2200, maxHeight: 2200, quality: 0.9 });
+            const result = (telegramSettings.geminiApiKey || "").trim()
+              ? await requestGeminiOcrPayload(compressedObj)
+              : await requestEntryOcrPayload(compressedObj);
 
             const rawText = result.text;
             const lines = rawText.split('\n').map(l => l.replace(/\s+/g, '').replace(/[«‹\(\[\{]/g, '<').toUpperCase());
