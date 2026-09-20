@@ -2222,7 +2222,8 @@
                   
                   <div id="qrCodeContainer" class="invoice-qr" style="display:none; text-align:center; border-right: 1px dashed #d4d4d8;">
     <img id="invDynamicQR" src="" style="width: 85px; height: 85px; border: 2px solid #4f46e5; border-radius: 8px; padding: 3px; object-fit: contain;" />
-    <div class="invoice-qr-caption" style="color: #4f46e5; font-weight: 800;">ငွေပေးချေရန် Scan ဖတ်ပါ</div>
+    <div id="invQrAccountName" style="display:none; color:#334155; font-size:10px; font-weight:700; line-height:1.25; margin-top:3px;"></div>
+    <div class="invoice-qr-caption" style="color: #4f46e5; font-size:10px; font-weight:800; line-height:1.25; margin-top:2px;">ငွေပေးချေရန် Scan ဖတ်ပါ</div>
 </div>
 
                   <div class="invoice-amounts" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end;">
@@ -2371,8 +2372,8 @@
               <div class="settings-two-column-grid">
                 <div class="settings-block">
                   <h4>PromptPay IDs <span class="settings-optional">THB</span></h4>
-                  <textarea id="settingPromptPay" rows="5" placeholder="PP (Bank 1) = 0812345678\nPP (Bank 2) = 1XXXXXXXXXXXX"></textarea>
-                  <small>Pay နာမည် = ဖုန်းနံပါတ် ပုံစံဖြင့် တစ်ကြောင်းစီရေးပါ။</small>
+                  <textarea id="settingPromptPay" rows="5" placeholder="PP (KTB) = 0840179525 = AUNG AUNG\nPP (SCB) = 1101700123456 = SU SU"></textarea>
+                  <small><b>ဘဏ်/Payment Type = PromptPay ID = အကောင့်ပိုင်ရှင်အမည်</b> ပုံစံရေးပါ။ Invoice QR အောက်တွင် နောက်ဆုံးအမည်ကို ပြပါမည်။</small>
                 </div>
                 <div class="settings-block">
                   <h4>Myanmar Pay QR Links <span class="settings-optional">MMK</span></h4>
@@ -2604,6 +2605,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import {
@@ -6502,6 +6504,40 @@
       }
     };
 
+    // PromptPay QR payload — copied from the supplied working generator.
+    // Supports the same numeric identifier rules: mobile, 13-digit citizen ID, and longer IDs.
+    function generatePromptPayPayloadFromSample(id, amount) {
+      const cleanId = String(id || "").replace(/[^0-9]/g, "");
+      let target = "";
+      if (cleanId.length >= 15) target = "03" + String(cleanId.length).padStart(2, "0") + cleanId;
+      else if (cleanId.length === 13) target = "0213" + cleanId;
+      else if (cleanId.length === 10) target = "01130066" + cleanId.substring(1);
+      else target = "03" + String(cleanId.length).padStart(2, "0") + cleanId;
+
+      const tag29 = "0016A000000677010111" + target;
+      let payload = "00020101021" + (Number(amount) > 0 ? "2" : "1") +
+        "29" + String(tag29.length).padStart(2, "0") + tag29 + "5802TH5303764";
+      if (Number(amount) > 0) {
+        const amtStr = Number(amount).toFixed(2);
+        payload += "54" + String(amtStr.length).padStart(2, "0") + amtStr;
+      }
+      payload += "6304";
+      let crc = 0xFFFF;
+      for (let i = 0; i < payload.length; i++) {
+        crc ^= payload.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+      }
+      return payload + crc.toString(16).toUpperCase().padStart(4, "0");
+    }
+
+    function renderLocalPromptPayQr(img, id, amount) {
+      if (typeof QRious === "undefined") throw new Error("QR library မတင်ရသေးပါ။ Internet ချိတ်ဆက်မှုကို စစ်ပါ။");
+      const qr = new QRious({ value: generatePromptPayPayloadFromSample(id, amount), size: 400, level: "H" });
+      img.removeAttribute("crossOrigin");
+      img.src = qr.toDataURL("image/png");
+      return true;
+    }
+
     async function loadInvoice() {
       if (currentRole === "guest") return;
       const id = ($("invoiceDocId").value.trim() || lastSavedDocId || "").toUpperCase();
@@ -6579,41 +6615,59 @@
         // --- Dynamic QR Code Logic ---
         const qrContainer = $("qrCodeContainer");
         const qrImg = $("invDynamicQR");
+        const qrAccountName = $("invQrAccountName");
         const showQr = $("showQrOnInvoice") ? $("showQrOnInvoice").checked : true;
         const pType = data.paymentType || "";
 
         qrContainer.style.display = "none"; 
         qrImg.src = "";
         qrImg.removeAttribute("crossOrigin"); 
+        if (qrAccountName) { qrAccountName.textContent = ""; qrAccountName.style.display = "none"; }
 
         if (showQr && balance > 0) {
             let targetUrl = "";
-            
+            let promptPayNumber = "";
+
             if (cur === "THB" && paymentSettings.promptPayId) {
-                let ppNumber = "";
+                const paymentName = pType.trim().toLowerCase();
+                const lines = paymentSettings.promptPayId.split("\n").map(x => x.trim()).filter(Boolean);
+                let promptPayAccountName = "PromptPay";
                 if (paymentSettings.promptPayId.includes("=")) {
-                    const lines = paymentSettings.promptPayId.split("\n");
-                    // ၁။ Payment Type နာမည် အတိအကျတူလား အရင်ရှာမည်
-                    for (let l of lines) {
-                        let firstEq = l.indexOf("=");
-                        if (firstEq > -1 && pType.trim().toLowerCase() === l.substring(0, firstEq).trim().toLowerCase()) {
-                            ppNumber = l.substring(firstEq + 1).trim();
+                    for (const line of lines) {
+                        const parts = line.split("=").map(x => x.trim()).filter(Boolean);
+                        if (parts.length >= 2 && paymentName === parts[0].toLowerCase()) {
+                            const idAndName = parts[1].split("|").map(x => x.trim());
+                            promptPayNumber = idAndName[0] || "";
+                            promptPayAccountName = (parts.slice(2).join("=").split("|")[0].trim()) || idAndName[1] || parts[0];
                             break;
                         }
                     }
-                    // ၂။ အတိအကျမတွေ့လျှင် (Invoice တွင် PromptPay ဟုသာရွေးထားလျှင်) Settings ထဲက ပထမဆုံးနံပါတ်ကို Auto ယူမည်
-                    if (!ppNumber && (pType.toLowerCase().includes("promptpay") || pType.toLowerCase().includes("bank") || pType.toLowerCase().includes("qr"))) {
-                        const firstLine = lines.find(l => l.includes("="));
-                        if(firstLine) ppNumber = firstLine.substring(firstLine.indexOf("=") + 1).trim();
+                    if (!promptPayNumber && (paymentName.includes("promptpay") || paymentName.includes("bank") || paymentName.includes("qr"))) {
+                        const firstLine = lines.find(line => line.includes("="));
+                        if (firstLine) {
+                            const parts = firstLine.split("=").map(x => x.trim()).filter(Boolean);
+                            const idAndName = (parts[1] || "").split("|").map(x => x.trim());
+                            promptPayNumber = idAndName[0] || "";
+                            promptPayAccountName = (parts.slice(2).join("=").split("|")[0].trim()) || idAndName[1] || parts[0] || "PromptPay";
+                        }
                     }
-                } else {
-                    if (pType.toLowerCase().includes("promptpay") || pType.toLowerCase().includes("bank") || pType.toLowerCase().includes("qr")) {
-                        ppNumber = paymentSettings.promptPayId;
-                    }
+                } else if (paymentName.includes("promptpay") || paymentName.includes("bank") || paymentName.includes("qr")) {
+                    promptPayNumber = paymentSettings.promptPayId.trim();
                 }
 
-                if (ppNumber) {
-                    targetUrl = `https://promptpay.io/${ppNumber}/${balance}.png`;
+                // Thai PromptPay QR uses the exact locally generated payload from the supplied working sample.
+                if (promptPayNumber) {
+                    try {
+                        qrContainer.style.display = "block";
+                        if (qrAccountName) {
+                            qrAccountName.textContent = promptPayAccountName;
+                            qrAccountName.style.display = "block";
+                        }
+                        renderLocalPromptPayQr(qrImg, promptPayNumber, balance);
+                    } catch (e) {
+                        console.error("PromptPay local QR error:", e);
+                        qrContainer.style.display = "none";
+                    }
                 }
             } else if (cur === "MMK" && paymentSettings.mmQRs) {
                 const lines = paymentSettings.mmQRs.split("\n");
