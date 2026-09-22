@@ -1067,6 +1067,13 @@
     }
     #appointmentForm input[type="date"] { max-width: 320px; }
     .entry-date-format { display:block; margin-top:4px; color:#64748b; font-size:11px; font-weight:700; }
+    .entry-date-control { display:flex; align-items:center; gap:4px; position:relative; width:100%; }
+    .entry-date-text { flex:1 1 auto; min-width:0; width:1%; position:relative; z-index:5; pointer-events:auto; }
+    .entry-date-native { position:fixed; left:-10000px; top:0; width:1px; height:1px; opacity:0; pointer-events:none; z-index:-1; }
+    .entry-date-today, .entry-date-calendar { position:relative; z-index:6; flex:0 0 30px; height:38px; padding:0; border:1px solid var(--line); border-radius:8px; background:var(--surface-2); color:var(--text); font-weight:900; cursor:pointer; pointer-events:auto; }
+    .entry-date-today { color:#2563eb; font-size:14px; }
+    .entry-date-calendar { font-size:16px; }
+    .entry-date-today:hover, .entry-date-calendar:hover { border-color:#2563eb; background:#eff6ff; }
     .entry-schedule-row { grid-column: 1 / -1; display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px 14px; align-items:start; width:100%; }
     .entry-schedule-row .field { min-width:0; }
     @media (max-width: 1200px) { .entry-schedule-row { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -1739,7 +1746,12 @@
 
             <div class="field">
               <label for="date">စာရင်းသွင်းရက်</label>
-              <input type="date" id="date" required />
+              <div class="entry-date-control">
+                <input type="date" id="date" class="entry-date-native" required aria-hidden="true" tabindex="-1" />
+                <input type="text" id="dateText" class="entry-date-text" placeholder="DD-MM-YYYY" inputmode="numeric" autocomplete="off" required oninput="(function(e){var x=e.value.replace(/[^0-9]/g,'').slice(0,8);e.value=x.length>4?x.slice(0,2)+'-'+x.slice(2,4)+'-'+x.slice(4):x.length>2?x.slice(0,2)+'-'+x.slice(2):x;if(/^\d{2}-\d{2}-\d{4}$/.test(e.value)){var p=e.value.split('-'),d=new Date(+p[2],+p[1]-1,+p[0]);document.getElementById('date').value=d.getFullYear()==+p[2]&&d.getMonth()==+p[1]-1&&d.getDate()==+p[0]?p[2]+'-'+p[1]+'-'+p[0]:'';}else document.getElementById('date').value='';})(this)" />
+                <button type="button" class="entry-date-today" data-date-target="date" onclick="(function(){var d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),x=String(d.getDate()).padStart(2,'0'),i=y+'-'+m+'-'+x;document.getElementById('date').value=i;document.getElementById('dateText').value=x+'-'+m+'-'+y;})()" title="Today date">T</button>
+                <button type="button" class="entry-date-calendar" data-date-target="date" onclick="openDateCalendarModal('date')" title="Calendar">📅</button>
+              </div>
             </div>
 
             <div class="field" style="position:relative;">
@@ -1806,8 +1818,12 @@
 
             <div class="field">
               <label for="appointmentDate">ဝန်ဆောင်မှုရယူမည့်ရက်</label>
-              <input type="date" id="appointmentDate" />
-              <small id="appointmentDateDisplay" class="entry-date-format">dd/mm/yyyy</small>
+              <div class="entry-date-control">
+                <input type="date" id="appointmentDate" class="entry-date-native" aria-hidden="true" tabindex="-1" />
+                <input type="text" id="appointmentDateText" class="entry-date-text" placeholder="DD-MM-YYYY" inputmode="numeric" autocomplete="off" oninput="(function(e){var x=e.value.replace(/[^0-9]/g,'').slice(0,8);e.value=x.length>4?x.slice(0,2)+'-'+x.slice(2,4)+'-'+x.slice(4):x.length>2?x.slice(0,2)+'-'+x.slice(2):x;if(/^\d{2}-\d{2}-\d{4}$/.test(e.value)){var p=e.value.split('-'),d=new Date(+p[2],+p[1]-1,+p[0]);document.getElementById('appointmentDate').value=d.getFullYear()==+p[2]&&d.getMonth()==+p[1]-1&&d.getDate()==+p[0]?p[2]+'-'+p[1]+'-'+p[0]:'';}else document.getElementById('appointmentDate').value='';})(this)" />
+                <button type="button" class="entry-date-today" data-date-target="appointmentDate" onclick="(function(){var d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),x=String(d.getDate()).padStart(2,'0'),i=y+'-'+m+'-'+x;document.getElementById('appointmentDate').value=i;document.getElementById('appointmentDateText').value=x+'-'+m+'-'+y;})()" title="Today date">T</button>
+                <button type="button" class="entry-date-calendar" data-date-target="appointmentDate" onclick="openDateCalendarModal('appointmentDate')" title="Calendar">📅</button>
+              </div>
             </div>
 
             <div class="field">
@@ -1820,8 +1836,12 @@
 
             <div class="field">
               <label for="expiryDate">Expiry Date (သက်တမ်းကုန်မည့်ရက်)</label>
-              <input type="date" id="expiryDate" />
-              <small id="expiryDateDisplay" class="entry-date-format">dd/mm/yyyy</small>
+              <div class="entry-date-control">
+                <input type="date" id="expiryDate" class="entry-date-native" aria-hidden="true" tabindex="-1" />
+                <input type="text" id="expiryDateText" class="entry-date-text" placeholder="DD-MM-YYYY" inputmode="numeric" autocomplete="off" oninput="(function(e){var x=e.value.replace(/[^0-9]/g,'').slice(0,8);e.value=x.length>4?x.slice(0,2)+'-'+x.slice(2,4)+'-'+x.slice(4):x.length>2?x.slice(0,2)+'-'+x.slice(2):x;if(/^\d{2}-\d{2}-\d{4}$/.test(e.value)){var p=e.value.split('-'),d=new Date(+p[2],+p[1]-1,+p[0]);document.getElementById('expiryDate').value=d.getFullYear()==+p[2]&&d.getMonth()==+p[1]-1&&d.getDate()==+p[0]?p[2]+'-'+p[1]+'-'+p[0]:'';}else document.getElementById('expiryDate').value='';})(this)" />
+                <button type="button" class="entry-date-today" data-date-target="expiryDate" onclick="(function(){var d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),x=String(d.getDate()).padStart(2,'0'),i=y+'-'+m+'-'+x;document.getElementById('expiryDate').value=i;document.getElementById('expiryDateText').value=x+'-'+m+'-'+y;})()" title="Today date">T</button>
+                <button type="button" class="entry-date-calendar" data-date-target="expiryDate" onclick="openDateCalendarModal('expiryDate')" title="Calendar">📅</button>
+              </div>
             </div>
             
             <div class="field">
@@ -4383,15 +4403,52 @@
     const form = $("appointmentForm");
     const messageDiv = $("message");
     function formatEntryDateDMY(value) {
-      if (!value) return "dd/mm/yyyy";
+      if (!value) return "";
       const parts = String(value).split("-");
-      return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : "dd/mm/yyyy";
+      return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : "";
+    }
+    function parseEntryDateDMY(value) {
+      const raw = String(value || "").trim().replace(/[/.]/g, "-");
+      const m = raw.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+      if (!m) return "";
+      const day = Number(m[1]), month = Number(m[2]), year = Number(m[3]);
+      const d = new Date(year, month - 1, day);
+      if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return "";
+      return `${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
     }
     function syncEntryDateDisplays() {
-      if ($("appointmentDateDisplay")) $("appointmentDateDisplay").textContent = formatEntryDateDMY($("appointmentDate")?.value);
-      if ($("expiryDateDisplay")) $("expiryDateDisplay").textContent = formatEntryDateDMY($("expiryDate")?.value);
+      ["date", "appointmentDate", "expiryDate"].forEach(id => {
+        const native = $(id), text = $(`${id}Text`);
+        if (text && native && document.activeElement !== text) text.value = formatEntryDateDMY(native.value);
+      });
     }
-    ["appointmentDate","expiryDate"].forEach(id => $(id)?.addEventListener("input", syncEntryDateDisplays));
+    function setEntryDateToday(id) {
+      const native = $(id);
+      if (!native) return;
+      native.value = todayISO();
+      syncEntryDateDisplays();
+      $(`${id}Text`)?.focus();
+    }
+    function openEntryDatePicker(id) {
+      const native = $(id);
+      if (!native) return;
+      if (typeof native.showPicker === "function") native.showPicker();
+      else native.click();
+    }
+    ["date", "appointmentDate", "expiryDate"].forEach(id => {
+      $(`${id}Text`)?.addEventListener("input", e => {
+        let digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+        if (digits.length > 4) digits = `${digits.slice(0,2)}-${digits.slice(2,4)}-${digits.slice(4)}`;
+        else if (digits.length > 2) digits = `${digits.slice(0,2)}-${digits.slice(2)}`;
+        e.target.value = digits;
+        const iso = parseEntryDateDMY(digits);
+        $(id).value = iso || "";
+      });
+      $(id)?.addEventListener("change", syncEntryDateDisplays);
+    });
+    // This script is a module; expose the two button handlers for inline HTML onclick calls.
+    window.setEntryDateToday = setEntryDateToday;
+    window.openEntryDatePicker = openEntryDatePicker;
     syncEntryDateDisplays();
 
     function fillSavedNameOptions(el, names, selected) {
@@ -4920,6 +4977,7 @@
           
           messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; 
           messageDiv.className = "message success";
+          showToast("✅ Appointment ကို အောင်မြင်စွာ Update လုပ်ပြီးပါပြီ: " + editingDocId, "success");
           
           await sendMultiTelegramNotifications(lastSavedData);
           syncToGoogleSheet(lastSavedData);
@@ -6035,7 +6093,7 @@
       applyInvoiceIdMode();
       if (currentUser) ensureInvoiceIdAuto();
 
-      $("date").value = todayISO(); 
+      $("date").value = todayISO(); syncEntryDateDisplays();
       
       $("appointmentDate").value = ""; syncEntryDateDisplays();
       $("appointmentTime").value = "";
@@ -7186,7 +7244,7 @@
        });
     }
 
-    updateAuthUI(); renderDropdowns(); $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
+    updateAuthUI(); renderDropdowns(); $("date").value = todayISO(); syncEntryDateDisplays(); updateDepositUI(); applyInvoiceIdMode();
 
     // --- 🚀 NEW: Dark Mode Toggle Logic ---
     const themeToggleBtn = document.getElementById("themeToggleBtn");
@@ -7215,5 +7273,111 @@
     });
 
   </script>
+<script>
+// Standalone Entry date controller: intentionally independent of the module script above.
+(function () {
+  function isoToday() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function toDisplay(iso) {
+    const p = String(iso || '').split('-');
+    return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : '';
+  }
+  function toIso(display) {
+    const digits = String(display || '').replace(/\D/g, '');
+    if (digits.length !== 8) return '';
+    const day = Number(digits.slice(0,2)), month = Number(digits.slice(2,4)), year = Number(digits.slice(4));
+    const d = new Date(year, month - 1, day);
+    if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return '';
+    return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  }
+  function formatDigits(value) {
+    const d = String(value || '').replace(/\D/g, '').slice(0,8);
+    return d.length > 4 ? `${d.slice(0,2)}-${d.slice(2,4)}-${d.slice(4)}` : (d.length > 2 ? `${d.slice(0,2)}-${d.slice(2)}` : d);
+  }
+  function invalidDateNotice(value) {
+    let n = document.getElementById('entryDateInvalidNotice');
+    if (!n) {
+      n = document.createElement('div'); n.id = 'entryDateInvalidNotice';
+      n.style.cssText = 'position:fixed;right:18px;bottom:18px;z-index:99999;background:#b91c1c;color:#fff;padding:10px 14px;border-radius:8px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.2);';
+      document.body.appendChild(n);
+    }
+    n.textContent = `❌ ${value} သည် မဖြစ်နိုင်သော ရက်စွဲဖြစ်ပါသည်`;
+    n.style.display = 'block';
+    clearTimeout(window.__entryDateInvalidTimer);
+    window.__entryDateInvalidTimer = setTimeout(() => { n.style.display = 'none'; }, 2800);
+  }
+  function sync(target) {
+    const native = document.getElementById(target), text = document.getElementById(target + 'Text');
+    if (native && text) text.value = toDisplay(native.value);
+  }
+  function setToday(target) {
+    const native = document.getElementById(target);
+    if (!native) return;
+    native.value = isoToday();
+    sync(target);
+    native.dispatchEvent(new Event('change', { bubbles:true }));
+  }
+  function openCalendar(target) {
+    const native = document.getElementById(target);
+    if (!native) return;
+    try { if (native.showPicker) native.showPicker(); else native.click(); } catch (e) { native.click(); }
+  }
+  function openDateCalendarModal(target) {
+    const native = document.getElementById(target), text = document.getElementById(target + 'Text');
+    if (!native) return;
+    const old = document.getElementById('entryDateCalendarModal'); if (old) old.remove();
+    const overlay = document.createElement('div'); overlay.id = 'entryDateCalendarModal';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(15,23,42,.42);display:flex;align-items:center;justify-content:center;padding:18px;';
+    const box = document.createElement('div');
+    box.style.cssText = 'background:#fff;border-radius:14px;padding:18px;min-width:280px;max-width:94vw;box-shadow:0 18px 50px rgba(0,0,0,.3);';
+    box.innerHTML = `<div style="font-weight:800;font-size:16px;margin-bottom:12px;">📅 ရက်စွဲရွေးရန်</div><input id="entryDateCalendarPicker" type="date" style="width:100%;font-size:16px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;"><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;"><button type="button" id="entryDateCalendarCancel" style="padding:9px 14px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;">Cancel</button><button type="button" id="entryDateCalendarUse" style="padding:9px 14px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-weight:700;">ရွေးမည်</button></div>`;
+    overlay.appendChild(box); document.body.appendChild(overlay);
+    const picker = box.querySelector('#entryDateCalendarPicker'); picker.value = native.value || isoToday();
+    box.querySelector('#entryDateCalendarCancel').onclick = () => overlay.remove();
+    box.querySelector('#entryDateCalendarUse').onclick = () => { native.value = picker.value; if (text) text.value = toDisplay(picker.value); native.dispatchEvent(new Event('change', {bubbles:true})); overlay.remove(); };
+    picker.focus();
+    try { if (picker.showPicker) picker.showPicker(); } catch (e) {}
+  }
+  function init() {
+    ['date','appointmentDate','expiryDate'].forEach(target => {
+      const native = document.getElementById(target), text = document.getElementById(target + 'Text');
+      if (!native || !text || text.dataset.standaloneDateBound) return;
+      text.dataset.standaloneDateBound = '1';
+      text.addEventListener('input', function () {
+        this.value = formatDigits(this.value);
+        const digits = this.value.replace(/\D/g, '');
+        native.value = toIso(this.value);
+        if (digits.length === 8 && !native.value) invalidDateNotice(this.value);
+      });
+      native.addEventListener('change', () => sync(target));
+      sync(target);
+    });
+    // Capture events before the application/module handlers: this keeps T and manual typing reliable.
+    document.addEventListener('input', function (event) {
+      const text = event.target;
+      if (!text || !/^date(Text)?$|^(appointmentDate|expiryDate)Text$/.test(text.id)) return;
+      const target = text.id.replace(/Text$/, '');
+      text.value = formatDigits(text.value);
+      document.getElementById(target).value = toIso(text.value);
+      if (text.value.replace(/\D/g, '').length === 8 && !document.getElementById(target).value) invalidDateNotice(text.value);
+    }, true);
+    document.addEventListener('keyup', function (event) {
+      const text = event.target;
+      if (!text || !text.id || !text.id.endsWith('Text')) return;
+      const target = text.id.replace(/Text$/, '');
+      if (['date','appointmentDate','expiryDate'].includes(target)) {
+        text.value = formatDigits(text.value);
+        document.getElementById(target).value = toIso(text.value);
+        if (text.value.replace(/\D/g, '').length === 8 && !document.getElementById(target).value) invalidDateNotice(text.value);
+      }
+    }, true);
+    document.querySelectorAll('.entry-date-today').forEach(btn => btn.addEventListener('click', () => setToday(btn.dataset.dateTarget)));
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  window.openDateCalendarModal = openDateCalendarModal;
+})();
+</script>
 </body>
 </html>
