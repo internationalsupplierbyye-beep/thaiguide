@@ -5067,6 +5067,7 @@
           await setDoc(doc(db, "appointments", editingDocId), data, { merge: true });
           await syncSettlementRecords(editingDocId, { ...beforeEdit, ...data });
           await writeAuditLog("update", editingDocId, beforeEdit, { ...beforeEdit, ...data }, ["caseStatus","customerStatus","sourceName","sourceStatus","agentCommission","handlerName","handlerSettlementType","handlerSettlementAmount","handlerSettlementStatus","settlementStatus"]);
+          notifyAppointmentChange(invoiceId, "update");
           lastSavedDocId = editingDocId; 
           lastSavedData = { ...data, id: editingDocId };
           
@@ -5079,7 +5080,6 @@
           
           deleteDoc(doc(db, "editingLocks", editingDocId)).catch(()=>{});
           editingDocId = null; $("invoiceId").disabled = false; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
-          notifyAppointmentChange(invoiceId, "update");
           form.reset(); updateDepositUI(); refreshEntryPaymentButton(); await loadAppointments(); 
 
         } else {
@@ -5108,6 +5108,7 @@
           await setDoc(doc(db, "appointments", invoiceId), data);
           await syncSettlementRecords(invoiceId, data);
           await writeAuditLog("create", invoiceId, {}, data, ["caseStatus","customerStatus","sourceName","sourceStatus","agentCommission","handlerName","handlerSettlementType","handlerSettlementAmount","handlerSettlementStatus","settlementStatus"]);
+          notifyAppointmentChange(invoiceId, "create");
           lastSavedDocId = invoiceId; 
           lastSavedData = { ...data, id: invoiceId };
           
@@ -5120,7 +5121,6 @@
           await sendMultiTelegramNotifications(lastSavedData);
           syncToGoogleSheet(lastSavedData);
           
-          notifyAppointmentChange(invoiceId, "create");
           pendingNewNotes = [];
           form.reset(); if (!$("date").value) $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
           if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); await loadAppointments(); 
