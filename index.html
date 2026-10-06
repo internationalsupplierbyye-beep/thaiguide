@@ -889,8 +889,8 @@
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: 58px;
-      height: 30px;
+      width: 34px !important;
+      height: 34px !important;
       padding: 2px;
       object-fit: contain;
       background: #fff;
@@ -904,6 +904,12 @@
       width: 140px !important;
       height: 140px !important;
       margin: 0 auto;
+    }
+    #invoiceCard .invoice-qr .promptpay-logo {
+      display: block;
+      width: 34px !important;
+      height: 34px !important;
+      margin: 0 !important;
     }
     #invoiceCard .invoice-qr-caption {
       display: block;
@@ -6801,6 +6807,26 @@
       return true;
     }
 
+    async function inlinePromptPayLogo() {
+      const logo = $("promptpayLogo");
+      if (!logo || !logo.getAttribute("src") || logo.getAttribute("src").startsWith("data:")) return;
+      try {
+        const response = await fetch(logo.src, { cache: "no-store" });
+        if (!response.ok) throw new Error("PromptPay logo not found");
+        const blob = await response.blob();
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        logo.src = dataUrl;
+      } catch (e) {
+        console.warn("PromptPay logo could not be loaded:", e);
+        logo.style.display = "none";
+      }
+    }
+
     async function loadInvoice() {
       if (currentRole === "guest") return;
       const id = ($("invoiceDocId").value.trim() || lastSavedDocId || "").toUpperCase();
@@ -6881,6 +6907,7 @@
         const qrContainer = $("qrCodeContainer");
         const qrImg = $("invDynamicQR");
         const qrAccountName = $("invQrAccountName");
+        await inlinePromptPayLogo();
         const showQr = $("showQrOnInvoice") ? $("showQrOnInvoice").checked : true;
         const pType = data.paymentType || "";
 
@@ -7041,10 +7068,9 @@
             clonedCard?.querySelectorAll("img").forEach((img) => {
               try {
                 const src = img.getAttribute("src") || "";
-                // Export only the locally generated QR data URL. Removing all
-                // other image sources prevents any GitHub/remote image from
-                // tainting the canvas, regardless of CORS headers.
-                if (img.id !== "invDynamicQR" || !src.startsWith("data:")) {
+                // Keep only the locally generated QR and the inlined logo.
+                // Both are data URLs, so neither can taint the export canvas.
+                if (!["invDynamicQR", "promptpayLogo"].includes(img.id) || !src.startsWith("data:")) {
                   img.removeAttribute("src");
                   img.style.display = "none";
                 }
