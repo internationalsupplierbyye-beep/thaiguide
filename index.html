@@ -889,14 +889,14 @@
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: 34px !important;
-      height: 34px !important;
-      padding: 2px;
+      width: 18px !important;
+      height: 18px !important;
+      padding: 0;
       object-fit: contain;
-      background: #fff;
-      border: 2px solid #fff;
-      border-radius: 4px;
-      box-shadow: 0 1px 4px rgba(15,23,42,.35);
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
       z-index: 2;
     }
     #invoiceCard .invoice-qr img {
@@ -907,8 +907,8 @@
     }
     #invoiceCard .invoice-qr .promptpay-logo {
       display: block;
-      width: 34px !important;
-      height: 34px !important;
+      width: 18px !important;
+      height: 18px !important;
       margin: 0 !important;
     }
     #invoiceCard .invoice-qr-caption {
@@ -2479,8 +2479,8 @@
                 </div>
                 <div class="settings-block">
                   <h4>Myanmar Pay QR Links <span class="settings-optional">MMK</span></h4>
-                  <textarea id="settingMmQRs" rows="5" placeholder="KPay = https://drive.google.com/...\nWave Pay = https://drive.google.com/..."></textarea>
-                  <small>Pay နာမည် = QR ပုံ Link ပုံစံဖြင့် တစ်ကြောင်းစီရေးပါ။</small>
+                  <textarea id="settingMmQRs" rows="5" placeholder="KPay = https://drive.google.com/... | AUNG AUNG\nWave Pay = https://drive.google.com/... | SU SU"></textarea>
+                  <small><b>Pay နာမည် = QR ပုံ Link | အကောင့်ပိုင်ရှင်နာမည်</b> ပုံစံရေးပါ။ <code>|</code> နောက်က နာမည်ကို Invoice QR အောက်မှာ ပြပါမည်။</small>
                 </div>
               </div>
               <div class="settings-block settings-block-wide">
@@ -6907,18 +6907,20 @@
         const qrContainer = $("qrCodeContainer");
         const qrImg = $("invDynamicQR");
         const qrAccountName = $("invQrAccountName");
-        await inlinePromptPayLogo();
+        const promptPayLogo = $("promptpayLogo");
         const showQr = $("showQrOnInvoice") ? $("showQrOnInvoice").checked : true;
         const pType = data.paymentType || "";
 
         qrContainer.style.display = "none"; 
         qrImg.src = "";
         qrImg.removeAttribute("crossOrigin"); 
+        if (promptPayLogo) promptPayLogo.style.display = "none";
         if (qrAccountName) { qrAccountName.textContent = ""; qrAccountName.style.display = "none"; }
 
         if (showQr && balance > 0) {
             let targetUrl = "";
             let promptPayNumber = "";
+            let mmQrAccountName = "";
 
             if (cur === "THB" && paymentSettings.promptPayId) {
                 const paymentName = pType.trim().toLowerCase();
@@ -6951,6 +6953,10 @@
                 if (promptPayNumber) {
                     try {
                         qrContainer.style.display = "block";
+                        if (promptPayLogo) {
+                            await inlinePromptPayLogo();
+                            promptPayLogo.style.display = "block";
+                        }
                         if (qrAccountName) {
                             qrAccountName.textContent = promptPayAccountName;
                             qrAccountName.style.display = "block";
@@ -6966,7 +6972,10 @@
                 for (let l of lines) {
                     let firstEq = l.indexOf("=");
                     if (firstEq > -1 && pType.trim().toLowerCase() === l.substring(0, firstEq).trim().toLowerCase()) {
-                        let rawLink = l.substring(firstEq + 1).trim();
+                        const rawSetting = l.substring(firstEq + 1).trim();
+                        const linkAndName = rawSetting.split("|");
+                        let rawLink = (linkAndName[0] || "").trim();
+                        mmQrAccountName = (linkAndName.slice(1).join("|") || "").trim();
                         if (rawLink.includes("drive.google.com/file/d/")) {
                             const match = rawLink.match(/\/d\/(.+?)\//);
                             if (match && match[1]) rawLink = `https://drive.google.com/uc?id=${match[1]}`;
@@ -6979,6 +6988,12 @@
 
             if (targetUrl) {
                 qrContainer.style.display = "block";
+                // MMK Drive QR အတွက် PromptPay logo မသုံးဘဲ
+                // setting ထဲက အကောင့်ပိုင်ရှင်နာမည်ကို QR အောက်မှာပြမယ်။
+                if (cur === "MMK" && qrAccountName) {
+                    qrAccountName.textContent = mmQrAccountName || "အကောင့်ပိုင်ရှင်နာမည် မထည့်ရသေးပါ";
+                    qrAccountName.style.display = "block";
+                }
                 qrImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 85 85'%3E%3Crect width='85' height='85' fill='%23eef2ff'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='10' fill='%234f46e5'%3ELoading...%3C/text%3E%3C/svg%3E";
                 
                 const fetchFastQR = async (url) => {
