@@ -2293,7 +2293,7 @@
               <div class="invoice-inner">
                 <div class="invoice-header-main">
                   <div class="invoice-logo">
-                    <img src="logo.png" alt="Thailand Guide Logo" onerror="this.style.display='none'">
+                    <img id="invoiceLogoImage" src="logo.png" alt="Thailand Guide Logo" onerror="this.style.display='none'">
                   </div>
                   <div style="display:flex;flex-direction:column;gap:2px;">
                     <div class="invoice-brand">THAILAND GUIDE</div>
@@ -2769,6 +2769,7 @@
     let servicePricing = {};
     let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "", sheetUrl: "", ocrUrl: "", geminiApiKey: "" };
     let paymentSettings = { promptPayId: "", mmQRs: "", invoiceFooter: "" };
+    let invoiceLogoDataUrl = "";
 
     let cachedAppointments = [];
     let lastFilteredAppointments = [];
@@ -6827,6 +6828,26 @@
       }
     }
 
+    async function inlineInvoiceLogo() {
+      const logo = $("invoiceLogoImage");
+      if (!logo || !logo.getAttribute("src") || logo.getAttribute("src").startsWith("data:")) return invoiceLogoDataUrl;
+      try {
+        const response = await fetch(logo.src, { cache: "no-store" });
+        if (!response.ok) throw new Error("Invoice logo not found");
+        const blob = await response.blob();
+        invoiceLogoDataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        logo.src = invoiceLogoDataUrl;
+      } catch (e) {
+        console.warn("Invoice logo could not be loaded:", e);
+      }
+      return invoiceLogoDataUrl;
+    }
+
     async function loadInvoice() {
       if (currentRole === "guest") return;
       const id = ($("invoiceDocId").value.trim() || lastSavedDocId || "").toUpperCase();
@@ -6834,6 +6855,7 @@
       if (!id) { msg.textContent = "Invoice ID ထည့်ပါ (သို့) Dashboard မှ Invoice ကိုနှိပ်ပါ"; msg.className = "message error"; return; }
 
       try {
+        await inlineInvoiceLogo();
         let data = cachedAppointments.find(x => (x.invoiceId || x.id || "").toUpperCase() === id);
         let createdAt = new Date();
 
@@ -7061,6 +7083,7 @@
       if (currentRole === "guest") return;
       const card = $("invoiceCard"); const msg = $("invoiceMessage"); msg.textContent = "Rendering JPEG..."; msg.className = "message";
       try {
+        await inlineInvoiceLogo();
         const canvas = await html2canvas(card, {
           scale: 3,
           useCORS: true,
@@ -7077,7 +7100,8 @@
                 el.style.setProperty("background-image", "none", "important");
               });
               const safeStyle = clonedDoc.createElement("style");
-              safeStyle.textContent = "#invoiceCard::before{display:none!important;background-image:none!important}";
+              const watermark = invoiceLogoDataUrl ? `url(${JSON.stringify(invoiceLogoDataUrl)})` : "none";
+              safeStyle.textContent = `#invoiceCard::before{display:block!important;background-image:${watermark}!important;background-size:contain!important;background-repeat:no-repeat!important;background-position:center!important}`;
               clonedDoc.head.appendChild(safeStyle);
             }
             clonedCard?.querySelectorAll("img").forEach((img) => {
@@ -7085,7 +7109,7 @@
                 const src = img.getAttribute("src") || "";
                 // Keep only the locally generated QR and the inlined logo.
                 // Both are data URLs, so neither can taint the export canvas.
-                if (!["invDynamicQR", "promptpayLogo"].includes(img.id) || !src.startsWith("data:")) {
+                if (!["invDynamicQR", "promptpayLogo", "invoiceLogoImage"].includes(img.id) || !src.startsWith("data:")) {
                   img.removeAttribute("src");
                   img.style.display = "none";
                 }
