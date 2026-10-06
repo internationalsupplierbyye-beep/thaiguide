@@ -1855,7 +1855,7 @@
             </div>
 
             <div class="field full-width" style="background: #f8fafc; padding: 22px 16px 16px; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 12px;">
-              <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--primary);">💰 ဈေးနှုန်းနှင့် ငွေပေးချေမှု</h4>
+              <h4 style="margin:0 0 12px 0;font-size:14px;color:var(--primary);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">💰 ဈေးနှုန်းနှင့် ငွေပေးချေမှု <button type="button" id="entryPaymentStatusBtn" class="btn btn-outline" style="min-width:230px;padding:7px 10px;text-align:left;font-size:11px;color:#334155;background:#fff;">💳 Payment Status / Amount ပြင်ရန်</button></h4>
               
               <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 18px;">
                 
@@ -1898,7 +1898,6 @@
                 <div class="field">
                   <label for="paymentType">ငွေပေးချေမှုအမျိုးအစား</label>
                   <select id="paymentType" required></select>
-                  <button type="button" id="entryPaymentStatusBtn" class="btn btn-outline" style="width:100%;margin-top:6px;padding:7px 9px;text-align:left;font-size:11px;">💳 Payment Status / Amount ပြင်ရန်</button>
                   <select id="paymentStatus" style="display:none;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option></select>
                   <input type="date" id="paymentTransferDate" style="display:none;" />
                 </div>
