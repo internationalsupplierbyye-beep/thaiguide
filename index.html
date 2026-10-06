@@ -1966,7 +1966,7 @@
                 <div class="field">
                   <label for="paymentType">ငွေပေးချေမှုအမျိုးအစား</label>
                   <select id="paymentType" required></select>
-                  <select id="paymentStatus" style="display:none;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option></select>
+                  <select id="paymentStatus" style="display:none;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select>
                   <input type="date" id="paymentTransferDate" style="display:none;" />
                 </div>
 
@@ -2623,29 +2623,24 @@
       <section id="tab-logs" class="tab-panel system-manage-only" style="display:none;">
         <div class="panel-card">
           <div class="panel-header">
-            <div>
-              <div class="panel-title"><span>🕵️ Search Tracker Logs</span> <span class="badge">Live History</span></div>
-              <div class="panel-desc">Tracker Link မှတစ်ဆင့် Customer သို့မဟုတ် Agent များ ဝင်ရောက်ရှာဖွေထားသော မှတ်တမ်းများ။</div>
-            </div>
-            <button class="btn btn-secondary" id="reloadLogsBtn">Reload Logs</button>
+            <div><div class="panel-title">🧾 Appointment / Settlement Audit History</div><div class="panel-desc">Case Status, Payment, Settlement နဲ့ အခြားအရေးကြီးပြောင်းလဲမှုများကို စစ်နိုင်ပါသည်။</div></div>
+            <button class="btn btn-secondary" id="reloadAuditBtn">Reload Audit</button>
+          </div>
+          <div style="max-height:450px;overflow:auto;border-radius:10px;border:1px solid #e5e7eb;">
+            <table><thead><tr><th>အချိန်</th><th>Invoice / Appointment</th><th>လုပ်ဆောင်ချက်</th><th>ပြောင်းသူ</th><th>ပြောင်းလဲမှု</th></tr></thead>
+            <tbody id="auditLogTableBody"><tr><td colspan="5" style="text-align:center;">Audit history မရှိသေးပါ။</td></tr></tbody></table>
           </div>
 
-          <div style="max-height: 450px; overflow:auto; border-radius:10px; border:1px solid #e5e7eb;">
-            <table>
-              <thead>
-                <tr>
-                  <th>အချိန် (Date & Time)</th>
-                  <th>ရှာဖွေခဲ့သော စာသား (Keyword)</th>
-                  <th>အသုံးပြုခဲ့သော Browser / Device (User Agent)</th>
-                </tr>
-              </thead>
-              <tbody id="logsTableBody">
-                <tr><td colspan="3" style="text-align:center;">Loading...</td></tr>
-              </tbody>
-            </table>
-                    </div>
-          <div class="panel-header" style="margin-top:18px;"><div><div class="panel-title">🧾 Appointment / Settlement Audit History</div><div class="panel-desc">Case Status, Settlement Status, amount နဲ့ အခြားအရေးကြီးပြောင်းလဲမှုများကို စစ်နိုင်ပါသည်။</div></div><button class="btn btn-secondary" id="reloadAuditBtn">Reload Audit</button></div>
-          <div style="max-height:450px;overflow:auto;border-radius:10px;border:1px solid #e5e7eb;"><table><thead><tr><th>အချိန်</th><th>Invoice / Appointment</th><th>လုပ်ဆောင်ချက်</th><th>ပြောင်းသူ</th><th>ပြောင်းလဲမှု</th></tr></thead><tbody id="auditLogTableBody"><tr><td colspan="5" style="text-align:center;">Audit history မရှိသေးပါ။</td></tr></tbody></table></div>
+          <div style="margin-top:18px;border-top:1px solid #e5e7eb;padding-top:12px;">
+            <div class="panel-header" style="margin:0;">
+              <div><div class="panel-title"><span>🕵️ Search Tracker Logs</span> <span class="badge">လိုအပ်မှဖွင့်ရန်</span></div><div class="panel-desc">Tracker Link မှတစ်ဆင့် Customer သို့မဟုတ် Agent များ ဝင်ရောက်ရှာဖွေထားသော မှတ်တမ်းများ။</div></div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><button class="btn btn-outline" type="button" id="toggleTrackerLogsBtn" aria-expanded="false">ဖွင့်ကြည့်မည်</button><button class="btn btn-secondary" id="reloadLogsBtn" type="button" style="display:none;">Reload Logs</button></div>
+            </div>
+            <div id="trackerLogsContent" hidden style="margin-top:10px;max-height:450px;overflow:auto;border-radius:10px;border:1px solid #e5e7eb;">
+              <table><thead><tr><th>အချိန် (Date & Time)</th><th>ရှာဖွေခဲ့သော စာသား (Keyword)</th><th>အသုံးပြုခဲ့သော Browser / Device (User Agent)</th></tr></thead>
+              <tbody id="logsTableBody"><tr><td colspan="3" style="text-align:center;">လိုအပ်မှ ဖွင့်ပြီး Reload Logs နှိပ်ပါ။</td></tr></tbody></table>
+            </div>
+          </div>
         </div>
       </section>
     <div id="historyModal" class="modal-overlay hidden">
@@ -2781,6 +2776,35 @@
     const $ = (id) => document.getElementById(id);
     // --- Normalized case/settlement model and audit helpers ---
     function getCaseStatus(data = {}) { return data.caseStatus || data.customerStatus || "Pending"; }
+    function paymentStatusLabel(status = "unpaid") {
+      return status === "paid" ? "✅ PAID" : status === "partial" ? "🟡 PARTI PAID" : status === "credit" ? "🔵 CREDIT" : "⚪ NO PAID";
+    }
+    function completedPaymentPatch(data = {}, nextStatus = "") {
+      const total = Number(data.price || 0);
+      if (String(nextStatus).toLowerCase() !== "completed" || total <= 0) return {};
+      const paidDate = todayISO();
+      return {
+        paymentStatus:"paid", depositStatus:"paid", depositAmount:total, balanceAmount:0,
+        paymentTransferDate:paidDate, depositReceivedDate:paidDate, paymentAutoCompleted:true,
+        paymentStatusBeforeCompleted:data.paymentStatus || data.depositStatus || "unpaid",
+        depositAmountBeforeCompleted:Number(data.depositAmount || 0),
+        balanceAmountBeforeCompleted:Number(data.balanceAmount != null ? data.balanceAmount : Math.max(total - Number(data.depositAmount || 0), 0)),
+        paymentTransferDateBeforeCompleted:data.paymentTransferDate || null,
+        depositReceivedDateBeforeCompleted:data.depositReceivedDate || null
+      };
+    }
+    function restorePaymentAfterCompleted(data = {}, nextStatus = "") {
+      if (String(nextStatus).toLowerCase() === "completed" || !data.paymentAutoCompleted) return {};
+      return {
+        paymentStatus:data.paymentStatusBeforeCompleted || "unpaid",
+        depositStatus:data.paymentStatusBeforeCompleted || "unpaid",
+        depositAmount:Number(data.depositAmountBeforeCompleted || 0),
+        balanceAmount:Number(data.balanceAmountBeforeCompleted || 0),
+        paymentTransferDate:data.paymentTransferDateBeforeCompleted || null,
+        depositReceivedDate:data.depositReceivedDateBeforeCompleted || null,
+        paymentAutoCompleted:false
+      };
+    }
     function normalizeAppointmentModel(data = {}) {
       const caseStatus = data.caseStatus || data.customerStatus || "Pending";
       const sourceName = data.sourceName || data.agentName || "Direct / ကိုယ်တိုင်ရ";
@@ -2807,7 +2831,12 @@
         if (!Object.keys(changes).length && action !== "create") return;
         const auditId = `${entityId}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
         await setDoc(doc(db, "auditLogs", auditId), { action, entity:"appointment", entityId, changes, actor:currentUserName, actorRole:currentRole, createdAt:serverTimestamp(), ...extra });
-      } catch (e) { console.warn("Audit log write failed", e); }
+      } catch (e) {
+        console.warn("Audit log write failed", e);
+        if (/permission|insufficient|unauthenticated/i.test(String(e?.message || ""))) {
+          showInvoiceToast(entityId, "Audit log မသိမ်းနိုင်ပါ။ Firebase Rules ကို Publish လုပ်ပါ", "error");
+        }
+      }
     }
     async function syncSettlementRecords(id, data = {}) {
       try {
@@ -2850,7 +2879,7 @@
     function refreshEntryPaymentButton() {
       const btn = $("entryPaymentStatusBtn"); if (!btn) return;
       const status = $("paymentStatus")?.value || "unpaid", amount = Number($("depositAmount")?.value || 0);
-      const label = status === "paid" ? "✅ PAID" : status === "partial" ? "🟡 PARTI PAID" : "⚪ NO PAID";
+      const label = paymentStatusLabel(status);
       const date = $("paymentTransferDate")?.value ? ` · ${$("paymentTransferDate").value}` : "";
       btn.textContent = `${label} · ${amount.toFixed(2)} THB${date}`;
     }
@@ -2859,14 +2888,14 @@
       const total = Number($("price")?.value || 0), current = Number($("depositAmount")?.value || 0);
       const overlay = document.createElement("div"); overlay.id = "entryPaymentModal";
       overlay.style.cssText = "position:fixed;inset:0;z-index:99998;background:rgba(15,23,42,.46);display:flex;align-items:center;justify-content:center;padding:16px;";
-      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(420px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💳 Payment Status / Amount</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Total: ${total.toFixed(2)} THB</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="entryModalPaymentStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option></select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Amount (THB)</label><input id="entryModalPaymentAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="entryModalPaymentDate" type="date" value="${$("paymentTransferDate")?.value || ""}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="entryPaymentCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="entryPaymentSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
+      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(420px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💳 Payment Status / Amount</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Total: ${total.toFixed(2)} THB</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="entryModalPaymentStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Amount (THB)</label><input id="entryModalPaymentAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="entryModalPaymentDate" type="date" value="${$("paymentTransferDate")?.value || ""}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="entryPaymentCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="entryPaymentSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
       document.body.appendChild(overlay);
       const status = overlay.querySelector("#entryModalPaymentStatus"), amount = overlay.querySelector("#entryModalPaymentAmount"), date = overlay.querySelector("#entryModalPaymentDate");
       status.value = $("paymentStatus")?.value || (current >= total && total > 0 ? "paid" : current > 0 ? "partial" : "unpaid");
-      status.addEventListener("change", () => { if (status.value === "paid") amount.value = total.toFixed(2); if (status.value === "unpaid") { amount.value = "0"; date.value = ""; } });
-      amount.addEventListener("input", () => { const n = Number(amount.value || 0); status.value = n <= 0 ? "unpaid" : (total > 0 && n >= total ? "paid" : "partial"); if (n > 0 && !date.value) date.value = todayISO(); if (n <= 0) date.value = ""; });
+      status.addEventListener("change", () => { if (status.value === "paid") amount.value = total.toFixed(2); if (["unpaid","credit"].includes(status.value)) { amount.value = "0"; date.value = ""; } });
+      amount.addEventListener("input", () => { if (status.value === "credit") return; const n = Number(amount.value || 0); status.value = n <= 0 ? "unpaid" : (total > 0 && n >= total ? "paid" : "partial"); if (n > 0 && !date.value) date.value = todayISO(); if (n <= 0) date.value = ""; });
       overlay.querySelector("#entryPaymentCancel").onclick = () => overlay.remove();
-      overlay.querySelector("#entryPaymentSave").onclick = () => { const next = Math.min(Math.max(Number(amount.value || 0), 0), total), nextStatus = status.value === "paid" ? "paid" : next > 0 ? "partial" : "unpaid"; $("depositAmount").value = next.toFixed(2); $("paymentStatus").value = nextStatus; $("paymentTransferDate").value = nextStatus === "unpaid" ? "" : (date.value || ""); updateDepositUI(); refreshEntryPaymentButton(); overlay.remove(); };
+      overlay.querySelector("#entryPaymentSave").onclick = () => { const next = Math.min(Math.max(Number(amount.value || 0), 0), total), nextStatus = status.value === "credit" ? "credit" : status.value === "paid" ? "paid" : next > 0 ? "partial" : "unpaid"; $("depositAmount").value = next.toFixed(2); $("paymentStatus").value = nextStatus; $("paymentTransferDate").value = ["unpaid","credit"].includes(nextStatus) ? "" : (date.value || ""); updateDepositUI(); refreshEntryPaymentButton(); overlay.remove(); };
     }
     async function openDashboardDepositModal(id) {
       const a = (cachedAppointments || []).find(x => x.id === id); if (!a) return;
@@ -2874,19 +2903,19 @@
       const total = Number(a.price || 0), current = Number(a.depositAmount || 0);
       const overlay = document.createElement("div"); overlay.id = "dashboardDepositModal";
       overlay.style.cssText = "position:fixed;inset:0;z-index:99998;background:rgba(15,23,42,.46);display:flex;align-items:center;justify-content:center;padding:16px;";
-      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(430px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💵 Payment / Deposit ပြင်ရန်</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Invoice: ${id} · Total: ${total.toFixed(2)} THB</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="dashDepositStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option></select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Deposit Amount (THB)</label><input id="dashDepositAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="dashDepositDate" type="date" value="${a.paymentTransferDate || a.depositReceivedDate || (current > 0 ? todayISO() : "")}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="dashDepositCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="dashDepositSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
+      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(430px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💵 Payment / Deposit ပြင်ရန်</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Invoice: ${id} · Total: ${total.toFixed(2)} THB</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="dashDepositStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Deposit Amount (THB)</label><input id="dashDepositAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="dashDepositDate" type="date" value="${a.paymentTransferDate || a.depositReceivedDate || (current > 0 ? todayISO() : "")}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="dashDepositCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="dashDepositSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
       document.body.appendChild(overlay);
       const status = overlay.querySelector("#dashDepositStatus"), amount = overlay.querySelector("#dashDepositAmount"), date = overlay.querySelector("#dashDepositDate");
       status.value = a.paymentStatus || a.depositStatus || (current >= total && total > 0 ? "paid" : current > 0 ? "partial" : "unpaid");
-      status.addEventListener("change", () => { if (status.value === "paid") amount.value = total.toFixed(2); if (status.value === "unpaid") { amount.value = "0"; date.value = ""; } });
-      amount.addEventListener("input", () => { const n = Number(amount.value || 0); status.value = n <= 0 ? "unpaid" : (total > 0 && n >= total ? "paid" : "partial"); if (n > 0 && !date.value) date.value = todayISO(); if (n <= 0) date.value = ""; });
+      status.addEventListener("change", () => { if (status.value === "paid") amount.value = total.toFixed(2); if (["unpaid","credit"].includes(status.value)) { amount.value = "0"; date.value = ""; } });
+      amount.addEventListener("input", () => { if (status.value === "credit") return; const n = Number(amount.value || 0); status.value = n <= 0 ? "unpaid" : (total > 0 && n >= total ? "paid" : "partial"); if (n > 0 && !date.value) date.value = todayISO(); if (n <= 0) date.value = ""; });
       overlay.querySelector("#dashDepositCancel").onclick = () => overlay.remove();
       overlay.querySelector("#dashDepositSave").onclick = async () => {
         const nextAmount = Math.min(Math.max(Number(amount.value || 0), 0), total);
-        const nextStatus = status.value === "paid" ? "paid" : (nextAmount > 0 ? "partial" : "unpaid");
+        const nextStatus = status.value === "credit" ? "credit" : status.value === "paid" ? "paid" : (nextAmount > 0 ? "partial" : "unpaid");
         const transferDate = overlay.querySelector("#dashDepositDate").value || null;
         const patch = { depositAmount: nextAmount, balanceAmount: Math.max(total - nextAmount, 0), paymentStatus: nextStatus, depositStatus: nextStatus, paymentTransferDate: transferDate, depositReceivedDate: transferDate, depositUpdatedAt: serverTimestamp(), depositUpdatedBy: currentUserName };
-        try { await updateAppointmentWithAudit(id, patch, "dashboard_deposit_update"); notifyAppointmentChange(id, "payment"); Object.assign(a, patch); overlay.remove(); renderAppointmentsTable(); showToast("💵 Deposit / Payment Status update ပြီးပါပြီ", "success"); }
+        try { await updateAppointmentWithAudit(id, patch, "dashboard_deposit_update"); notifyAppointmentChange(id, "payment"); Object.assign(a, patch); overlay.remove(); renderAppointmentsTable(); showInvoiceToast(a, "Deposit / Payment Status update ပြီးပါပြီ", "success"); }
         catch (e) { showToast("Deposit update မအောင်မြင်ပါ: " + e.message, "error"); }
       };
     }
@@ -2936,6 +2965,10 @@
         toast.style.animation = 'fadeOutUp 0.3s ease forwards';
         setTimeout(() => toast.remove(), 300);
       }, 3000);
+    }
+    function showInvoiceToast(idOrData, message, type = "info") {
+      const id = typeof idOrData === "object" ? (idOrData?.invoiceId || idOrData?.id) : idOrData;
+      showToast(`💳 ${String(id || "INV-UNKNOWN").toUpperCase()} · ${message}`, type);
     }
 
     function todayISO(){
@@ -3127,6 +3160,7 @@
         document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
         btn.classList.add("active");
         $("tab-" + tab).classList.add("active");
+        if (tab === "settlement") refreshAllAppointmentsForSettlement();
       });
     });
 
@@ -5076,6 +5110,8 @@
         serviceProviderSettlementAmount: $("entrySettlementEnabled")?.checked && $("serviceProviderSettlementAmount") ? Number($("serviceProviderSettlementAmount").value || 0) : 0,
         serviceProviderSettlementStatus: $("entrySettlementEnabled")?.checked && $("serviceProviderSettlementStatus") ? ($("serviceProviderSettlementStatus").value || "pending") : "pending"
       };
+      Object.assign(data, completedPaymentPatch(data, data.customerStatus));
+      if (data.paymentStatus === "credit") data.paymentAutoCompleted = false;
 
       if (!invoiceId || !data.date || !data.name || !data.phone || !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
         messageDiv.textContent = "Required Field တချို့ မပြည့်သေးပါ – ဖြည့်ပြီးနောက် Save လုပ်ပါ။"; messageDiv.className = "message error"; return;
@@ -5187,7 +5223,7 @@
           
           messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; 
           messageDiv.className = "message success";
-          showToast("✅ Appointment ကို အောင်မြင်စွာ Update လုပ်ပြီးပါပြီ: " + editingDocId, "success");
+          showInvoiceToast(editingDocId, "Appointment ကို အောင်မြင်စွာ Update လုပ်ပြီးပါပြီ", "success");
           
           await sendMultiTelegramNotifications(lastSavedData);
           syncToGoogleSheet(lastSavedData);
@@ -5230,7 +5266,7 @@
           messageDiv.className = "message success";
           
           // --- 🚀 NEW: Show Toast Notification ---
-          showToast("✅ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ: " + invoiceId, "success");
+          showInvoiceToast(invoiceId, "အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ", "success");
           
           await sendMultiTelegramNotifications(lastSavedData);
           syncToGoogleSheet(lastSavedData);
@@ -5416,6 +5452,28 @@
       
       if (loadBtn && loadBtn.style.display !== "none") loadBtn.textContent = "Load More (နောက်ထပ်ခေါ်ရန်)";
       if (!isLoadMore) await handleDashboardLaunchHash();
+    }
+
+    let settlementRefreshPromise = null;
+    async function refreshAllAppointmentsForSettlement() {
+      if (currentRole === "guest") return;
+      if (settlementRefreshPromise) return settlementRefreshPromise;
+      settlementRefreshPromise = (async () => {
+        try {
+          const snap = await getDocs(collection(db, "appointments"));
+          cachedAppointments = snap.docs.map(ds => ({ id: ds.id, ...ds.data() }));
+          lastVisibleDoc = null;
+          if ($("loadMoreBtn")) $("loadMoreBtn").style.display = "none";
+          renderSettlementDashboard();
+          renderAppointmentsTable();
+        } catch (e) {
+          console.warn("Settlement full refresh failed:", e);
+          showToast("Settlement စာရင်း refresh မအောင်မြင်ပါ: " + e.message, "error");
+        } finally {
+          settlementRefreshPromise = null;
+        }
+      })();
+      return settlementRefreshPromise;
     }
 
     $("loadMoreBtn").addEventListener("click", () => {
@@ -5647,7 +5705,7 @@
           const local = cachedAppointments.find(a => a.id === sel.dataset.id); if (local) Object.assign(local, patch);
           renderAppointmentsTable();
           renderSettlementDashboard();
-          showToast("Settlement status updated", "success");
+          showInvoiceToast(sel.dataset.id, "Settlement status updated", "success");
         } catch (e) { showToast("Settlement update failed: " + e.message, "error"); }
       }));
       table.querySelectorAll(".settlement-row-delete").forEach(btn => btn.addEventListener("click", async () => {
@@ -5661,7 +5719,7 @@
           await updateDoc(doc(db, "appointments", btn.dataset.id), { ...patch, updatedAt: serverTimestamp(), updatedBy: currentUserName });
           const local = cachedAppointments.find(a => a.id === btn.dataset.id); if (local) Object.assign(local, patch);
           renderSettlementDashboard();
-          showToast("Settlement row deleted", "success");
+          showInvoiceToast(btn.dataset.id, "Settlement row deleted", "success");
         } catch (e) { showToast("Settlement delete failed: " + e.message, "error"); }
       }));
     }
@@ -5765,7 +5823,7 @@
         closeQuickSettlementModal();
         renderAppointmentsTable();
         renderSettlementDashboard();
-        showToast("Settlement သိမ်းပြီးပါပြီ", "success");
+        showInvoiceToast(a, "Settlement သိမ်းပြီးပါပြီ", "success");
       } catch (e) { showToast("Settlement သိမ်းမရပါ: " + e.message, "error"); }
     });
 
@@ -5863,7 +5921,7 @@
 
         const dep = Number(a.depositAmount||0).toFixed(2); const bal = Number(a.balanceAmount||0).toFixed(2);
         const currentPaymentStatus = a.paymentStatus || a.depositStatus || (Number(a.depositAmount||0) >= Number(a.price||0) && Number(a.price||0) > 0 ? "paid" : Number(a.depositAmount||0) > 0 ? "partial" : "unpaid");
-        const depositStatusLabel = currentPaymentStatus === "paid" ? "✅ PAID" : (currentPaymentStatus === "partial" ? "🟡 PARTI PAID" : "⚪ NO PAID");
+        const depositStatusLabel = paymentStatusLabel(currentPaymentStatus);
         const apptDT = `${a.appointmentDate || ""}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
         const id = (a.invoiceId || a.id || "").toUpperCase();
 
@@ -6190,7 +6248,11 @@
           e.target.disabled = true;
           try {
             // Firestore ပေါ်တွင် Status အပြင် Update လုပ်တဲ့အချိန်ကိုပါ သိမ်းမည်
-            await updateAppointmentWithAudit(docId, { customerStatus: newVal, caseStatus: newVal, completedAt: newVal === "Completed" ? serverTimestamp() : null }, "case_status_update");
+            const currentAppointment = cachedAppointments.find(x => x.id === docId) || {};
+            const autoPaymentPatch = completedPaymentPatch(currentAppointment, newVal);
+            const restorePaymentPatch = restorePaymentAfterCompleted(currentAppointment, newVal);
+            const paymentChanged = Object.keys(autoPaymentPatch).length > 0 || Object.keys(restorePaymentPatch).length > 0;
+            await updateAppointmentWithAudit(docId, { customerStatus: newVal, caseStatus: newVal, completedAt: newVal === "Completed" ? serverTimestamp() : null, ...autoPaymentPatch, ...restorePaymentPatch }, "case_status_update");
             e.target.className = `status-select ${newVal.toLowerCase()}`;
             e.target.dataset.oldstatus = newVal;
 
@@ -6199,6 +6261,7 @@
               cachedAppointments[idx].customerStatus = newVal;
               cachedAppointments[idx].caseStatus = newVal;
               cachedAppointments[idx].completedAt = newVal === "Completed" ? { toDate: () => new Date(), toMillis: () => Date.now() } : null;
+              Object.assign(cachedAppointments[idx], autoPaymentPatch, restorePaymentPatch);
               // Local Cache တွင်ပါ အချိန်ကို ချက်ချင်း Update လုပ်ပေးမည်
               cachedAppointments[idx].updatedAt = { 
                   toDate: () => new Date(), 
@@ -6214,6 +6277,12 @@
             updateSummaryCards(lastFilteredAppointments); 
             if (viewMode.toLowerCase() === "completed") {
                 renderAppointmentsTable();
+            }
+            if (paymentChanged) {
+              notifyAppointmentChange(docId, "payment");
+              showInvoiceToast(currentAppointment, `Payment Status ${Object.keys(autoPaymentPatch).length ? "ကို PAID Auto ပြောင်းပြီး" : "မူလအခြေအနေသို့ ပြန်ထားပြီး"}`, "info");
+            } else {
+              showInvoiceToast(currentAppointment, `Status ${newVal} သို့ ပြောင်းပြီးပါပြီ`, "success");
             }
           } catch(err) {
             alert("Status Update Error: " + err.message + "\n\n(Firebase Rule တွင် Update လုပ်ခွင့်ပေးထားရန် လိုအပ်ပါသည်)");
@@ -6232,7 +6301,7 @@
               await updateDoc(doc(db, "appointments", docId), { assignedTo: newVal });
               const idx = cachedAppointments.findIndex(x => x.id === docId);
               if (idx > -1) cachedAppointments[idx].assignedTo = newVal;
-              showToast(newVal ? `👤 ${newVal} ထံ Assign လုပ်ပြီးပါပြီ` : "👤 Unassigned", "success");
+              showInvoiceToast(cachedAppointments[idx] || docId, newVal ? `👤 ${newVal} ထံ Assign လုပ်ပြီးပါပြီ` : "👤 Unassigned", "success");
             } catch (err) {
               alert("Assign Update Error: " + err.message);
             }
@@ -6665,7 +6734,8 @@
         if ($("settlementBulkStatus")) $("settlementBulkStatus").value = "";
         renderAppointmentsTable();
         renderSettlementDashboard();
-        showToast("ရွေးထားသော Settlement status များ update ပြီးပါပြီ", "success");
+        const bulkInvoices = selected.map(check => ((cachedAppointments.find(a => a.id === check.dataset.id)?.invoiceId) || check.dataset.id || "").toUpperCase()).join(", ");
+        showToast(`💳 ${bulkInvoices} · ရွေးထားသော Settlement status များ update ပြီးပါပြီ`, "success");
       } catch (e) { showToast("Bulk status update မအောင်မြင်ပါ: " + e.message, "error"); }
     });
     $("settlementExportSelectedPdf")?.addEventListener("click", () => {
@@ -6700,9 +6770,9 @@
       };
       try {
         await updateAppointmentWithAudit(id, patch, "settlement_save");
-        Object.assign(a, patch); delete a.updatedAt;
+        Object.assign(a, patch);
         renderSettlementDashboard();
-        showToast("Settlement သိမ်းပြီးပါပြီ", "success");
+        showInvoiceToast(a, "Settlement သိမ်းပြီးပါပြီ", "success");
       } catch (e) { showToast("Settlement သိမ်းမရပါ: " + e.message, "error"); }
     });
     $("settlementClearBtn")?.addEventListener("click", () => {
@@ -7227,9 +7297,21 @@
           tr.innerHTML = `<td style="white-space:nowrap;font-size:11px;">${time}</td><td>${d.entityId || "-"}</td><td><span class="tag">${d.action || "update"}</span></td><td>${d.actor || "-"}<br/><small>${d.actorRole || "-"}</small></td><td style="font-size:11px;line-height:1.35;">${changes}</td>`;
           tbody.appendChild(tr);
         });
-      } catch (e) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">Audit history ဖတ်မရပါ: ${e.message}</td></tr>`; console.error(e); }
+      } catch (e) {
+        const denied = /permission|insufficient|unauthenticated/i.test(String(e?.message || ""));
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#b45309;padding:14px;">${denied ? "Audit history ဖတ်ရန် Firestore Rules မှာ Admin read permission လိုအပ်ပါသည်။" : "Audit history ဖတ်မရပါ။ ခဏနေပြီး Reload Audit ပြန်နှိပ်ပါ။"}</td></tr>`;
+        console.error("Audit history load failed:", e);
+      }
     }
-    if ($("logsTabBtn")) $("logsTabBtn").addEventListener("click", () => { loadTrackerLogs(); loadAuditLogs(); });
+    if ($("toggleTrackerLogsBtn")) $("toggleTrackerLogsBtn").addEventListener("click", () => {
+      const content = $("trackerLogsContent"), reload = $("reloadLogsBtn"), button = $("toggleTrackerLogsBtn");
+      const willOpen = !!content?.hidden;
+      if (content) content.hidden = !willOpen;
+      if (reload) reload.style.display = willOpen ? "" : "none";
+      if (button) { button.textContent = willOpen ? "ဖျောက်ထားမည်" : "ဖွင့်ကြည့်မည်"; button.setAttribute("aria-expanded", String(willOpen)); }
+      if (willOpen) loadTrackerLogs();
+    });
+    if ($("logsTabBtn")) $("logsTabBtn").addEventListener("click", () => { loadAuditLogs(); });
     if ($("reloadLogsBtn")) $("reloadLogsBtn").addEventListener("click", loadTrackerLogs);
     if ($("reloadAuditBtn")) $("reloadAuditBtn").addEventListener("click", loadAuditLogs);
 
