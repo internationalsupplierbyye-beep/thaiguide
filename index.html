@@ -695,6 +695,9 @@
       overflow: hidden;
       box-shadow: 0 22px 55px rgba(15,23,42,.22), 0 0 0 1px rgba(148,163,184,.28);
     }
+    #tab-dashboard table th, #tab-dashboard table td { vertical-align:middle; }
+    #tab-dashboard table td > div, #tab-dashboard table td > button { line-height:1.2; }
+    #tab-dashboard .dashboard-deposit-btn { display:inline-block; line-height:1; }
     header {
       min-height: 74px;
       padding: 14px 24px;
@@ -1895,6 +1898,9 @@
                 <div class="field">
                   <label for="paymentType">ငွေပေးချေမှုအမျိုးအစား</label>
                   <select id="paymentType" required></select>
+                  <button type="button" id="entryPaymentStatusBtn" class="btn btn-outline" style="width:100%;margin-top:6px;padding:7px 9px;text-align:left;font-size:11px;">💳 Payment Status / Amount ပြင်ရန်</button>
+                  <select id="paymentStatus" style="display:none;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option></select>
+                  <input type="date" id="paymentTransferDate" style="display:none;" />
                 </div>
 
               </div>
@@ -2744,6 +2750,82 @@
       await writeAuditLog(action, id, before, { ...before, ...finalPatch }, Object.keys(finalPatch));
       return finalPatch;
     }
+    const appointmentSyncChannel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("thailand-guide-appointments") : null;
+    function notifyAppointmentChange(id, action = "update") {
+      const payload = { id, action, at: Date.now() };
+      if (!appointmentSyncChannel) { try { localStorage.setItem("thailandGuideAppointmentChanged", JSON.stringify(payload)); } catch (e) {} }
+      try { appointmentSyncChannel?.postMessage(payload); } catch (e) {}
+    }
+    async function refreshDashboardFromOtherTab(payload) {
+      if (!payload || !payload.at || Date.now() - payload.at > 30000 || currentRole === "guest") return;
+      await loadAppointments();
+      if (typeof renderSettlementDashboard === "function") renderSettlementDashboard();
+      showToast(`🔄 ${payload.id || "Appointment"} ကို အခြား Tab မှ Update လုပ်ထားပါသည်`, "info");
+    }
+    window.addEventListener("storage", (e) => { if (e.key === "thailandGuideAppointmentChanged" && e.newValue) { try { refreshDashboardFromOtherTab(JSON.parse(e.newValue)); } catch (err) {} } });
+    appointmentSyncChannel?.addEventListener("message", (e) => refreshDashboardFromOtherTab(e.data));
+    function refreshEntryPaymentButton() {
+      const btn = $("entryPaymentStatusBtn"); if (!btn) return;
+      const status = $("paymentStatus")?.value || "unpaid", amount = Number($("depositAmount")?.value || 0);
+      const label = status === "paid" ? "✅ PAID" : status === "partial" ? "🟡 PARTI PAID" : "⚪ NO PAID";
+      const date = $("paymentTransferDate")?.value ? ` · ${$("paymentTransferDate").value}` : "";
+      btn.textContent = `${label} · ${amount.toFixed(2)} THB${date}`;
+    }
+    function openEntryPaymentModal() {
+      const old = document.getElementById("entryPaymentModal"); if (old) old.remove();
+      const total = Number($("price")?.value || 0), current = Number($("depositAmount")?.value || 0);
+      const overlay = document.createElement("div"); overlay.id = "entryPaymentModal";
+      overlay.style.cssText = "position:fixed;inset:0;z-index:99998;background:rgba(15,23,42,.46);display:flex;align-items:center;justify-content:center;padding:16px;";
+      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(420px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💳 Payment Status / Amount</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Total: ${total.toFixed(2)} THB</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="entryModalPaymentStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option></select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Amount (THB)</label><input id="entryModalPaymentAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="entryModalPaymentDate" type="date" value="${$("paymentTransferDate")?.value || ""}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="entryPaymentCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="entryPaymentSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
+      document.body.appendChild(overlay);
+      const status = overlay.querySelector("#entryModalPaymentStatus"), amount = overlay.querySelector("#entryModalPaymentAmount"), date = overlay.querySelector("#entryModalPaymentDate");
+      status.value = $("paymentStatus")?.value || (current >= total && total > 0 ? "paid" : current > 0 ? "partial" : "unpaid");
+      status.addEventListener("change", () => { if (status.value === "paid") amount.value = total.toFixed(2); if (status.value === "unpaid") { amount.value = "0"; date.value = ""; } });
+      amount.addEventListener("input", () => { const n = Number(amount.value || 0); status.value = n <= 0 ? "unpaid" : (total > 0 && n >= total ? "paid" : "partial"); if (n > 0 && !date.value) date.value = todayISO(); if (n <= 0) date.value = ""; });
+      overlay.querySelector("#entryPaymentCancel").onclick = () => overlay.remove();
+      overlay.querySelector("#entryPaymentSave").onclick = () => { const next = Math.min(Math.max(Number(amount.value || 0), 0), total), nextStatus = status.value === "paid" ? "paid" : next > 0 ? "partial" : "unpaid"; $("depositAmount").value = next.toFixed(2); $("paymentStatus").value = nextStatus; $("paymentTransferDate").value = nextStatus === "unpaid" ? "" : (date.value || ""); updateDepositUI(); refreshEntryPaymentButton(); overlay.remove(); };
+    }
+    async function openDashboardDepositModal(id) {
+      const a = (cachedAppointments || []).find(x => x.id === id); if (!a) return;
+      const old = document.getElementById("dashboardDepositModal"); if (old) old.remove();
+      const total = Number(a.price || 0), current = Number(a.depositAmount || 0);
+      const overlay = document.createElement("div"); overlay.id = "dashboardDepositModal";
+      overlay.style.cssText = "position:fixed;inset:0;z-index:99998;background:rgba(15,23,42,.46);display:flex;align-items:center;justify-content:center;padding:16px;";
+      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(430px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💵 Payment / Deposit ပြင်ရန်</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Invoice: ${id} · Total: ${total.toFixed(2)} THB</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="dashDepositStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option></select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Deposit Amount (THB)</label><input id="dashDepositAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="dashDepositDate" type="date" value="${a.paymentTransferDate || a.depositReceivedDate || (current > 0 ? todayISO() : "")}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="dashDepositCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="dashDepositSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
+      document.body.appendChild(overlay);
+      const status = overlay.querySelector("#dashDepositStatus"), amount = overlay.querySelector("#dashDepositAmount"), date = overlay.querySelector("#dashDepositDate");
+      status.value = a.paymentStatus || a.depositStatus || (current >= total && total > 0 ? "paid" : current > 0 ? "partial" : "unpaid");
+      status.addEventListener("change", () => { if (status.value === "paid") amount.value = total.toFixed(2); if (status.value === "unpaid") { amount.value = "0"; date.value = ""; } });
+      amount.addEventListener("input", () => { const n = Number(amount.value || 0); status.value = n <= 0 ? "unpaid" : (total > 0 && n >= total ? "paid" : "partial"); if (n > 0 && !date.value) date.value = todayISO(); if (n <= 0) date.value = ""; });
+      overlay.querySelector("#dashDepositCancel").onclick = () => overlay.remove();
+      overlay.querySelector("#dashDepositSave").onclick = async () => {
+        const nextAmount = Math.min(Math.max(Number(amount.value || 0), 0), total);
+        const nextStatus = status.value === "paid" ? "paid" : (nextAmount > 0 ? "partial" : "unpaid");
+        const transferDate = overlay.querySelector("#dashDepositDate").value || null;
+        const patch = { depositAmount: nextAmount, balanceAmount: Math.max(total - nextAmount, 0), paymentStatus: nextStatus, depositStatus: nextStatus, paymentTransferDate: transferDate, depositReceivedDate: transferDate, depositUpdatedAt: serverTimestamp(), depositUpdatedBy: currentUserName };
+        try { await updateAppointmentWithAudit(id, patch, "dashboard_deposit_update"); notifyAppointmentChange(id, "payment"); Object.assign(a, patch); overlay.remove(); renderAppointmentsTable(); showToast("💵 Deposit / Payment Status update ပြီးပါပြီ", "success"); }
+        catch (e) { showToast("Deposit update မအောင်မြင်ပါ: " + e.message, "error"); }
+      };
+    }
+    function openAppointmentNewTab(id, mode) {
+      const url = new URL(window.location.href);
+      url.hash = `appointment-${mode}-${encodeURIComponent(id)}`;
+      window.open(url.toString(), "_blank", "noopener");
+    }
+    let dashboardLaunchHandled = false;
+    function handleDashboardLaunchHash() {
+      if (dashboardLaunchHandled || !window.location.hash) return;
+      const m = window.location.hash.match(/^#appointment-(edit|invoice|duplicate)-(.+)$/);
+      if (!m) return;
+      dashboardLaunchHandled = true;
+      const id = decodeURIComponent(m[2]);
+      const a = (cachedAppointments || []).find(x => (x.invoiceId || x.id) === id || x.id === id);
+      if (!a) return showToast("Appointment မတွေ့ပါ: " + id, "error");
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+      if (m[1] === "edit") startEditAppointment(a);
+      else if (m[1] === "duplicate") duplicateAppointment(a);
+      else { $("invoiceDocId").value = a.invoiceId || a.id; document.querySelector('.tab-btn[data-tab="invoice"]').click(); loadInvoice(); }
+    }
     // --- 🚀 NEW: Toast Notification Function ---
     function showToast(msg, type = 'info') {
       let container = document.getElementById('toast-container');
@@ -3345,6 +3427,18 @@
     $("paymentType").addEventListener("change", updateDepositUI);
     $("price").addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", updateDepositUI);
+    $("depositAmount").addEventListener("input", () => {
+      const amount = Number($("depositAmount").value || 0), total = Number($("price").value || 0);
+      if ($("paymentStatus")) $("paymentStatus").value = amount <= 0 ? "unpaid" : (total > 0 && amount >= total ? "paid" : "partial");
+      if ($("paymentTransferDate")) $("paymentTransferDate").value = amount > 0 ? ($("paymentTransferDate").value || todayISO()) : "";
+      refreshEntryPaymentButton();
+    });
+    $("entryPaymentStatusBtn")?.addEventListener("click", openEntryPaymentModal);
+    $("paymentStatus")?.addEventListener("change", () => {
+      if ($("paymentStatus").value === "unpaid" && $("paymentTransferDate")) $("paymentTransferDate").value = "";
+      if ($("paymentStatus").value === "paid" && $("depositAmount") && Number($("price").value || 0) > 0) $("depositAmount").value = Number($("price").value).toFixed(2);
+      updateDepositUI(); refreshEntryPaymentButton();
+    });
 
     function applyReturningCustomerData(latestData) {
       if (!$("name").value) $("name").value = latestData.name || "";
@@ -4850,6 +4944,8 @@
         serviceType: $("serviceType").value, 
         servicePackage: $("servicePackage") ? $("servicePackage").value : null, 
         paymentType: $("paymentType").value, 
+        paymentStatus: $("paymentStatus")?.value || (dep >= total && total > 0 ? "paid" : dep > 0 ? "partial" : "unpaid"),
+        paymentTransferDate: $("paymentTransferDate")?.value || null,
         price: total, 
         depositAmount: dep,
         balanceAmount: Math.max(total - dep, 0), 
@@ -4984,7 +5080,8 @@
           
           deleteDoc(doc(db, "editingLocks", editingDocId)).catch(()=>{});
           editingDocId = null; $("invoiceId").disabled = false; $("saveBtnText").textContent = "Save to Firebase"; $("btnCancelEdit").style.display = "none";
-          form.reset(); updateDepositUI(); await loadAppointments(); 
+          notifyAppointmentChange(invoiceId, "update");
+          form.reset(); updateDepositUI(); refreshEntryPaymentButton(); await loadAppointments(); 
 
         } else {
           if ((await getDoc(doc(db, "appointments", invoiceId))).exists()) {
@@ -5024,6 +5121,7 @@
           await sendMultiTelegramNotifications(lastSavedData);
           syncToGoogleSheet(lastSavedData);
           
+          notifyAppointmentChange(invoiceId, "create");
           pendingNewNotes = [];
           form.reset(); if (!$("date").value) $("date").value = todayISO(); updateDepositUI(); applyInvoiceIdMode();
           if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); await loadAppointments(); 
@@ -5202,6 +5300,7 @@
       }
       
       if (loadBtn && loadBtn.style.display !== "none") loadBtn.textContent = "Load More (နောက်ထပ်ခေါ်ရန်)";
+      if (!isLoadMore) handleDashboardLaunchHash();
     }
 
     $("loadMoreBtn").addEventListener("click", () => {
@@ -5657,6 +5756,8 @@
         const displayProfit = canViewProfit ? profitText : (profitText ? "****" : "");
 
         const dep = Number(a.depositAmount||0).toFixed(2); const bal = Number(a.balanceAmount||0).toFixed(2);
+        const currentPaymentStatus = a.paymentStatus || a.depositStatus || (Number(a.depositAmount||0) >= Number(a.price||0) && Number(a.price||0) > 0 ? "paid" : Number(a.depositAmount||0) > 0 ? "partial" : "unpaid");
+        const depositStatusLabel = currentPaymentStatus === "paid" ? "✅ PAID" : (currentPaymentStatus === "partial" ? "🟡 PARTI PAID" : "⚪ NO PAID");
         const apptDT = `${a.appointmentDate || ""}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
         const id = (a.invoiceId || a.id || "").toUpperCase();
 
@@ -5858,7 +5959,7 @@
             </div>
           </td>
           <td title="${a.location || ""}"><div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100px;">${a.location || ""}</div></td>
-          <td>${a.paymentType || ""}</td>
+          <td><div style="display:flex;flex-direction:column;gap:2px;line-height:1.15;white-space:nowrap;"><span style="font-weight:800;">${a.paymentType || "-"}</span><span style="font-weight:800;color:${currentPaymentStatus === "paid" ? "#166534" : currentPaymentStatus === "partial" ? "#92400e" : "#64748b"};">${depositStatusLabel}</span><button type="button" class="dashboard-deposit-btn" data-paymentid="${id}" title="Payment Status / Amount ပြင်ရန်" style="border:0;background:transparent;padding:0;text-align:left;cursor:pointer;font-size:12px;line-height:1;">💵</button></div></td>
           <td>${a.price != null ? Number(a.price).toFixed(2) : ""}</td>
           <td>${dep}</td>
           <td>${bal}</td>
@@ -6032,9 +6133,7 @@
           });
         }
 
-        tr.querySelector("[data-docid]").addEventListener("click", () => {
-          $("invoiceDocId").value = id; document.querySelector('.tab-btn[data-tab="invoice"]').click(); loadInvoice();
-        });
+        tr.querySelector("[data-docid]").addEventListener("click", () => openAppointmentNewTab(id, "invoice"));
         
         const jumpLink = tr.querySelector(".jump-link");
         if(jumpLink) {
@@ -6064,11 +6163,13 @@
         }
 
         const editBtn = tr.querySelector("[data-editid]");
-        if (editBtn) editBtn.addEventListener("click", () => { if (canEditDelete) startEditAppointment(a); });
+        if (editBtn) editBtn.addEventListener("click", () => { if (canEditDelete) openAppointmentNewTab(id, "edit"); });
+        const depositBtn = tr.querySelector("[data-paymentid]");
+        if (depositBtn) depositBtn.addEventListener("click", () => openDashboardDepositModal(id));
         
         const dupBtn = tr.querySelector("[data-dupid]");
         if (dupBtn) {
-            dupBtn.addEventListener("click", () => { duplicateAppointment(a); });
+            dupBtn.addEventListener("click", () => { openAppointmentNewTab(id, "duplicate"); });
         }
 
         const delBtn = tr.querySelector("[data-delid]");
@@ -6145,7 +6246,9 @@
       if($("currency").value === "MMK") $("exchangeRateWrapper").style.display = "flex";
       else $("exchangeRateWrapper").style.display = "none";
 
-      $("paymentType").value = a.paymentType || ""; $("cost").value = a.serviceCost != null ? a.serviceCost : ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
+      $("paymentType").value = a.paymentType || ""; $("cost").value = a.serviceCost != null ? a.serviceCost : ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = "";
+      if ($("paymentStatus")) $("paymentStatus").value = "unpaid";
+      if ($("paymentTransferDate")) $("paymentTransferDate").value = "";
       // Duplicate mode intentionally starts without the original Settlement data.
       if ($("agentName")) $("agentName").value = "Direct / ကိုယ်တိုင်ရ";
       if ($("agentPayable")) $("agentPayable").value = "";
@@ -6156,7 +6259,7 @@
       if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = "pending";
       if ($("entrySettlementEnabled")) $("entrySettlementEnabled").checked = false;
       syncEntrySettlementUI();
-      $("remark").value = a.remark || ""; updateDepositUI();
+      $("remark").value = a.remark || ""; updateDepositUI(); refreshEntryPaymentButton();
       $("internalRemark").value = a.internalRemark || "";
 
       $("saveBtnText").textContent = "Save to Firebase"; 
@@ -6331,6 +6434,8 @@
       else $("exchangeRateWrapper").style.display = "none";
 
       $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
+      if ($("paymentStatus")) $("paymentStatus").value = a.paymentStatus || (Number(a.depositAmount || 0) >= Number(a.price || 0) && Number(a.price || 0) > 0 ? "paid" : Number(a.depositAmount || 0) > 0 ? "partial" : "unpaid");
+      if ($("paymentTransferDate")) $("paymentTransferDate").value = a.paymentTransferDate || a.depositReceivedDate || "";
       if ($("agentName")) $("agentName").value = a.agentName || "";
       if ($("agentPayable")) $("agentPayable").value = a.agentPayable != null ? a.agentPayable : "";
       if ($("agentSettlementStatus")) $("agentSettlementStatus").value = a.agentSettlementStatus || "pending";
@@ -6340,7 +6445,7 @@
       if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = a.serviceProviderSettlementStatus || "pending";
       if ($("entrySettlementEnabled")) $("entrySettlementEnabled").checked = !!(a.entrySettlementEnabled || a.agentName || Number(a.agentPayable || 0) > 0 || a.serviceProviderName || a.serviceProviderSettlementType);
       syncEntrySettlementUI();
-      $("remark").value = a.remark || ""; updateDepositUI();
+      $("remark").value = a.remark || ""; updateDepositUI(); refreshEntryPaymentButton();
       if ($("assignedTo")) { ensureOption($("assignedTo"), a.assignedTo); $("assignedTo").value = a.assignedTo || ""; }
       pendingNewNotes = [];
       renderNotesLog(a.notesLog || []);
@@ -7244,7 +7349,7 @@
        });
     }
 
-    updateAuthUI(); renderDropdowns(); $("date").value = todayISO(); syncEntryDateDisplays(); updateDepositUI(); applyInvoiceIdMode();
+    updateAuthUI(); renderDropdowns(); $("date").value = todayISO(); syncEntryDateDisplays(); updateDepositUI(); refreshEntryPaymentButton(); applyInvoiceIdMode();
 
     // --- 🚀 NEW: Dark Mode Toggle Logic ---
     const themeToggleBtn = document.getElementById("themeToggleBtn");
