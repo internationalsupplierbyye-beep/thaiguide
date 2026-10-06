@@ -2663,6 +2663,7 @@
     let currentUserName = "System"; 
     
     let viewMode = "all"; // Dashboard စဝင်တာနဲ့ All Records ကို Default ပြပေးပါမည်
+    let dashboardSpecialView = "all"; // tomorrow / expiring card view context
     let highlightDocId = null;
 
     let dropdownSettings = {
@@ -3162,6 +3163,7 @@
         btn.textContent = status === "All" ? "All Records" : status;
         btn.onclick = () => {
           viewMode = status === "All" ? "all" : status;
+          dashboardSpecialView = status === "All" ? "all" : "status";
           highlightDocId = null;
           if(typeof clearAllFilters === "function") clearAllFilters();
           updateDashboardTabsUI(); 
@@ -3175,14 +3177,20 @@
        const select = $("completedSortSelect");
        const group = $("completedSortGroup");
        if (!select || !group) return;
-       const isCompleted = viewMode.toLowerCase() === "completed";
-       const isStatusTab = viewMode.toLowerCase() !== "all" && viewMode.toLowerCase() !== "expiring";
+       const isCompleted = viewMode.toLowerCase() === "completed" && dashboardSpecialView === "status";
+       const isTomorrow = dashboardSpecialView === "tomorrow";
+       const isExpiring = dashboardSpecialView === "expiring";
+       const isStatusTab = (dashboardSpecialView === "status" && viewMode.toLowerCase() !== "all") || isTomorrow || isExpiring;
        const current = select.value;
-       select.innerHTML = isCompleted
+       select.innerHTML = isTomorrow
+         ? `<option value="apptTime">APPOINTMENT TIME အလိုက်</option><option value="apptDate">APPOINTMENT DATE အလိုက်</option><option value="entryDate">ENTRY DATE အလိုက်</option>`
+         : isExpiring
+         ? `<option value="visaExpiry">VISA EXPIRY DATE အလိုက်</option><option value="apptDate">APPOINTMENT DATE အလိုက်</option><option value="entryDate">ENTRY DATE အလိုက်</option>`
+         : isCompleted
          ? `<option value="completedTime">Completed အလိုက်</option><option value="apptDate">APPOINTMENT DATE အလိုက်</option><option value="entryDate">ENTRY DATE အလိုက်</option>`
          : `<option value="visaExpiry">VISA Expire အလိုက်</option><option value="apptDate">APPOINTMENT DATE အလိုက်</option><option value="entryDate">ENTRY DATE အလိုက်</option>`;
        const allowed = Array.from(select.options).some(o => o.value === current);
-       select.value = allowed ? current : (isCompleted ? "completedTime" : "visaExpiry");
+       select.value = allowed ? current : (isTomorrow ? "apptTime" : isCompleted ? "completedTime" : "visaExpiry");
        group.style.display = isStatusTab ? "flex" : "none";
     }
     function updateDashboardTabsUI() {
@@ -5239,6 +5247,7 @@
 
    $("pendingCardBtn").addEventListener("click", () => {
       viewMode = "all";
+      dashboardSpecialView = "tomorrow";
       highlightDocId = null;
       updateDashboardTabsUI(); 
 
@@ -5260,6 +5269,7 @@
 
     $("expiringCardBtn").addEventListener("click", () => {
       viewMode = "expiring";
+      dashboardSpecialView = "expiring";
       highlightDocId = null;
       
       if(typeof clearAllFilters === "function") {
@@ -5717,19 +5727,21 @@
       });
 
       baseFiltered.sort((a, b) => {
-        const isCompleted = viewMode.toLowerCase() === "completed";
-        const sortType = $("completedSortSelect")?.value || (isCompleted ? "completedTime" : "visaExpiry");
+        const isCompleted = viewMode.toLowerCase() === "completed" && dashboardSpecialView === "status";
+        const isTomorrow = dashboardSpecialView === "tomorrow";
+        const sortType = $("completedSortSelect")?.value || (isTomorrow ? "apptTime" : isCompleted ? "completedTime" : "visaExpiry");
         if (isCompleted && sortType === "completedTime") {
           const timeA = a.completedAt?.toMillis ? a.completedAt.toMillis() : (a.updatedAt?.toMillis ? a.updatedAt.toMillis() : (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0));
           const timeB = b.completedAt?.toMillis ? b.completedAt.toMillis() : (b.updatedAt?.toMillis ? b.updatedAt.toMillis() : (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0));
           return timeB - timeA;
         }
-        const field = sortType === "visaExpiry" ? "expiryDate" : sortType === "apptDate" ? "appointmentDate" : "date";
+        const field = sortType === "visaExpiry" ? "expiryDate" : sortType === "apptDate" ? "appointmentDate" : sortType === "apptTime" ? "appointmentTime" : "date";
         const av = a[field] || "", bv = b[field] || "";
         if (av !== bv) {
           if (!av) return 1;
           if (!bv) return -1;
-          return String(bv).localeCompare(String(av));
+          const ascending = sortType === "visaExpiry" || sortType === "apptTime";
+          return ascending ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
         }
         const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
         const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
@@ -6162,7 +6174,7 @@
               $("filterExpiryFrom").value = "";
               $("filterExpiryTo").value = "";
               
-              viewMode = "all"; // Error မတက်စေရန် All ဆီသို့ ပို့ပေးပါမည်
+              viewMode = "all"; dashboardSpecialView = "all"; // Error မတက်စေရန် All ဆီသို့ ပို့ပေးပါမည်
               updateDashboardTabsUI();
               renderAppointmentsTable();
            });
