@@ -7099,9 +7099,25 @@
               clonedCard.querySelectorAll("*").forEach((el) => {
                 el.style.setProperty("background-image", "none", "important");
               });
+              const clonedLogo = clonedCard.querySelector("#invoiceLogoImage");
+              if (clonedLogo && invoiceLogoDataUrl) {
+                clonedLogo.src = invoiceLogoDataUrl;
+                clonedLogo.style.display = "block";
+                clonedLogo.style.visibility = "visible";
+              }
+              if (invoiceLogoDataUrl) {
+                const watermark = clonedDoc.createElement("div");
+                watermark.setAttribute("aria-hidden", "true");
+                watermark.style.cssText = `position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:350px;height:350px;background-image:url(${JSON.stringify(invoiceLogoDataUrl)});background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.08;z-index:0;pointer-events:none;`;
+                const clonedInner = clonedCard.querySelector(".invoice-inner");
+                if (clonedInner) {
+                  clonedInner.style.position = "relative";
+                  clonedInner.style.zIndex = "1";
+                }
+                clonedCard.insertBefore(watermark, clonedCard.firstChild);
+              }
               const safeStyle = clonedDoc.createElement("style");
-              const watermark = invoiceLogoDataUrl ? `url(${JSON.stringify(invoiceLogoDataUrl)})` : "none";
-              safeStyle.textContent = `#invoiceCard::before{display:block!important;background-image:${watermark}!important;background-size:contain!important;background-repeat:no-repeat!important;background-position:center!important}`;
+              safeStyle.textContent = "#invoiceCard::before{display:none!important;background-image:none!important}";
               clonedDoc.head.appendChild(safeStyle);
             }
             clonedCard?.querySelectorAll("img").forEach((img) => {
