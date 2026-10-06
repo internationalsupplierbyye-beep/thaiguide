@@ -2812,14 +2812,24 @@
       window.open(url.toString(), "_blank", "noopener");
     }
     let dashboardLaunchHandled = false;
-    function handleDashboardLaunchHash() {
+    async function handleDashboardLaunchHash() {
       if (dashboardLaunchHandled || !window.location.hash) return;
       const m = window.location.hash.match(/^#appointment-(edit|invoice|duplicate)-(.+)$/);
       if (!m) return;
-      dashboardLaunchHandled = true;
       const id = decodeURIComponent(m[2]);
-      const a = (cachedAppointments || []).find(x => (x.invoiceId || x.id) === id || x.id === id);
-      if (!a) return showToast("Appointment မတွေ့ပါ: " + id, "error");
+      const wanted = String(id || "").trim().toLowerCase();
+      let a = (cachedAppointments || []).find(x => String(x.invoiceId || "").trim().toLowerCase() === wanted || String(x.id || "").trim().toLowerCase() === wanted);
+      if (!a && currentUser) {
+        try {
+          const direct = await getDoc(doc(db, "appointments", id));
+          if (direct.exists()) a = { id: direct.id, ...direct.data() };
+        } catch (e) { console.warn("Direct appointment lookup failed", e); }
+      }
+      if (!a) {
+        if (!cachedAppointments || cachedAppointments.length === 0) return;
+        return showToast("Appointment မတွေ့ပါ: " + id, "error");
+      }
+      dashboardLaunchHandled = true;
       history.replaceState(null, "", window.location.pathname + window.location.search);
       if (m[1] === "edit") startEditAppointment(a);
       else if (m[1] === "duplicate") duplicateAppointment(a);
@@ -5299,7 +5309,7 @@
       }
       
       if (loadBtn && loadBtn.style.display !== "none") loadBtn.textContent = "Load More (နောက်ထပ်ခေါ်ရန်)";
-      if (!isLoadMore) handleDashboardLaunchHash();
+      if (!isLoadMore) await handleDashboardLaunchHash();
     }
 
     $("loadMoreBtn").addEventListener("click", () => {
@@ -6132,7 +6142,7 @@
           });
         }
 
-        tr.querySelector("[data-docid]").addEventListener("click", () => openAppointmentNewTab(id, "invoice"));
+        tr.querySelector("[data-docid]").addEventListener("click", () => openAppointmentNewTab(a.id, "invoice"));
         
         const jumpLink = tr.querySelector(".jump-link");
         if(jumpLink) {
@@ -6162,13 +6172,13 @@
         }
 
         const editBtn = tr.querySelector("[data-editid]");
-        if (editBtn) editBtn.addEventListener("click", () => { if (canEditDelete) openAppointmentNewTab(id, "edit"); });
+        if (editBtn) editBtn.addEventListener("click", () => { if (canEditDelete) openAppointmentNewTab(a.id, "edit"); });
         const depositBtn = tr.querySelector("[data-paymentid]");
         if (depositBtn) depositBtn.addEventListener("click", () => openDashboardDepositModal(id));
         
         const dupBtn = tr.querySelector("[data-dupid]");
         if (dupBtn) {
-            dupBtn.addEventListener("click", () => { openAppointmentNewTab(id, "duplicate"); });
+            dupBtn.addEventListener("click", () => { openAppointmentNewTab(a.id, "duplicate"); });
         }
 
         const delBtn = tr.querySelector("[data-delid]");
