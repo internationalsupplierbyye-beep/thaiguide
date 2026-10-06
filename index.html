@@ -446,8 +446,9 @@
     .toast-msg {
       padding: 14px 24px; border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideInRight 0.3s ease forwards;
-      min-width: 250px; text-align: left;
+      min-width: 250px; text-align: left; pointer-events: auto; cursor: pointer;
     }
+    .toast-msg.actionable:hover { filter: brightness(1.08); transform: translateY(-1px); }
     .toast-msg.success { background: #16a34a; }
     .toast-msg.error { background: #dc2626; }
     .toast-msg.info { background: #4f46e5; }
@@ -2965,10 +2966,34 @@
         toast.style.animation = 'fadeOutUp 0.3s ease forwards';
         setTimeout(() => toast.remove(), 300);
       }, 3000);
+      return toast;
     }
     function showInvoiceToast(idOrData, message, type = "info") {
       const id = typeof idOrData === "object" ? (idOrData?.invoiceId || idOrData?.id) : idOrData;
-      showToast(`💳 ${String(id || "INV-UNKNOWN").toUpperCase()} · ${message}`, type);
+      const toast = showToast(`💳 ${String(id || "INV-UNKNOWN").toUpperCase()} · ${message}`, type);
+      if (id && id !== "INV-UNKNOWN") {
+        toast.classList.add("actionable");
+        const docId = typeof idOrData === "object" ? (idOrData?.id || id) : id;
+        const statusMatch = message.match(/^Status\s+(.+?)\s+သို့/i);
+        const targetStatus = statusMatch?.[1]?.trim() || "";
+        const goToStatusList = !!targetStatus;
+        toast.title = goToStatusList ? `နှိပ်ပြီး ${targetStatus} စာရင်းထဲ သွားကြည့်ရန်` : "နှိပ်ပြီး ဒီ Invoice ကို ဖွင့်ကြည့်ရန်";
+        toast.addEventListener("click", () => {
+          if (goToStatusList) {
+            document.querySelector('.tab-btn[data-tab="dashboard"]')?.click();
+            viewMode = targetStatus.toLowerCase() === "all" ? "all" : targetStatus;
+            dashboardSpecialView = "status";
+            highlightDocId = docId;
+            window.clearAllFilters?.();
+            if ($("searchText")) $("searchText").value = String(id);
+            updateDashboardTabsUI();
+            renderAppointmentsTable();
+          } else {
+            openAppointmentNewTab(id, "edit");
+          }
+        }, { once: true });
+      }
+      return toast;
     }
 
     function todayISO(){
@@ -6278,11 +6303,10 @@
             if (viewMode.toLowerCase() === "completed") {
                 renderAppointmentsTable();
             }
+            showInvoiceToast(currentAppointment, `Status ${newVal} သို့ ပြောင်းပြီးပါပြီ`, "success");
             if (paymentChanged) {
               notifyAppointmentChange(docId, "payment");
-              showInvoiceToast(currentAppointment, `Payment Status ${Object.keys(autoPaymentPatch).length ? "ကို PAID Auto ပြောင်းပြီး" : "မူလအခြေအနေသို့ ပြန်ထားပြီး"}`, "info");
-            } else {
-              showInvoiceToast(currentAppointment, `Status ${newVal} သို့ ပြောင်းပြီးပါပြီ`, "success");
+              setTimeout(() => showInvoiceToast(currentAppointment, `Payment Status ${Object.keys(autoPaymentPatch).length ? "ကို PAID Auto ပြောင်းပြီး" : "မူလအခြေအနေသို့ ပြန်ထားပြီး"}`, "info"), 120);
             }
           } catch(err) {
             alert("Status Update Error: " + err.message + "\n\n(Firebase Rule တွင် Update လုပ်ခွင့်ပေးထားရန် လိုအပ်ပါသည်)");
