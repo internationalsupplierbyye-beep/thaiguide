@@ -297,10 +297,10 @@
     .invoice-wrap{display:flex;gap:20px;flex-wrap:wrap; justify-content: flex-start; align-items: flex-start;}
     .invoice-controls{flex: 1 1 300px; max-width: 400px;}
     .invoice-card{
-      flex: 0 0 500px;
+      flex: 0 0 540px;
       max-width: 100%;
       background:#fff;border-radius:14px;border:1px solid #e5e7eb;
-      padding:12px;
+      padding:24px;
       box-shadow:0 10px 30px rgba(15,23,42,.25);
       min-height:550px;
       height:auto;
@@ -1004,7 +1004,7 @@
       header { padding: 12px 16px; }
       main { padding: 16px; }
       #tab-dashboard .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      #tab-invoice .invoice-card { flex-basis: 500px; }
+      #tab-invoice .invoice-card { flex-basis: 540px; }
     }
     @media (max-width: 768px) {
       body { padding: 0; }
@@ -1025,7 +1025,7 @@
       #tab-dashboard table tr{height:24px}
       .tabs.is-fixed{width:100vw;border-radius:0}
       #tab-invoice .invoice-controls { padding: 12px; }
-      #tab-invoice .invoice-card { flex-basis: 100%; min-height: 520px; }
+      #tab-invoice .invoice-card { flex-basis: 100%; min-height: 520px; padding:16px; }
       #tab-invoice .invoice-grid { grid-template-columns: 1fr; }
 
       /* Phone layout: keep every invoice label on one line */
@@ -2337,7 +2337,7 @@
                     </div>
 
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top:10px; padding-top:10px; border-top: 1px solid #e5e7eb;">
-                        <div style="font-weight:900; color:#4f46e5;" id="lblBalance">Customer ဆီမှကောက်ရန်ကျန်ငွေ</div>
+                        <div style="font-weight:900; color:#4f46e5;" id="lblBalance">ပေးချေရန်ကျန်ငွေ</div>
                         <div class="invoice-total-amount" id="invBalanceAmount" style="color:#4f46e5; white-space: nowrap; font-size: 19px;">0.00 THB</div>
                     </div>
 
@@ -2742,6 +2742,9 @@
     let viewMode = "all"; // Dashboard စဝင်တာနဲ့ All Records ကို Default ပြပေးပါမည်
     let dashboardSpecialView = "all"; // tomorrow / expiring card view context
     let highlightDocId = null;
+    let entryPreviewData = null;
+    let entryPreviewLaunchHandled = false;
+    const draftCleanupIds = new Set();
 
     let dropdownSettings = {
       customerStatuses: ["Pending", "Processing", "Ongoing", "Confirm", "Completed", "Cancel"],
@@ -2949,6 +2952,32 @@
       else if (m[1] === "duplicate") duplicateAppointment(a);
       else { $("invoiceDocId").value = a.invoiceId || a.id; document.querySelector('.tab-btn[data-tab="invoice"]').click(); loadInvoice(); }
     }
+    async function handleEntryPreviewHash() {
+      const previewMatch = window.location.hash.match(/^#entry-preview(?:-(.+))?$/);
+      if (entryPreviewLaunchHandled || !previewMatch) return;
+      entryPreviewLaunchHandled = true;
+      try {
+        const raw = localStorage.getItem("thailandGuideEntryPreview") || sessionStorage.getItem("thailandGuideEntryPreview");
+        const previewId = previewMatch[1] ? decodeURIComponent(previewMatch[1]) : "";
+        const payload = raw ? JSON.parse(raw) : null;
+        entryPreviewData = payload?.data || null;
+        localStorage.removeItem("thailandGuideEntryPreview");
+        sessionStorage.removeItem("thailandGuideEntryPreview");
+        if (!entryPreviewData && previewId) {
+          const draftSnap = await getDoc(doc(db, "appointments", previewId));
+          if (draftSnap.exists() && draftSnap.data()?.isDraft) entryPreviewData = { id: draftSnap.id, ...draftSnap.data() };
+        }
+        if (!entryPreviewData) return showToast("Preview data မတွေ့ပါ။ Entry မှာ ပြန်စမ်းပါ", "error");
+        if (!entryPreviewData?.invoiceId) return showToast("Preview data မပြည့်စုံပါ", "error");
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+        $("invoiceDocId").value = entryPreviewData.invoiceId;
+        document.querySelector('.tab-btn[data-tab="invoice"]')?.click();
+        await loadInvoice();
+      } catch (e) {
+        console.warn("Entry preview load failed", e);
+        showToast("Preview Invoice ဖွင့်မရပါ: " + e.message, "error");
+      }
+    }
     // --- 🚀 NEW: Toast Notification Function ---
     function showToast(msg, type = 'info') {
       let container = document.getElementById('toast-container');
@@ -2975,7 +3004,8 @@
         toast.classList.add("actionable");
         const docId = typeof idOrData === "object" ? (idOrData?.id || id) : id;
         const statusMatch = message.match(/^Status\s+(.+?)\s+သို့/i);
-        const targetStatus = statusMatch?.[1]?.trim() || "";
+        const explicitStatus = typeof idOrData === "object" ? (idOrData?.customerStatus || idOrData?.caseStatus || "") : "";
+        const targetStatus = String(explicitStatus || statusMatch?.[1] || "").trim();
         const goToStatusList = !!targetStatus;
         toast.title = goToStatusList ? `နှိပ်ပြီး ${targetStatus} စာရင်းထဲ သွားကြည့်ရန်` : "နှိပ်ပြီး ဒီ Invoice ကို ဖွင့်ကြည့်ရန်";
         toast.addEventListener("click", () => {
@@ -3291,7 +3321,7 @@
       if (!container) return;
       container.innerHTML = "";
 
-      const statuses = ["All", ...dropdownSettings.customerStatuses];
+      const statuses = ["All", ...dropdownSettings.customerStatuses, "DRAFT"];
       
       statuses.forEach(status => {
         const btn = document.createElement("button");
@@ -3303,7 +3333,7 @@
         
         btn.textContent = status === "All" ? "All Records" : status;
         btn.onclick = () => {
-          viewMode = status === "All" ? "all" : status;
+          viewMode = status === "All" ? "all" : status === "DRAFT" ? "draft" : status;
           dashboardSpecialView = status === "All" ? "all" : "status";
           highlightDocId = null;
           if(typeof clearAllFilters === "function") clearAllFilters();
@@ -5237,6 +5267,8 @@
 
           data.updatedAt = serverTimestamp();
           data.updatedBy = currentUserName;
+          data.isDraft = false;
+          data.draftExpiresAt = null;
 
           const beforeEdit = editedAppt ? { ...editedAppt } : {};
           await setDoc(doc(db, "appointments", editingDocId), data, { merge: true });
@@ -5248,7 +5280,7 @@
           
           messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; 
           messageDiv.className = "message success";
-          showInvoiceToast(editingDocId, "Appointment ကို အောင်မြင်စွာ Update လုပ်ပြီးပါပြီ", "success");
+          showInvoiceToast({ id: editingDocId, invoiceId: data.invoiceId || editingDocId, customerStatus: data.customerStatus }, `Status ${data.customerStatus || "Pending"} သို့ ရောက်ပြီးပါပြီ · Appointment Update လုပ်ပြီးပါပြီ`, "success");
           
           await sendMultiTelegramNotifications(lastSavedData);
           syncToGoogleSheet(lastSavedData);
@@ -5258,7 +5290,10 @@
           form.reset(); updateDepositUI(); refreshEntryPaymentButton(); await loadAppointments(); 
 
         } else {
-          if ((await getDoc(doc(db, "appointments", invoiceId))).exists()) {
+          const existingEntrySnap = await getDoc(doc(db, "appointments", invoiceId));
+          const existingEntryData = existingEntrySnap.exists() ? existingEntrySnap.data() : null;
+          const draftCanBePromoted = !!(existingEntryData?.isDraft && (!existingEntryData.draftExpiresAt || (existingEntryData.draftExpiresAt.toDate ? existingEntryData.draftExpiresAt.toDate() : new Date(existingEntryData.draftExpiresAt)) > new Date()));
+          if (existingEntrySnap.exists() && !draftCanBePromoted) {
             $("saveBtn").disabled = false;
             messageDiv.textContent = "❌ ဒီ Invoice ID နဲ့ Data ရှိပြီးသား – New ID ထုတ်ပါ (Auto) သို့ Manual ပြောင်းပါ။"; messageDiv.className = "message error"; return;
           }
@@ -5266,6 +5301,8 @@
           data.createdBy = currentUserName;
           data.updatedAt = null;
           data.updatedBy = null;
+          data.isDraft = false;
+          data.draftExpiresAt = null;
           
           let oldDupLinks = [];
           if (form.dataset.dupLinks) {
@@ -5280,7 +5317,8 @@
           data.notesLog = pendingNewNotes;
           data.reminderSent = false;
 
-          await setDoc(doc(db, "appointments", invoiceId), data);
+          if (existingEntrySnap.exists()) await setDoc(doc(db, "appointments", invoiceId), data, { merge: true });
+          else await setDoc(doc(db, "appointments", invoiceId), data);
           await syncSettlementRecords(invoiceId, data);
           await writeAuditLog("create", invoiceId, {}, data, ["caseStatus","customerStatus","sourceName","sourceStatus","agentCommission","handlerName","handlerSettlementType","handlerSettlementAmount","handlerSettlementStatus","settlementStatus"]);
           notifyAppointmentChange(invoiceId, "create");
@@ -5291,7 +5329,7 @@
           messageDiv.className = "message success";
           
           // --- 🚀 NEW: Show Toast Notification ---
-          showInvoiceToast(invoiceId, "အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ", "success");
+          showInvoiceToast({ id: invoiceId, invoiceId, customerStatus: data.customerStatus }, `Status ${data.customerStatus || "Pending"} သို့ ရောက်ပြီးပါပြီ · Appointment သိမ်းဆည်းပြီးပါပြီ`, "success");
           
           await sendMultiTelegramNotifications(lastSavedData);
           syncToGoogleSheet(lastSavedData);
@@ -5476,7 +5514,10 @@
       }
       
       if (loadBtn && loadBtn.style.display !== "none") loadBtn.textContent = "Load More (နောက်ထပ်ခေါ်ရန်)";
-      if (!isLoadMore) await handleDashboardLaunchHash();
+        if (!isLoadMore) {
+          await handleDashboardLaunchHash();
+          await handleEntryPreviewHash();
+        }
     }
 
     let settlementRefreshPromise = null;
@@ -5870,6 +5911,17 @@
 
       const baseFiltered = cachedAppointments.filter(a => {
         let ok = true;
+        if (a.isDraft) {
+          const expires = a.draftExpiresAt?.toDate ? a.draftExpiresAt.toDate() : (a.draftExpiresAt ? new Date(a.draftExpiresAt) : null);
+          if (expires && expires <= new Date()) {
+            const draftId = a.id || a.invoiceId;
+            if (draftId && !draftCleanupIds.has(draftId)) {
+              draftCleanupIds.add(draftId);
+              deleteDoc(doc(db, "appointments", draftId)).catch(() => {}).finally(() => draftCleanupIds.delete(draftId));
+            }
+            return false;
+          }
+        }
         if (searchText) ok = `${a.name||""} ${a.socialName||""} ${a.phone||""} ${a.docNumber||""} ${a.invoiceId||a.id||""}`.toLowerCase().includes(searchText);
         if (ok && filterService) ok = a.serviceType === filterService;
         if (ok && filterStatus) ok = getCaseStatus(a) === filterStatus;
@@ -5918,6 +5970,7 @@
       renderSettlementDashboard();
 
       const finalFiltered = baseFiltered.filter(a => {
+         if (a.isDraft) return viewMode === "all" || viewMode === "All" || viewMode.toLowerCase() === "draft";
          const s = getCaseStatus(a).toLowerCase();
          
          let isExpiring = false;
@@ -5974,6 +6027,9 @@
         dropdownSettings.customerStatuses.forEach(s_opt => {
           statusOptions += `<option value="${s_opt}" ${getCaseStatus(a) === s_opt ? 'selected' : ''}>${s_opt}</option>`;
         });
+        const statusCell = a.isDraft
+          ? `<span class="tag" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;font-weight:900;">DRAFT · 12 နာရီအတွင်း Save လုပ်ပါ</span>`
+          : `<select class="status-select ${getCaseStatus(a).toLowerCase()}" data-statusid="${id}" data-oldstatus="${getCaseStatus(a)}">${statusOptions}</select>`;
 
         let expHtml = "";
         if (a.expiryDate) {
@@ -6131,11 +6187,7 @@
           
           <td>${a.date || ""}</td>
           <td>${apptHtml}${expHtml}</td>
-          <td>
-            <select class="status-select ${getCaseStatus(a).toLowerCase()}" data-statusid="${id}" data-oldstatus="${getCaseStatus(a)}">
-              ${statusOptions}
-            </select>
-          </td>
+          <td>${statusCell}</td>
           <td>${nameHtml}</td>
           <td class="dashboard-contact-cell">
             <div title="${a.phone || ""}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px;">${a.phone || ""}</div>
@@ -6266,7 +6318,8 @@
           });
         }
 
-        tr.querySelector(".status-select").addEventListener("change", async (e) => {
+        const statusSelect = tr.querySelector(".status-select");
+        if (statusSelect) statusSelect.addEventListener("change", async (e) => {
           const newVal = e.target.value;
           const docId = e.target.dataset.statusid;
           const oldVal = e.target.dataset.oldstatus;
@@ -6852,7 +6905,7 @@
         subtitle: "THAILAND GUIDE - ထိုင်းလမ်းညွှန်", customerInfo: "Customer Info", serviceDetail: "Service Detail",
         name: "အမည်", phone: "ဖုန်းနံပါတ်", location: "ဝန်ဆောင်မှုယူမည့်နေရာ", apptDate: "ဝန်ဆောင်မှုရယူမည့်ရက် / အချိန်",
         service: "ဝန်ဆောင်မှုအမျိုးအစား", payment: "ငွေပေးချေမှုအမျိုးအစား", remark: "မှတ်ချက်",
-        total: "စုစုပေါင်း (THB)", deposit: "(-) စရံပေးငွေ", balance: "Customer ဆီမှကောက်ရန်ကျန်ငွေ"
+        total: "စုစုပေါင်း (THB)", deposit: "(-) စရံပေးငွေ", balance: "ပေးချေရန်ကျန်ငွေ"
       },
       en: {
         subtitle: "THAILAND GUIDE - ထိုင်းလမ်းညွှန်", customerInfo: "Customer Information", serviceDetail: "Service Details",
@@ -6950,7 +7003,9 @@
 
       try {
         await inlineInvoiceLogo();
-        let data = cachedAppointments.find(x => (x.invoiceId || x.id || "").toUpperCase() === id);
+        let data = entryPreviewData && String(entryPreviewData.invoiceId || entryPreviewData.id || "").toUpperCase() === id
+          ? entryPreviewData
+          : cachedAppointments.find(x => (x.invoiceId || x.id || "").toUpperCase() === id);
         let createdAt = new Date();
 
         if (!data) {
@@ -7168,9 +7223,50 @@
         loadInvoice();
       }
     });
-    $("gotoInvoiceFromEntry").addEventListener("click", () => {
-      if (lastSavedDocId) $("invoiceDocId").value = lastSavedDocId;
-      document.querySelector('.tab-btn[data-tab="invoice"]').click(); if (lastSavedDocId) loadInvoice();
+    $("gotoInvoiceFromEntry").addEventListener("click", async () => {
+      const hasDraft = !!($("name")?.value.trim() || $("phone")?.value.trim() || $("serviceType")?.value || $("price")?.value);
+      if (lastSavedDocId && !editingDocId && !hasDraft) {
+        const url = new URL(window.location.href);
+        url.hash = `appointment-invoice-${encodeURIComponent(lastSavedDocId)}`;
+        window.open(url.toString(), "_blank", "noopener");
+        return;
+      }
+      const previewId = ($("invoiceId")?.value.trim() || `PREVIEW-${compactDate()}-${rand4()}`).toUpperCase();
+      if ($("invoiceId")) $("invoiceId").value = previewId;
+      const total = Number($("price")?.value || 0), deposit = Number($("depositAmount")?.value || 0);
+      entryPreviewData = {
+        id: previewId, invoiceId: previewId,
+        date: $("date")?.value || todayISO(), appointmentDate: $("appointmentDate")?.value || "", appointmentTime: $("appointmentTime")?.value || null,
+        name: $("name")?.value.trim() || "-", phone: $("phone")?.value.trim() || "-", location: $("location")?.value || "-",
+        serviceType: $("serviceType")?.value || "-", servicePackage: $("servicePackage")?.value || null, paymentType: $("paymentType")?.value || "-",
+        customerStatus: $("customerStatus")?.value || "Pending", remark: $("remark")?.value.trim() || null,
+        price: total, depositAmount: deposit, balanceAmount: Math.max(total - deposit, 0), currency: $("currency")?.value || "THB",
+        exchangeRate: Number($("exchangeRate")?.value || 0), paymentStatus: $("paymentStatus")?.value || (deposit >= total && total > 0 ? "paid" : deposit > 0 ? "partial" : "unpaid")
+      };
+      try {
+        const existingPreviewSnap = await getDoc(doc(db, "appointments", previewId));
+        if (existingPreviewSnap.exists() && !existingPreviewSnap.data()?.isDraft) {
+          showToast("ဒီ Invoice ID နဲ့ ပုံမှန် Appointment ရှိပြီးသားပါ။ New ID ထုတ်ပါ", "error");
+          return;
+        }
+        const draftExpiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000);
+        await setDoc(doc(db, "appointments", previewId), {
+          ...entryPreviewData,
+          isDraft: true,
+          draftExpiresAt,
+          createdAt: serverTimestamp(),
+          createdBy: currentUserName,
+          updatedAt: serverTimestamp(),
+          updatedBy: currentUserName
+        }, { merge: true });
+        localStorage.setItem("thailandGuideEntryPreview", JSON.stringify({ data: entryPreviewData, createdAt: Date.now(), draftExpiresAt: draftExpiresAt.toISOString() }));
+      } catch (e) {
+        showToast("Draft ယာယီသိမ်းမရပါ: " + e.message, "error");
+        return;
+      }
+      const url = new URL(window.location.href);
+      url.hash = `entry-preview-${encodeURIComponent(previewId)}`;
+      window.open(url.toString(), "_blank", "noopener");
     });
 
     $("downloadInvoiceJpeg").addEventListener("click", async () => {
