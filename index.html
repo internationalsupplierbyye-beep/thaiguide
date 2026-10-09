@@ -333,6 +333,7 @@
     .invoice-grid{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 12px;font-size:13px; }
     .invoice-label{color:#6b7280;font-weight:800}
     .invoice-value{font-weight:800;color:#111827; font-size:15px;}
+    .invoice-doc-inline{font-size:10px;font-weight:700;color:#64748b;white-space:nowrap;margin-left:5px;}
     .invoice-total{
       margin-top:auto;padding-top:10px;border-top:1px dashed #d4d4d8;
       display:flex;justify-content:space-between;align-items:flex-start;font-size:14px;
@@ -2068,6 +2069,7 @@
                 <input type="checkbox" id="exportIncludeSettlement" /> Settlement ပါဝင်စေမည်
               </label>
               <button class="btn btn-secondary action-export-ui" id="exportCsv" style="display:none;">Export CSV (Excel)</button>
+              <button class="btn btn-outline action-export-ui" id="exportDashboardPdf" style="display:none;">Export PDF</button>
             </div>
           </div>
 
@@ -3121,7 +3123,7 @@
 
       const protectedButtons = [
         "saveBtn", "btnCancelEdit", "gotoInvoiceFromEntry",
-        "reloadAppointments", "exportCsv", "applyFilter",
+        "reloadAppointments", "exportCsv", "exportDashboardPdf", "applyFilter",
         "loadInvoice", "downloadInvoiceJpeg", "saveSettings",
         "regenInvoiceId", "loadMoreBtn", "btnRunOCR", "saveSettlementBtn"
       ];
@@ -3142,6 +3144,7 @@
     }
 
     function updateRoleUI() {
+      const locked = currentRole === "guest";
       const settingsTabBtn = $("settingsTabBtn");
       const settingsPanel = $("tab-settings");
       const settlementTabBtn = $("settlementTabBtn");
@@ -3172,6 +3175,7 @@
 
       if (entryTabBtn) entryTabBtn.style.display = canEntry ? "" : "none";
       if ($("exportCsv")) $("exportCsv").style.display = canEditDelete ? "" : "none";
+      if ($("exportDashboardPdf")) { $("exportDashboardPdf").style.display = canEditDelete ? "" : "none"; $("exportDashboardPdf").disabled = locked; }
 
       document.querySelectorAll(".profit-card").forEach(el => {
         el.style.display = canViewProfit ? "" : "none";
@@ -5524,6 +5528,8 @@
     async function refreshAllAppointmentsForSettlement() {
       if (currentRole === "guest") return;
       if (settlementRefreshPromise) return settlementRefreshPromise;
+      const settlementBody = $("settlementTableBody");
+      if (settlementBody) settlementBody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:12px;">Settlement စာရင်းအပြည့်ကို Load လုပ်နေပါသည်...</td></tr>`;
       settlementRefreshPromise = (async () => {
         try {
           const snap = await getDocs(collection(db, "appointments"));
@@ -6743,8 +6749,11 @@
       if (!sourceTable || !bodyRows.length || !bodyRows.some(tr => tr.children.length >= 9)) return showToast("Export လုပ်မယ့် Settlement စာရင်းမရှိပါ", "error");
       const from = $("settlementDateFrom")?.value || "All";
       const to = $("settlementDateTo")?.value || "All";
+      // Filter ရွေးထားသည်ဖြစ်စေ၊ မရွေးထားသည်ဖြစ်စေ Source အချက်အလက်ကို Export တွင် အမြဲပြမည်။
+      const includeSource = true;
       const exportTable = document.createElement("table");
-      exportTable.innerHTML = `<thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Service<br><small>Package</small></th><th class="export-source-head">Source / Agent</th><th class="export-handler-head">Service Handler</th><th>အမျိုးအစား</th><th>Amount</th><th>Status</th></tr></thead><tbody></tbody>`;
+      exportTable.className = includeSource ? "source-visible" : "";
+      exportTable.innerHTML = `<thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Service<br><small>Package</small></th>${includeSource ? '<th class="export-source-head">Source</th>' : ""}<th class="export-handler-head">Handler</th><th>Amount</th><th>Status</th></tr></thead><tbody></tbody>`;
       const exportBody = exportTable.querySelector("tbody");
       let payableTotal = 0, receivableTotal = 0, settledTotal = 0, pendingTotal = 0, settledCount = 0, pendingCount = 0;
       bodyRows.forEach(tr => {
@@ -6760,14 +6769,14 @@
         const sourceText = cells[5]?.textContent?.trim() || "-";
         const handlerText = cells[6]?.textContent?.trim() || "-";
         const serviceHtml = cells[4]?.innerHTML || "";
-        exportBody.insertAdjacentHTML("beforeend", `<tr><td>${cells[1]?.innerHTML || ""}</td><td>${cells[2]?.innerHTML || ""}</td><td>${cells[3]?.innerHTML || ""}</td><td>${serviceHtml}</td><td class="export-source-cell">${sourceText}</td><td class="export-handler-cell">${handlerText}</td><td>${cells[7]?.innerHTML || ""}</td><td>${cells[8]?.innerHTML || ""}</td><td>${statusSelect?.selectedOptions?.[0]?.textContent || ""}</td></tr>`);
+        exportBody.insertAdjacentHTML("beforeend", `<tr><td>${cells[1]?.innerHTML || ""}</td><td>${cells[2]?.innerHTML || ""}</td><td>${cells[3]?.innerHTML || ""}</td><td>${serviceHtml}</td>${includeSource ? `<td class="export-source-cell">${sourceText}</td>` : ""}<td class="export-handler-cell">${handlerText}</td><td>${cells[8]?.innerHTML || ""}</td><td>${statusSelect?.selectedOptions?.[0]?.textContent || ""}</td></tr>`);
       });
       const exportStatus = $("settlementStatusFilter")?.value || (settlementSummaryFilter === "settled" ? "settled" : settlementSummaryFilter === "pending" ? "pending" : "all");
       const exportStatusLabel = exportStatus === "settled" ? "✅ ရှင်းပြီး" : exportStatus === "pending" ? "⏳ မရှင်းရသေး" : "အားလုံး";
       const reportTotals = `<div class="report-totals"><div class="total-section total-status"><h3>Status အလိုက် Total</h3><div><strong>✅ ရှင်းပြီး</strong><b>${settledTotal.toFixed(2)} THB</b><span>${settledCount} စာရင်း</span></div><div><strong>⏳ မရှင်းရသေး</strong><b>${pendingTotal.toFixed(2)} THB</b><span>${pendingCount} စာရင်း</span></div></div><div class="total-section total-direction"><h3>ငွေဘက်အလိုက် Total</h3><div><strong>ပေးရန်</strong><b>${payableTotal.toFixed(2)} THB</b></div><div><strong>ရရန်</strong><b>${receivableTotal.toFixed(2)} THB</b></div><div><strong>Net (ရရန် − ပေးရန်)</strong><b>${(receivableTotal - payableTotal).toFixed(2)} THB</b></div></div><div class="export-status-note"><strong>Export Status:</strong> ${exportStatusLabel}</div></div>`;
       const win = window.open("", "_blank", "width=1100,height=800");
       if (!win) return showToast("PDF window ဖွင့်မရပါ။ Browser popup ကို Allow လုပ်ပါ", "error");
-      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Settlement Report</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111827}h1{font-size:20px;margin:0 0 6px}p{color:#475569}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left;font-size:12px}th{background:#e0e7ff}.export-source-head,.export-source-cell{background:#eef2ff;color:#3730a3;font-weight:700}.export-handler-head,.export-handler-cell{background:#ecfdf5;color:#047857;font-weight:700}.export-source-cell span,.export-handler-cell span{display:block;font-size:10px;opacity:.75}.report-totals{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;padding:12px;border:1px solid #cbd5e1;background:#f8fafc;font-size:13px}.total-section{padding:10px;border-radius:8px;border:1px solid #dbe3ef;background:#fff}.total-section h3{margin:0 0 8px;font-size:13px}.total-section div{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid #eef2f7}.total-section div:last-child{border-bottom:0}.total-section span{color:#64748b;font-size:11px}.export-status-note{grid-column:1/-1;padding:8px;background:#eef2ff;color:#3730a3;border-radius:6px}@media(max-width:700px){.report-totals{grid-template-columns:1fr}} @media print{button{display:none}}</style></head><body><h1>Settlement Report</h1><p>Date: ${from} → ${to}</p>${exportTable.outerHTML}${reportTotals}<p style="margin-top:20px">Generated from Thailand Guide Appointment Hub</p><button onclick="window.print()">Print / Save as PDF</button></body></html>`);
+      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Settlement Report</title><style>@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,'Noto Sans Myanmar',sans-serif;margin:0;color:#111827;font-size:9px}h1{font-size:17px;margin:0 0 4px;text-align:center}p{margin:0 0 7px;color:#475569;font-size:9px;text-align:center}.report-content{width:100%;max-width:100%;margin:0 auto}table{width:100%;max-width:100%;border-collapse:collapse;margin:7px auto 0;table-layout:fixed}th,td{border:1px solid #cbd5e1;padding:4px 4px;text-align:center;vertical-align:middle;word-break:break-word;line-height:1.2;font-size:8px}th{background:#e0e7ff;font-size:8px}th:nth-child(1),td:nth-child(1){width:12%;white-space:nowrap}th:nth-child(2),td:nth-child(2){width:16%;font-size:8.5px}th:nth-child(3),td:nth-child(3){width:16%;font-size:8.5px}th:nth-child(4),td:nth-child(4){width:21%;font-size:8.5px}th:nth-child(5),td:nth-child(5){width:20%;font-size:8.5px}table.source-visible th:nth-child(1),table.source-visible td:nth-child(1){width:10%}table.source-visible th:nth-child(2),table.source-visible td:nth-child(2){width:13%;font-size:8px}table.source-visible th:nth-child(3),table.source-visible td:nth-child(3){width:15%;font-size:8px}table.source-visible th:nth-child(4),table.source-visible td:nth-child(4){width:19%;font-size:8px}table.source-visible th:nth-child(5),table.source-visible td:nth-child(5){width:14%;font-size:8px}table.source-visible th:nth-child(6),table.source-visible td:nth-child(6){width:14%;font-size:8px}table.source-visible th:nth-child(7),table.source-visible td:nth-child(7){width:8%;font-size:8px}table.source-visible th:nth-child(8),table.source-visible td:nth-child(8){width:7%;font-size:8px}.export-source-head,.export-source-cell{background:#eef2ff;color:#3730a3;font-weight:700}.export-handler-head,.export-handler-cell{background:#ecfdf5;color:#047857;font-weight:700}.export-source-cell div{margin:1px 0}.export-source-cell span,.export-handler-cell span{display:block;font-size:7px;opacity:.75}th:nth-child(6),td:nth-child(6){width:8%;white-space:nowrap;font-size:8px}th:nth-child(7),td:nth-child(7){width:7%;white-space:nowrap;font-size:8px}.report-totals{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0 0;padding:7px;border:1px solid #cbd5e1;background:#f8fafc;font-size:9px}.total-section{padding:6px;border-radius:5px;border:1px solid #dbe3ef;background:#fff}.total-section h3{margin:0 0 4px;font-size:9px}.total-section div{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid #eef2f7}.total-section div:last-child{border-bottom:0}.total-section span{color:#64748b;font-size:8px}.export-status-note{grid-column:1/-1;padding:5px;background:#eef2ff;color:#3730a3;border-radius:4px}.report-footer{margin-top:7px;font-size:8px;color:#64748b;text-align:center}@media(max-width:700px){.report-totals{grid-template-columns:1fr}}@media print{button{display:none}}</style></head><body><h1>Settlement Report</h1><p>Date: ${from} → ${to}</p><div class="report-content">${exportTable.outerHTML}${reportTotals}<p class="report-footer">Generated from Thailand Guide Appointment Hub</p></div><button onclick="window.print()">Print / Save as PDF</button></body></html>`);
       win.document.close();
       setTimeout(() => win.print(), 400);
     });
@@ -6898,6 +6907,21 @@
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" }); const url = URL.createObjectURL(blob);
       const link = document.createElement("a"); link.href = url; link.download = "appointments_export.csv";
       document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+    });
+
+    $("exportDashboardPdf")?.addEventListener("click", () => {
+      const canEditDelete = currentRole === "admin" || currentRole === "manager";
+      if (!canEditDelete || !lastFilteredAppointments.length) return showToast("Export လုပ်မယ့် Dashboard data မရှိပါ", "error");
+      const rows = lastFilteredAppointments.map(a => {
+        const sType = a.servicePackage ? `${a.serviceType} (${a.servicePackage})` : (a.serviceType || "-");
+        const status = a.isDraft ? "DRAFT" : (a.customerStatus || a.caseStatus || "-");
+        return `<tr><td>${a.invoiceId || a.id || "-"}</td><td>${a.date || "-"}</td><td>${a.name || "-"}</td><td>${a.phone || "-"}</td><td>${sType}</td><td>${a.paymentType || "-"}</td><td class="num">${Number(a.price || 0).toFixed(2)}</td><td class="num">${Number(a.depositAmount || 0).toFixed(2)}</td><td class="num">${Number(a.balanceAmount || 0).toFixed(2)}</td><td>${status}</td></tr>`;
+      }).join("");
+      const win = window.open("", "_blank", "width=1200,height=850");
+      if (!win) return showToast("PDF window ဖွင့်မရပါ။ Browser popup ကို Allow လုပ်ပါ", "error");
+      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Dashboard Report</title><style>
+        @page{size:A4 landscape;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,'Noto Sans Myanmar',sans-serif;color:#111827;margin:0;font-size:9px}h1{font-size:17px;margin:0 0 4px;color:#3730a3}p{margin:0 0 8px;color:#475569;font-size:9px}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #cbd5e1;padding:4px 5px;text-align:left;vertical-align:top;word-break:break-word;line-height:1.2}th{background:#e0e7ff;color:#1e1b4b;font-size:8px}td{font-size:8px}th:nth-child(1){width:12%}th:nth-child(2){width:8%}th:nth-child(3){width:13%}th:nth-child(4){width:11%}th:nth-child(5){width:17%}th:nth-child(6){width:10%}th:nth-child(7),th:nth-child(8),th:nth-child(9){width:8%}th:nth-child(10){width:8%}.num{text-align:right;white-space:nowrap}.report-footer{margin-top:8px;font-size:8px;color:#64748b}@media print{button{display:none}}</style></head><body><h1>Dashboard Report</h1><p>Exported: ${new Date().toLocaleString()} · Records: ${lastFilteredAppointments.length}</p><table><thead><tr><th>Invoice ID</th><th>Service Date</th><th>Customer</th><th>Phone</th><th>Service</th><th>Payment</th><th>Total</th><th>Deposit</th><th>Balance</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table><div class="report-footer">Generated from Thailand Guide Appointment Hub</div><button onclick="window.print()">Print / Save as PDF</button></body></html>`);
+      win.document.close(); setTimeout(() => win.print(), 400);
     });
 
     const invoiceTranslations = {
@@ -7033,7 +7057,9 @@
         $("invRefText").textContent = `Invoice No: ${id}`; 
         $("invIssueDate").textContent = `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
         
-        $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${data.name || "-"}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${data.appointmentTime ? ` ${data.appointmentTime}` : ""}</span></div>`;
+        const customerDocNumber = String(data.docNumber || "").trim();
+        const customerNameHtml = `${data.name || "-"}${customerDocNumber ? ` <small class="invoice-doc-inline">· ${customerDocNumber}</small>` : ""}`;
+        $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${customerNameHtml}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${data.appointmentTime ? ` ${data.appointmentTime}` : ""}</span></div>`;
         
         const sTypeStr = data.servicePackage ? `${data.serviceType} (${data.servicePackage})` : (data.serviceType || "-");
         
