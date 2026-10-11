@@ -314,7 +314,14 @@
       background-repeat: no-repeat; background-position: center; opacity: 0.08; 
       z-index: -1; pointer-events: none; 
     }
-    .invoice-inner{width:100%;height:100%;display:flex;flex-direction:column}
+    .invoice-watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;pointer-events:none;z-index:0}
+    .invoice-watermark-content{width:180%;height:200%;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(11,minmax(0,1fr));align-items:center;justify-items:center;gap:0;transform:none;opacity:.065;white-space:nowrap;color:#64748b;text-align:center}
+    .invoice-watermark-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;width:100%;overflow:visible;transform:rotate(-28deg);}
+    .invoice-watermark-col-up{transform:translateY(-8px) rotate(-28deg)}
+    .invoice-watermark-col-down{transform:translateY(8px) rotate(-28deg)}
+    .invoice-watermark-id{font-size:8px;font-weight:900;letter-spacing:.25px;line-height:1.1}
+    .invoice-watermark-name{font-size:5.5px;font-weight:900;letter-spacing:.1px;line-height:1.15;white-space:nowrap;overflow:visible;text-overflow:clip}
+    .invoice-inner{width:100%;height:100%;display:flex;flex-direction:column;position:relative;z-index:1}
     .invoice-header-main{
       display:flex;align-items:center;gap:10px;
       margin-bottom:8px;border-bottom:1px solid #e5e7eb;padding-bottom:8px;
@@ -2293,6 +2300,7 @@
             </div>
 
             <div class="invoice-card" id="invoiceCard">
+              <div id="invoiceWatermark" class="invoice-watermark" aria-hidden="true"><div class="invoice-watermark-content"><div id="invoiceWatermarkId" class="invoice-watermark-id"></div><div id="invoiceWatermarkName" class="invoice-watermark-name"></div></div></div>
               <div class="invoice-inner">
                 <div class="invoice-header-main">
                   <div class="invoice-logo">
@@ -7056,6 +7064,27 @@
 
         $("invRefText").textContent = `Invoice No: ${id}`; 
         $("invIssueDate").textContent = `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
+        const watermarkContent = $("invoiceWatermark")?.querySelector(".invoice-watermark-content");
+        if (watermarkContent) {
+          const watermarkName = String(data.name || "").trim();
+          watermarkContent.innerHTML = "";
+          for (let i = 0; i < 88; i++) {
+            const item = document.createElement("div");
+            const columnIndex = i % 8;
+            item.className = `invoice-watermark-item ${columnIndex % 2 === 0 ? "invoice-watermark-col-up" : "invoice-watermark-col-down"}`;
+            const wmId = document.createElement("div");
+            wmId.className = "invoice-watermark-id";
+            wmId.textContent = id;
+            item.appendChild(wmId);
+            if (watermarkName) {
+              const wmName = document.createElement("div");
+              wmName.className = "invoice-watermark-name";
+              wmName.textContent = watermarkName;
+              item.appendChild(wmName);
+            }
+            watermarkContent.appendChild(item);
+          }
+        }
         
         const customerDocNumber = String(data.docNumber || "").trim();
         const customerNameHtml = `${data.name || "-"}${customerDocNumber ? ` <small class="invoice-doc-inline">· ${customerDocNumber}</small>` : ""}`;
