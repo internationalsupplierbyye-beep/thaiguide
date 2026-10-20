@@ -789,6 +789,10 @@
     #tab-scanner .inline-row input[readonly] { background: #f8fafc !important; border-color: #dbe3ef; }
     #tab-scanner .btn-copy { border-radius: 8px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
     #tab-scanner .actions { border-top-color: #e2e8f0 !important; }
+    #tab-scanner #scannerPreview { position: sticky; top: 74px; z-index: 8; box-shadow: 0 6px 18px rgba(15,23,42,.10); }
+    #tab-scanner #scannerPreviewImage { max-height: 300px; object-fit: contain; }
+    #tab-scanner input[id^="sc"] { background: #fff !important; cursor: text !important; }
+    body.dark-mode #tab-scanner #scannerPreview { background: #0f172a !important; border-color: #475569 !important; }
 
     /* Dashboard */
     #tab-dashboard .summary-grid {
@@ -1338,6 +1342,19 @@
       gap: 10px;
       margin-bottom: 12px;
     }
+    .entry-preview-quick-edit { margin:10px 0 12px; padding:10px 11px 11px; border:1px solid #c7d2fe; border-radius:10px; background:rgba(255,255,255,.82); box-shadow:0 2px 8px rgba(79,70,229,.06); }
+    .entry-preview-quick-edit-title { display:flex; align-items:center; gap:6px; margin-bottom:8px; color:#3730a3; font-size:11px; font-weight:850; }
+    .entry-preview-quick-edit-title small { margin-left:auto; color:#64748b; font-size:10px; font-weight:600; }
+    .entry-preview-quick-edit-fields { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(190px,1fr); gap:9px; }
+    .entry-preview-quick-edit label { display:flex; flex-direction:column; gap:4px; min-width:0; color:#475569; font-size:10px; font-weight:800; }
+    .entry-preview-quick-edit input { width:100%; min-height:36px; box-sizing:border-box; padding:7px 9px; border:1px solid #cbd5e1; border-radius:7px; outline:none; background:#fff; color:#0f172a; font-size:12px; line-height:1.25; }
+    .entry-preview-quick-edit input:focus { border-color:#6366f1; box-shadow:0 0 0 2px rgba(99,102,241,.14); }
+    body.dark-mode .entry-preview-quick-edit { background:rgba(15,23,42,.72); border-color:#6366f1; }
+    body.dark-mode .entry-preview-quick-edit-title { color:#c7d2fe; }
+    body.dark-mode .entry-preview-quick-edit-title small,
+    body.dark-mode .entry-preview-quick-edit label { color:#cbd5e1; }
+    body.dark-mode .entry-preview-quick-edit input { background:#0f172a; color:#f8fafc; border-color:#475569; }
+    @media (max-width: 600px) { .entry-preview-quick-edit-fields { grid-template-columns:1fr; gap:7px; } .entry-preview-quick-edit-title small { display:none; } }
     .document-preview-title { color: #3730a3; font-size: 13px; font-weight: 850; }
     .document-preview-header small { display: block; margin-top: 3px; color: #64748b; line-height: 1.35; }
     .document-preview-status {
@@ -1729,63 +1746,63 @@
               <div class="field">
                  <label>Full Name</label>
                  <div class="inline-row" style="flex-wrap:nowrap;">
-                    <input type="text" id="scName" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <input type="text" id="scName" style="flex:1; background:#f1f5f9; cursor:text;" />
                     <button type="button" class="btn-mini btn-copy" data-target="scName" style="padding:8px 12px; font-weight:bold;">Copy</button>
                  </div>
               </div>
               <div class="field">
                  <label>Passport Number</label>
                  <div class="inline-row" style="flex-wrap:nowrap;">
-                    <input type="text" id="scDocNo" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <input type="text" id="scDocNo" style="flex:1; background:#f1f5f9; cursor:text;" />
                     <button type="button" class="btn-mini btn-copy" data-target="scDocNo" style="padding:8px 12px; font-weight:bold;">Copy</button>
                  </div>
               </div>
               <div class="field">
                  <label>Date of Birth (YYYY-MM-DD)</label>
                  <div class="inline-row" style="flex-wrap:nowrap;">
-                    <input type="text" id="scDob" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <input type="text" id="scDob" style="flex:1; background:#f1f5f9; cursor:text;" />
                     <button type="button" class="btn-mini btn-copy" data-target="scDob" style="padding:8px 12px; font-weight:bold;">Copy</button>
                  </div>
               </div>
               <div class="field">
                  <label>Gender</label>
                  <div class="inline-row" style="flex-wrap:nowrap;">
-                    <input type="text" id="scGender" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <input type="text" id="scGender" style="flex:1; background:#f1f5f9; cursor:text;" />
                     <button type="button" class="btn-mini btn-copy" data-target="scGender" style="padding:8px 12px; font-weight:bold;">Copy</button>
                  </div>
               </div>
               <div class="field">
                  <label>Nationality</label>
                  <div class="inline-row" style="flex-wrap:nowrap;">
-                    <input type="text" id="scNat" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <input type="text" id="scNat" style="flex:1; background:#f1f5f9; cursor:text;" />
                     <button type="button" class="btn-mini btn-copy" data-target="scNat" style="padding:8px 12px; font-weight:bold;">Copy</button>
                  </div>
               </div>
               <div class="field">
                  <label>Date of Issue (ထုတ်ပေးသည့်ရက်)</label>
                  <div class="inline-row" style="flex-wrap:nowrap;">
-                    <input type="text" id="scDoi" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <input type="text" id="scDoi" style="flex:1; background:#f1f5f9; cursor:text;" />
                     <button type="button" class="btn-mini btn-copy" data-target="scDoi" style="padding:8px 12px; font-weight:bold;">Copy</button>
                  </div>
               </div>
               <div class="field">
                  <label>Expiry Date (YYYY-MM-DD)</label>
                  <div class="inline-row" style="flex-wrap:nowrap;">
-                    <input type="text" id="scExpiry" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <input type="text" id="scExpiry" style="flex:1; background:#f1f5f9; cursor:text;" />
                     <button type="button" class="btn-mini btn-copy" data-target="scExpiry" style="padding:8px 12px; font-weight:bold;">Copy</button>
                  </div>
               </div>
               <div class="field">
                  <label>Place of Birth (မွေးဖွားရာဒေသ)</label>
                  <div class="inline-row" style="flex-wrap:nowrap;">
-                    <input type="text" id="scPob" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <input type="text" id="scPob" style="flex:1; background:#f1f5f9; cursor:text;" />
                     <button type="button" class="btn-mini btn-copy" data-target="scPob" style="padding:8px 12px; font-weight:bold;">Copy</button>
                  </div>
               </div>
               <div class="field">
                  <label>Authority / Issue (ထုတ်ပေးသည့်ရုံး)</label>
                  <div class="inline-row" style="flex-wrap:nowrap;">
-                    <input type="text" id="scPoi" readonly style="flex:1; background:#f1f5f9; cursor:text;" />
+                    <input type="text" id="scPoi" style="flex:1; background:#f1f5f9; cursor:text;" />
                     <button type="button" class="btn-mini btn-copy" data-target="scPoi" style="padding:8px 12px; font-weight:bold;">Copy</button>
                  </div>
               </div>
@@ -2031,6 +2048,17 @@
                     <small>OCR ဖတ်ထားသောပုံနှင့် မူရင်းစာရွက်ကို စစ်ဆေးရန်</small>
                   </div>
                   <span id="documentPreviewStatus" class="document-preview-status">ပုံမရှိသေးပါ</span>
+                </div>
+                <div class="entry-preview-quick-edit">
+                  <div class="entry-preview-quick-edit-title"><span>✏️ Quick Edit</span><small>ပြင်လိုက်သည်နှင့် Entry အပေါ်ကအကွက်ကို အော်တိုလိုက်ပြောင်းပါမည်</small></div>
+                  <div class="entry-preview-quick-edit-fields">
+                    <label>အမည် / Name
+                      <input type="text" id="entryPreviewName" placeholder="Customer name" autocomplete="name" />
+                    </label>
+                    <label>Passport / Document No.
+                      <input type="text" id="entryPreviewDocNo" placeholder="MT845975 / CC9874587" autocomplete="off" spellcheck="false" />
+                    </label>
+                  </div>
                 </div>
                 <div id="documentPreviewEmpty" class="document-preview-empty">Customer Documents မှ ပုံ/PDF ရွေးပြီး OCR လုပ်ပါ။<br />အဟောင်း record ဖြစ်လျှင် ယခင်တင်ထားသော document ကို ပြပါမည်။</div>
                 <div id="documentPreviewGrid" class="document-preview-grid"></div>
@@ -3814,7 +3842,11 @@
 
     function entryFindMrz(lines) {
       for (let i = 0; i < lines.length - 1; i++) {
-        const line1 = entryMrzLine(lines[i]);
+        let line1 = entryMrzLine(lines[i]);
+        // Myanmar passport ပုံများတွင် MRZ အစက P< ကို OCR က CI/Cl/01 လို ဖတ်တတ်သောကြောင့် MMR + << ဖြင့် ပြန်ခန့်မှန်းသည်။
+        if (!/^P[A-Z<]/.test(line1) && /MMR/.test(line1) && line1.includes("<<")) {
+          line1 = line1.replace(/^.{0,5}(?=MMR)/, "P<");
+        }
         if (!/^P[A-Z<]/.test(line1) || !line1.includes("<<") || line1.length < 30) continue;
         for (let j = i + 1; j < Math.min(lines.length, i + 3); j++) {
           const line2 = entryMrzLine(lines[j]);
@@ -3834,7 +3866,7 @@
       const nameParts = nameZone.split("<<");
       const lastName = (nameParts[0] || "").replace(/</g, " ").replace(/\s+/g, " ").trim();
       const firstName = (nameParts[1] || "").replace(/</g, " ").replace(/\s+/g, " ").trim();
-      const name = `${firstName} ${lastName}`.trim();
+      const name = `${lastName} ${firstName}`.trim();
       const docRaw = line2.slice(0, 9);
       const docNumber = docRaw.replace(/</g, "").trim();
       const docCheck = line2[9] || "";
@@ -3876,6 +3908,7 @@
       // OCR စာမျက်နှာပေါ်ရှိ "Country Code MMR" ကဲ့သို့သော label စာသားများ Name ရှေ့/အလယ်တွင် ပါလာတတ်သောကြောင့် ဖယ်ရှားသည်။
       name = name.replace(/\bCOUNTRY\s*CODE\s*[A-Z]{2,4}\b/gi, " ");
       name = name.replace(/\b(?:SURNAME|GIVEN\s*NAMES?|TYPE|CODE)\s*[:#-]?\s*/gi, " ");
+      name = name.replace(/\bALSO\s+KNOWN\s+AS\b.*$/i, " ");
       name = name.replace(/\s+/g, " ").trim();
       // OCR က Name value နောက်တွင် မွေးသက္ကရာဇ်ပါ တစ်ဆက်တည်းပြန်ပေးပါက date မှစ၍ ဖြတ်သည်။
       name = name.replace(new RegExp(`\\s+\\d{1,2}\\s+(?:${months})\\s+\\d{4}.*$`, "i"), "");
@@ -3897,7 +3930,7 @@
       const docMatch = joined.match(docLabel);
       if (docMatch && docMatch[1]) result.docNumber = docMatch[1].replace(/</g, "").trim();
       if (!result.docNumber) {
-        const mmPassport = joined.match(/\b([A-Z]{2}[0-9]{6})\b/i);
+        const mmPassport = joined.match(/\b([A-Z]{1,3}[0-9]{6,9})\b/i);
         const thaiId = joined.match(/\b(\d{1}[\s-]?\d{4}[\s-]?\d{5}[\s-]?\d{2}[\s-]?\d{1})\b/);
         if (mmPassport) result.docNumber = mmPassport[1].toUpperCase();
         else if (thaiId) result.docNumber = thaiId[1].replace(/[\s-]/g, "");
@@ -3912,9 +3945,8 @@
       const labeled = entryParseLabeledFields(lines, rawText);
       const parsed = {
         name: mrz?.name || labeled.name || "",
-        // MRZ validation မအောင်မြင်ပါက MRZ မှရသော document number ကို မဖြည့်ပါ။
-        // Label-based number ရှိမှသာ fallback အဖြစ် အသုံးပြုမည်။
-        docNumber: (mrz && !mrz.mrzValid) ? (labeled.docNumber || "") : (mrz?.docNumber || labeled.docNumber || ""),
+        // Checksum မမှန်လျှင် warning ပြမည်၊ သို့သော် MRZ မှရသော Passport No. ကို မဖျောက်ဘဲ manual ပြင်နိုင်ရန် ဖြည့်ထားမည်။
+        docNumber: mrz?.docNumber || labeled.docNumber || "",
         dob: (mrz && mrz.mrzValid) ? (mrz.dob || "") : "",
         expiry: (mrz && mrz.mrzValid) ? (mrz.expiry || "") : "",
         mrzFound: Boolean(mrz),
@@ -3966,7 +3998,9 @@
       const models = await listGeminiOcrModels(apiKey);
       const prompt = [
         "Read this passport, work permit, or identity document image carefully.",
-        "Return ONLY the visible text, preserving MRZ lines exactly when present.",
+        "Return ONLY the visible text, preserving the two MRZ lines exactly when present.",
+        "For the main name, return the primary passport name only; do not append or treat 'Also Known As' or any alias as part of the main name.",
+        "For the document/passport number, read it from the visual document number field and verify it against the MRZ first 9 characters. Passport numbers can be formats such as MT845975 or CC9874587; never omit the number just because the length differs.",
         "Do not explain, translate, or invent missing values. Keep each field or MRZ line on its own line."
       ].join(" ");
       const errors = [];
@@ -4051,6 +4085,21 @@
 
     // --- Entry document preview helpers ---
     let documentPreviewObjectUrls = [];
+    function normalizeEntryDocumentNumber(value) {
+      return String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
+    }
+    function syncEntryPreviewQuickFields() {
+      if ($("entryPreviewName") && $("entryPreviewName") !== document.activeElement) $("entryPreviewName").value = $("name")?.value || "";
+      if ($("entryPreviewDocNo") && $("entryPreviewDocNo") !== document.activeElement) $("entryPreviewDocNo").value = $("docNumber")?.value || "";
+    }
+    $("entryPreviewName")?.addEventListener("input", (e) => { if ($("name")) { $("name").value = e.target.value; } });
+    $("entryPreviewDocNo")?.addEventListener("input", (e) => {
+      const value = normalizeEntryDocumentNumber(e.target.value);
+      e.target.value = value;
+      if ($("docNumber")) $("docNumber").value = value;
+    });
+    $("name")?.addEventListener("input", syncEntryPreviewQuickFields);
+    $("docNumber")?.addEventListener("input", syncEntryPreviewQuickFields);
 
     // base64 data ကို Blob URL အဖြစ်ပြောင်းသည် (data: URI ကို tab အသစ်ဖြင့်ဖွင့်ရင် blank ဖြစ်တတ်သောကြောင့်
     // Blob URL ကိုသာ target="_blank" link များတွင် အသုံးပြုသင့်သည်)
@@ -4394,6 +4443,7 @@
     }
 
     function renderDocumentPreviews(fileList = [], savedLinks = []) {
+      syncEntryPreviewQuickFields();
       clearDocumentPreview();
       const files = Array.from(fileList || []).filter(file => file && (file.type.startsWith("image/") || file.type === "application/pdf"));
       const links = Array.from(savedLinks || []).filter(Boolean);
@@ -4544,6 +4594,37 @@
       if (msg && added > 0) {
         msg.textContent = `📋 Copy ထားသော ပုံ ${added} ခု ထည့်ပြီးပါပြီ။`;
         msg.className = "message success";
+      }
+    });
+
+    // VIEW DOCS modal ဖွင့်ထားချိန်တွင် Copy → Paste ဖြင့် ဖိုင်ထည့်နိုင်ရန်။
+    document.addEventListener("paste", (e) => {
+      const modal = $("docsModal");
+      const input = $("docsAppendInput");
+      if (!modal || modal.classList.contains("hidden") || !input) return;
+      const items = (e.clipboardData && e.clipboardData.items) || [];
+      const pastedFiles = [];
+      for (const item of items) {
+        if (item.kind !== "file") continue;
+        const file = item.getAsFile();
+        if (file && (file.type.startsWith("image/") || file.type === "application/pdf")) pastedFiles.push(file);
+      }
+      if (!pastedFiles.length) return;
+      e.preventDefault();
+      const named = pastedFiles.map((file, idx) => {
+        if (file.name && file.name !== "image.png" && file.name !== "blob") return file;
+        const ext = (file.type.split("/")[1] || "png").replace("jpeg", "jpg");
+        return new File([file], `pasted-doc-${Date.now()}-${idx}.${ext}`, { type:file.type, lastModified:file.lastModified || Date.now() });
+      });
+      try {
+        const dt = new DataTransfer();
+        Array.from(input.files || []).forEach(file => dt.items.add(file));
+        named.forEach(file => dt.items.add(file));
+        input.files = dt.files;
+        const status = $("docsAppendStatus");
+        if (status) status.textContent = `📋 Copy ထားသော ဖိုင် ${named.length} ခု ရွေးထားပါပြီ။ “ထပ်တင်မည်” ကိုနှိပ်ပါ။`;
+      } catch (error) {
+        console.warn("VIEW DOCS paste failed", error);
       }
     });
 
@@ -5111,6 +5192,61 @@
       } catch(e) { 
         console.error("Telegram file upload error", e); 
         throw e;
+      }
+    }
+
+    // Dashboard VIEW DOCS မှနေ၍ ဖိုင်အသစ်များ ထပ်တင်ရန်။
+    async function appendDocumentsFromDocsModal(appointment, docId, input, button, statusEl, refresh) {
+      const canUpload = currentRole === "admin" || currentRole === "manager";
+      if (!canUpload) { showToast("ဖိုင်ထပ်တင်ရန် Admin သို့မဟုတ် Manager ခွင့်လိုပါသည်။", "error"); return; }
+      const files = Array.from(input?.files || []);
+      if (!files.length) { showToast("ထပ်တင်မည့် ဖိုင်ကို ရွေးပါ။", "error"); return; }
+      const oldLinks = Array.isArray(appointment.documentLinks) ? [...appointment.documentLinks] : [];
+      const addedLinks = [];
+      const failures = [];
+      button.disabled = true;
+      input.disabled = true;
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const originalFile = files[i];
+          statusEl.textContent = `⏳ Upload ${i + 1}/${files.length}...`;
+          let uploadObj;
+          try {
+            uploadObj = await compressImageIfNeed(originalFile, { maxWidth: 1400, maxHeight: 1400, quality: 0.78 });
+          } catch (e) {
+            uploadObj = await readRawUploadPayload(originalFile);
+          }
+          const driveTask = uploadToGoogleDrive(uploadObj)
+            .then(url => { if (url) addedLinks.push(url); return { ok:true }; })
+            .catch(error => ({ ok:false, error }));
+          const telegramTask = uploadToTelegramDocument(uploadObj.file, appointment.invoiceId || docId)
+            .then(() => ({ ok:true }))
+            .catch(error => ({ ok:false, error }));
+          const [driveResult, telegramResult] = await Promise.all([driveTask, telegramTask]);
+          if (!driveResult.ok) failures.push(`${originalFile.name} · Google Drive: ${driveResult.error.message}`);
+          if (!telegramResult.ok) failures.push(`${originalFile.name} · Telegram: ${telegramResult.error.message}`);
+        }
+        if (addedLinks.length) {
+          const newLinks = [...oldLinks, ...addedLinks];
+          await updateDoc(doc(db, "appointments", docId), { documentLinks: newLinks, updatedAt: serverTimestamp(), updatedBy: currentUserName });
+          const before = { ...appointment, documentLinks: oldLinks };
+          const after = { ...appointment, documentLinks: newLinks };
+          await writeAuditLog("documents_append", docId, before, after, ["documentLinks"]);
+          appointment.documentLinks = newLinks;
+          const cacheIdx = cachedAppointments.findIndex(x => x.id === docId);
+          if (cacheIdx > -1) cachedAppointments[cacheIdx].documentLinks = newLinks;
+          notifyAppointmentChange(docId, "documents_append");
+        }
+        input.value = "";
+        statusEl.textContent = failures.length ? `⚠️ ${addedLinks.length} ဖိုင်သိမ်းပြီး၊ ${failures.length} ခု မအောင်မြင်ပါ` : `✅ ${addedLinks.length} ဖိုင် ထပ်တင်ပြီးပါပြီ`;
+        if (failures.length) alert(failures.join("\n"));
+        refresh();
+      } catch (error) {
+        statusEl.textContent = "❌ Upload မအောင်မြင်ပါ: " + error.message;
+        showToast("ဖိုင်ထပ်တင်ရာတွင် အမှားဖြစ်ပါသည်။", "error");
+      } finally {
+        button.disabled = false;
+        input.disabled = false;
       }
     }
 
@@ -6244,7 +6380,15 @@
             $("docsModalTitle").textContent = `Documents: ${id} (${a.name})`;
             modal.classList.remove("hidden");
             
-            let html = `<div style="text-align:right; margin-bottom:12px;">
+            let html = `<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px;margin-bottom:12px;">
+                          <div style="font-weight:800;color:#3730a3;font-size:12px;margin-bottom:6px;">📎 ဒီ Appointment အတွက် ဖိုင်အသစ် ထပ်တင်ရန်</div>
+                          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <input type="file" id="docsAppendInput" multiple accept="image/*,application/pdf" style="flex:1 1 280px;min-height:38px;background:#fff;" />
+                            <button id="btnAppendDocs" class="btn btn-primary" type="button" style="font-size:12px;padding:7px 12px;">⬆️ ထပ်တင်မည်</button>
+                          </div>
+                          <div id="docsAppendStatus" style="font-size:11px;color:#475569;margin-top:5px;min-height:16px;"></div>
+                        </div>
+                        <div style="text-align:right; margin-bottom:12px;">
                           <button id="btnDownloadAllDocs" class="btn btn-primary" style="font-size:12px; padding:6px 12px; cursor:pointer;">
                             ⬇️ အားလုံးကို Download ဆွဲမည် (${a.documentLinks.length})
                           </button>
@@ -6275,6 +6419,13 @@
                `;
             });
             $("docsModalBody").innerHTML = html;
+
+            const appendInput = document.getElementById("docsAppendInput");
+            const appendBtn = document.getElementById("btnAppendDocs");
+            const appendStatus = document.getElementById("docsAppendStatus");
+            if (appendBtn && appendInput) {
+              appendBtn.addEventListener("click", () => appendDocumentsFromDocsModal(a, id, appendInput, appendBtn, appendStatus, () => docsBtn.click()));
+            }
 
             const btnDownloadAll = document.getElementById("btnDownloadAllDocs");
             if(btnDownloadAll) {
@@ -7612,12 +7763,22 @@
             
             let mrzLine1 = lines.find(l => l.startsWith('P') && l.includes('<') && l.length >= 28);
             let mrzLine2 = lines.find(l => /[0-9]{6}/.test(l) && l.includes('<') && l.length >= 28 && l !== mrzLine1);
+            const structuredMrz = entryParseMrz(entryFindMrz(lines));
 
             let extName = "", extDocNo = "", extDob = "", extSex = "", extExpiry = "", extNat = "";
             let extPob = "", extPoi = "", extDoi = ""; 
 
             // ၁။ အောက်ခြေ MRZ ကို ဖတ်ခြင်း
-            if (mrzLine1 && mrzLine2) {
+            if (structuredMrz) {
+               extName = structuredMrz.name || "";
+               extDocNo = structuredMrz.docNumber || "";
+               extDob = structuredMrz.dob || "";
+               extExpiry = structuredMrz.expiry || "";
+               extNat = structuredMrz.nationality || "";
+               const structuredLine2 = entryFindMrz(lines)?.line2 || "";
+               const structuredSex = structuredLine2.slice(20, 21);
+               if (structuredSex === "M" || structuredSex === "F") extSex = structuredSex;
+            } else if (mrzLine1 && mrzLine2) {
                const nameMatch = mrzLine1.match(/^P[A-Z<]?([A-Z]{3})([A-Z<]+)$/);
                if (nameMatch) {
                   extNat = nameMatch[1].replace(/</g, '');
@@ -7669,7 +7830,7 @@
 
             // DocNo fallback
             if (!extDocNo) {
-                const docMatch = fullText.match(/\b([A-Z]{2})\s*([0-9]{6})\b/);
+                const docMatch = fullText.match(/\b([A-Z]{1,3})\s*([0-9]{6,9})\b/);
                 if (docMatch) extDocNo = docMatch[1] + docMatch[2];
             }
             
@@ -7750,6 +7911,7 @@
             extName = String(extName || "")
               .replace(/\bCOUNTRY\s*CODE\s*[A-Z]{2,4}\b/gi, " ")
               .replace(/\b(?:SURNAME|GIVEN\s*NAMES?|TYPE|CODE)\s*[:#-]?\s*/gi, " ")
+              .replace(/\bALSO\s+KNOWN\s+AS\b.*$/i, " ")
               .replace(/\s+/g, " ")
               .trim();
 
