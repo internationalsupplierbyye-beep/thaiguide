@@ -45,8 +45,7 @@
       align-items:center;
       gap:12px;
       background: radial-gradient(circle at top right, #eef2ff, #ffffff);
-      position: sticky;
-      top: 0;
+      position: relative;
       z-index: 100;
       border-radius: 18px 18px 0 0;
       flex-wrap: nowrap; 
@@ -74,7 +73,7 @@
       justify-content:flex-end;
     }
     .tabs{display:flex;gap:6px;background:rgba(255,255,255,.96);padding:3px;border-radius:999px;overflow-x:auto;max-width:100%;box-shadow:0 3px 10px rgba(15,23,42,.08)}
-    .tabs.is-fixed{position:fixed;top:0;left:50%;transform:translateX(-50%);width:min(calc(100vw - 20px),1350px);max-width:none;border-radius:0 0 12px 12px;z-index:1000;box-shadow:0 5px 16px rgba(15,23,42,.22)}
+    .tabs.is-fixed{position:fixed;top:0;left:var(--tabs-fixed-left,0px);transform:none;width:var(--tabs-fixed-width,auto);max-width:none;border-radius:0 0 12px 12px;z-index:1000;box-shadow:0 5px 16px rgba(15,23,42,.22)}
     #tab-entry small:not(.entry-date-format){display:none !important}
     #tab-dashboard table th,#tab-dashboard table td{padding:2px 4px !important;line-height:1.12 !important;font-size:11px !important}
     #tab-dashboard table tr{height:26px}
@@ -405,7 +404,7 @@
 
     @media (max-width: 768px){
       body { padding: 0; }
-      .app-shell { border-radius: 0; min-height: 100vh; overflow-x: hidden; }
+      .app-shell { border-radius: 0; min-height: 100vh; overflow: visible; }
       header {
         flex-direction: column !important; 
         align-items: stretch !important;
@@ -685,9 +684,17 @@
     .settings-block .field input { height: 36px; min-height: 36px; padding: 7px 9px; }
     .settings-info-block { margin-top: 12px; background: #f8fafc; border-style: dashed; }
     .settings-info-block p { margin: 4px 0 0; color: #64748b; font-size: 11px; line-height: 1.5; }
-    .service-pricing-editor { max-height: 320px; overflow: auto; padding-right: 4px; }
-    .service-pricing-editor > div { grid-template-columns: minmax(180px, 1fr) 100px 110px !important; margin-bottom: 6px !important; }
-    .service-pricing-editor > div input { height: 34px; min-height: 34px; }
+    .service-pricing-editor { max-height: 360px; overflow:auto; padding:2px 4px 4px 0; }
+    .service-pricing-header, .service-pricing-row { display:grid; grid-template-columns:minmax(220px,1.45fr) 92px 102px minmax(145px,1fr) minmax(150px,1.1fr) 105px 58px; gap:7px; align-items:center; min-width:970px; }
+    .service-pricing-header { position:sticky; top:0; z-index:2; padding:6px 7px; margin-bottom:5px; border-bottom:1px solid #c7d2fe; background:#eef2ff; color:#3730a3; font-size:10px; font-weight:850; }
+    .service-pricing-row { margin-bottom:6px; }
+    .service-pricing-row input, .service-pricing-row select { width:100%; box-sizing:border-box; height:34px; min-height:34px; padding:6px 7px; font-size:11px; }
+    .service-pricing-row .service-pricing-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:700; }
+    .service-pricing-row .service-pricing-price { background:#eef2ff; border-color:#818cf8; }
+    .service-pricing-auto { display:flex; align-items:center; justify-content:center; gap:4px; color:#166534; font-size:10px; font-weight:800; white-space:nowrap; }
+    .service-pricing-auto input { width:15px; height:15px; min-height:15px; }
+    body.dark-mode .service-pricing-header { background:#312e81; border-color:#6366f1; color:#e0e7ff; }
+    body.dark-mode .service-pricing-row .service-pricing-price { background:#1e1b4b; }
     body.dark-mode .settings-tabs { background: #0f172a; border-color: #334155; }
     body.dark-mode .settings-tab { color: #94a3b8; }
     body.dark-mode .settings-tab:hover { background: #312e81; color: #e0e7ff; }
@@ -705,7 +712,7 @@
       .settings-two-column-grid,
       .settings-field-grid { grid-template-columns: 1fr; }
       .settings-block-heading-row { align-items: flex-start; flex-direction: column; gap: 4px; }
-      .service-pricing-editor > div { grid-template-columns: minmax(150px, 1fr) 82px 92px !important; }
+      .service-pricing-editor { margin-right:-2px; }
     }
     /* --- End Settings Tabs UI --- */
 
@@ -719,7 +726,7 @@
     .app-shell {
       max-width: 1440px;
       border-radius: 22px;
-      overflow: hidden;
+      overflow: visible;
       box-shadow: 0 22px 55px rgba(15,23,42,.22), 0 0 0 1px rgba(148,163,184,.28);
     }
     #tab-dashboard table th, #tab-dashboard table td { vertical-align:middle; }
@@ -1035,7 +1042,6 @@
       #tab-dashboard .summary-card .summary-value { font-size: 20px; }
       #tab-dashboard table th,#tab-dashboard table td{padding:2px 3px !important;font-size:10px !important;line-height:1.08 !important}
       #tab-dashboard table tr{height:24px}
-      .tabs.is-fixed{width:100vw;border-radius:0}
       #tab-invoice .invoice-controls { padding: 12px; }
       #tab-invoice .invoice-card { flex-basis: 100%; min-height: 520px; padding:16px; }
       #tab-invoice .invoice-grid { grid-template-columns: 1fr; }
@@ -2496,10 +2502,11 @@
                 <div class="settings-block-heading-row">
                   <div>
                     <h4>Service Pricing</h4>
-                    <small>ဝန်ဆောင်မှုအလိုက် အရင်းနှင့် ပုံသေရောင်းဈေး</small>
+                    <small>ဝန်ဆောင်မှုအလိုက် အရင်း၊ ပုံသေရောင်းဈေးနှင့် Settlement အော်တိုသတ်မှတ်ချက်</small>
                   </div>
-                  <span class="settings-note">Cost / Default Price</span>
+                  <span class="settings-note">Price + Settlement Defaults</span>
                 </div>
+                <small style="margin:0 0 8px;">Auto ဖွင့်ထားသော Service / Package ကို Entry တွင်ရွေးလိုက်လျှင် Handler, ငွေဘက်နှင့် Amount ကို အော်တိုဖြည့်ပါမည်။ Entry မှာ ပြန်ပြင်နိုင်ပါသည်။</small>
                 <div id="servicePricingContainer" class="service-pricing-editor"></div>
               </div>
             </div>
@@ -3270,12 +3277,13 @@
       const measure = () => {
         tabBar.classList.remove("is-fixed");
         document.documentElement.style.setProperty("--dashboard-thead-offset", "0px");
-        originalTop = tabBar.getBoundingClientRect().top + window.scrollY;
+        const rect = tabBar.getBoundingClientRect();
+        document.documentElement.style.setProperty("--tabs-fixed-left", `${Math.round(rect.left)}px`);
+        document.documentElement.style.setProperty("--tabs-fixed-width", `${Math.round(rect.width)}px`);
+        originalTop = rect.top + window.scrollY;
         setFixedState(window.scrollY > originalTop + 2);
       };
-      const sync = () => {
-        setFixedState(window.scrollY > originalTop + 2);
-      };
+      const sync = () => setFixedState(window.scrollY > originalTop + 2);
       measure();
       window.addEventListener("scroll", sync, { passive: true });
       window.addEventListener("resize", measure);
@@ -3448,20 +3456,27 @@
       const container = $("servicePricingContainer");
       if (!container) return;
       container.innerHTML = "";
+      const handlerOptions = ["ကိုယ်တိုင်လုပ်", ...(dropdownSettings.handlerList || [])].filter((v, i, arr) => v && arr.indexOf(v) === i);
+      const handlerOptionHtml = (selected) => handlerOptions.map(n => `<option value="${String(n).replace(/"/g,'&quot;')}" ${n === selected ? "selected" : ""}>${n}</option>`).join("");
+      const typeOptionHtml = (selected) => `<option value="" ${!selected ? "selected" : ""}>-- ရွေးရန် --</option><option value="payable" ${selected === "payable" ? "selected" : ""}>Handler ကို ပေးရန်</option><option value="receivable" ${selected === "receivable" ? "selected" : ""}>Handler ဆီမှ ရရန်</option>`;
+      const header = document.createElement("div");
+      header.className = "service-pricing-header";
+      header.innerHTML = `<span>Service / Package</span><span>Cost</span><span>Price</span><span>Default Handler</span><span>Settlement Type</span><span>Handler Amount</span><span>Auto</span>`;
+      container.appendChild(header);
       
       const createRow = (key, label) => {
         const row = document.createElement("div");
-        row.style.display = "grid";
-        row.style.gridTemplateColumns = "350px 100px 110px";
-        row.style.justifyContent = "start";
-        row.style.gap = "8px"; 
-        row.style.alignItems = "center"; 
-        row.style.marginBottom = "8px";
-        const sp = servicePricing[key] || { cost: "", price: "" };
+        row.dataset.spKey = key;
+        row.className = "service-pricing-row";
+        const sp = servicePricing[key] || { cost: "", price: "", defaultHandler: "ကိုယ်တိုင်လုပ်", handlerSettlementType: "", defaultHandlerAmount: "", autoSettlement: false };
         row.innerHTML = `
-          <span title="${label}" style="font-size:13px; font-weight:700; line-height:1.4;">${label}</span>
-          <input type="number" min="0" step="0.01" placeholder="Cost" data-sp-cost="${key}" value="${sp.cost ?? ""}" style="font-size:13px;padding:6px 8px;">
-          <input type="number" min="0" step="0.01" placeholder="Default Price" data-sp-price="${key}" value="${sp.price ?? ""}" style="font-size:13px;padding:6px 8px;background:#eef2ff;border-color:#818cf8;">
+          <span title="${label}" class="service-pricing-label">${label}</span>
+          <input type="number" min="0" step="0.01" placeholder="Cost" data-sp-cost value="${sp.cost ?? ""}">
+          <input type="number" min="0" step="0.01" placeholder="Price" data-sp-price value="${sp.price ?? ""}" class="service-pricing-price">
+          <select data-sp-handler>${handlerOptionHtml(sp.defaultHandler || "ကိုယ်တိုင်လုပ်")}</select>
+          <select data-sp-handler-type>${typeOptionHtml(sp.handlerSettlementType || "")}</select>
+          <input type="number" min="0" step="0.01" placeholder="Amount" data-sp-handler-amount value="${sp.defaultHandlerAmount ?? ""}">
+          <label class="service-pricing-auto"><input type="checkbox" data-sp-auto ${sp.autoSettlement === true ? "checked" : ""}> ဖွင့်</label>
         `;
         container.appendChild(row);
       };
@@ -3568,15 +3583,20 @@
       dropdownSettings.handlerList = $("handlerSetting") ? $("handlerSetting").value.split("\n").map(s=>s.trim()).filter(Boolean) : dropdownSettings.handlerList;
 
       const newPricing = {};
-      document.querySelectorAll("[data-sp-cost]").forEach(input => {
-        const name = input.dataset.spCost; const val = parseFloat(input.value);
-        newPricing[name] = newPricing[name] || { cost:0, price:0 };
-        if (!isNaN(val)) newPricing[name].cost = val;
-      });
-      document.querySelectorAll("[data-sp-price]").forEach(input => {
-        const name = input.dataset.spPrice; const val = parseFloat(input.value);
-        newPricing[name] = newPricing[name] || { cost:0, price:0 };
-        if (!isNaN(val)) newPricing[name].price = val;
+      document.querySelectorAll(".service-pricing-row[data-sp-key]").forEach(row => {
+        const name = row.dataset.spKey;
+        const numberValue = (selector) => {
+          const value = parseFloat(row.querySelector(selector)?.value);
+          return Number.isFinite(value) ? value : "";
+        };
+        newPricing[name] = {
+          cost: numberValue("[data-sp-cost]"),
+          price: numberValue("[data-sp-price]"),
+          defaultHandler: row.querySelector("[data-sp-handler]")?.value || "ကိုယ်တိုင်လုပ်",
+          handlerSettlementType: row.querySelector("[data-sp-handler-type]")?.value || "",
+          defaultHandlerAmount: numberValue("[data-sp-handler-amount]"),
+          autoSettlement: !!row.querySelector("[data-sp-auto]")?.checked
+        };
       });
       servicePricing = newPricing;
       
@@ -3660,6 +3680,26 @@
            if(sp.cost !== undefined) $("cost").value = sp.cost;
            if(sp.price !== undefined) $("price").value = sp.price; 
            updateDepositUI(); 
+           if (sp.autoSettlement === true) {
+             const toggle = $("entrySettlementEnabled");
+             if (toggle) toggle.checked = true;
+             syncEntrySettlementUI();
+             const handler = $("serviceProviderName");
+             const handlerName = sp.defaultHandler || "ကိုယ်တိုင်လုပ်";
+             if (handler) {
+               fillSavedNameOptions(handler, ["ကိုယ်တိုင်လုပ်", ...(dropdownSettings.handlerList || []), handlerName], handlerName);
+               handler.value = handlerName;
+             }
+             if ($("serviceProviderSettlementType")) $("serviceProviderSettlementType").value = sp.handlerSettlementType || "";
+             syncSettlementInputState();
+             const configuredAmount = sp.defaultHandlerAmount !== "" && sp.defaultHandlerAmount != null ? Number(sp.defaultHandlerAmount) : NaN;
+             const fallbackAmount = $("serviceProviderSettlementType")?.value === "receivable"
+               ? Math.max(Number($("price")?.value || 0) - Number($("cost")?.value || 0), 0)
+               : Number($("cost")?.value || 0);
+             if ($("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = Number.isFinite(configuredAmount) ? configuredAmount.toFixed(2) : (fallbackAmount > 0 ? fallbackAmount.toFixed(2) : "");
+             if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = "pending";
+             syncSettlementInputState();
+           }
         }
     }
     
@@ -3682,7 +3722,24 @@
       updateDepositUI(); refreshEntryPaymentButton();
     });
 
+    function restoreReturningCustomerDocuments(latestData) {
+      const form = $("appointmentForm");
+      const links = Array.from(new Set(Array.isArray(latestData?.documentLinks) ? latestData.documentLinks.filter(Boolean) : []));
+      currentSavedMatchedLinks = Array.isArray(latestData?.ocrMatchedLinks) ? latestData.ocrMatchedLinks.filter(Boolean) : [];
+      if (form) {
+        form.dataset.dupLinks = JSON.stringify(links);
+        form.dataset.dupMatchedLinks = JSON.stringify(currentSavedMatchedLinks);
+      }
+      const filesDiv = $("existingFilesContainer");
+      if (filesDiv) {
+        filesDiv.innerHTML = links.length ? `<div style="font-size:12px;font-weight:bold;margin-bottom:4px;color:#475569;">မူလ Customer ဖိုင်များ:</div>${links.map((link, idx) => `<a href="${link}" target="_blank" rel="noopener" style="display:inline-block;margin-right:10px;margin-bottom:6px;padding:4px 10px;background:#e0e7ff;color:#3730a3;border-radius:6px;text-decoration:none;font-size:11px;border:1px solid #c7d2fe;">📄 File ${idx + 1}</a>`).join("")}` : "";
+        filesDiv.setAttribute("aria-hidden", links.length ? "false" : "true");
+      }
+      renderDocumentPreviews([], links);
+      syncEntryPreviewQuickFields();
+    }
     function applyReturningCustomerData(latestData) {
+      restoreReturningCustomerDocuments(latestData);
       if (!$("name").value) $("name").value = latestData.name || "";
       if (!$("docNumber").value) $("docNumber").value = latestData.docNumber || "";
       if (!$("socialName").value) $("socialName").value = latestData.socialName || "";
@@ -3745,22 +3802,22 @@
             collection(db, "appointments"),
             where("phone", ">=", val),
             where("phone", "<=", val + "\uf8ff"),
-            limit(8)
+            limit(20)
           );
           const snap = await getDocs(q);
           if (snap.empty) { box.style.display = "none"; box.innerHTML = ""; return; }
 
-          const seenPhones = new Set();
-          const uniqueCustomers = [];
-          snap.forEach(docSnap => {
-            const d = docSnap.data();
-            if (!seenPhones.has(d.phone)) { seenPhones.add(d.phone); uniqueCustomers.push(d); }
-          });
+          // ဖုန်းနံပါတ်တူပေမယ့် Passport/Appointment မတူနိုင်သောကြောင့် phone အလိုက် deduplicate မလုပ်ပါ။
+          // ဥပမာ မိသားစု ၁၀ ယောက်ကို ဖုန်းတစ်ခုတည်းသုံးလျှင် ၁၀ ကြောင်း သီးခြားရွေးနိုင်ရမည်။
+          const phoneMatches = [];
+          snap.forEach(docSnap => phoneMatches.push({ ...docSnap.data(), _recordId: docSnap.id }));
+          phoneMatches.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
 
-          box.innerHTML = uniqueCustomers.map((d, i) => `
+          box.innerHTML = phoneMatches.map((d, i) => `
             <div class="phone-suggest-item" data-idx="${i}" style="padding:8px 10px; cursor:pointer; border-bottom:1px solid #f1f5f9; font-size:12px;">
               <strong>${d.name || "-"}</strong> — ${d.phone}
-              ${d.docNumber ? `<span style="color:var(--muted);"> · ${d.docNumber}</span>` : ""}
+              ${d.docNumber ? `<span style="color:var(--muted);"> · Passport: ${d.docNumber}</span>` : ""}
+              <span style="display:block;color:var(--muted);font-size:10px;margin-top:2px;">${d.invoiceId || d._recordId || ""}${d.date ? ` · Entry: ${d.date}` : ""}</span>
             </div>
           `).join("");
           box.style.display = "block";
@@ -3769,7 +3826,7 @@
             el.addEventListener("mouseenter", () => el.style.background = "#eef2ff");
             el.addEventListener("mouseleave", () => el.style.background = "#fff");
             el.addEventListener("click", () => {
-              const chosen = uniqueCustomers[i];
+              const chosen = phoneMatches[i];
               $("phone").value = chosen.phone || "";
               applyReturningCustomerData(chosen);
               box.style.display = "none"; box.innerHTML = "";
