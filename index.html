@@ -178,6 +178,9 @@
     .btn-outline{background:transparent;border:1px dashed rgba(148,163,184,.9);color:#4b5563}
     .btn-danger{background:#dc2626;color:#fff;box-shadow:0 10px 18px rgba(220,38,38,.25)}
     .btn[disabled], .btn-mini[disabled]{opacity:.5;cursor:not-allowed;box-shadow:none}
+    .entry-time-period-buttons{display:flex;gap:4px;flex:0 0 auto}
+    .entry-time-period-btn{border:1px solid #cbd5e1;border-radius:8px;padding:8px 10px;min-width:48px;background:#fff;color:#475569;font-weight:800;font-size:13px;cursor:pointer;transition:all .15s ease}
+    .entry-time-period-btn.active{background:#0f172a;color:#fff;border-color:#0f172a;box-shadow:0 3px 8px rgba(15,23,42,.2)}
     .message{margin-top:8px;font-size:12px;grid-column:1/-1}
     .message.success{color:var(--success)}
     .message.error{color:var(--error)}
@@ -940,7 +943,7 @@
       width: 100% !important;
       max-width: 100% !important;
       min-width: 0 !important;
-      margin: 0 auto 8px !important;
+      margin: 0 auto 20px !important;
       font-size: 16px !important;
       font-weight: 900 !important;
       line-height: 1.25;
@@ -1662,7 +1665,7 @@
         word-break: keep-all !important;
         font-size: 16px !important;
         line-height: 1.2 !important;
-        margin: 4px auto 0 !important;
+        margin: 4px auto 18px !important;
         text-align: center !important;
       }
       #invoiceCard #lblBalance,
@@ -1941,8 +1944,12 @@
               <label for="appointmentTime">ဝန်ဆောင်မှုယူရန်လာရမည့်အချိန်</label>
               <div style="display:flex; gap:6px; align-items:center;">
                 <input type="text" id="appointmentTime" placeholder="0300" inputmode="numeric" maxlength="5" autocomplete="off" style="flex:1;" />
-                <select id="appointmentTimePeriod" style="width:82px; flex:0 0 82px;"><option value="AM">AM</option><option value="PM">PM</option></select>
-                <button type="button" class="btn btn-outline" onclick="document.getElementById('appointmentTime').value='';document.getElementById('appointmentTimePeriod').value='AM'" style="padding: 8px 12px; font-size: 14px;" title="အချိန်ကို ဖျက်မည်">✖</button>
+                <input type="hidden" id="appointmentTimePeriod" value="AM" />
+                <div class="entry-time-period-buttons" aria-label="AM or PM ရွေးရန်">
+                  <button type="button" id="appointmentTimePeriodAm" class="entry-time-period-btn active">AM</button>
+                  <button type="button" id="appointmentTimePeriodPm" class="entry-time-period-btn">PM</button>
+                </div>
+                <button type="button" id="clearAppointmentTimeBtn" class="btn btn-outline" style="padding: 8px 12px; font-size: 14px;" title="အချိန်ကို ဖျက်မည်">✖</button>
               </div>
               <small>ဂဏန်း ၄ လုံးရိုက်ပါ — 0300 + PM = 03:00 PM၊ 1400 = 02:00 PM၊ 2300 = 11:00 PM</small>
             </div>
@@ -2865,6 +2872,13 @@
       if (!finalize) return digits;
       return digits.length === 3 ? `0${digits}` : digits;
     }
+    function updateAppointmentTimePeriodUI(period = "AM") {
+      const normalized = String(period).toUpperCase() === "PM" ? "PM" : "AM";
+      const hidden = $("appointmentTimePeriod");
+      if (hidden) hidden.value = normalized;
+      $("appointmentTimePeriodAm")?.classList.toggle("active", normalized === "AM");
+      $("appointmentTimePeriodPm")?.classList.toggle("active", normalized === "PM");
+    }
     function getAppointmentTimeValue() {
       const digits = normalizeAppointmentTime($("appointmentTime")?.value, true);
       if (!/^\d{4}$/.test(digits)) return null;
@@ -2878,15 +2892,15 @@
     }
     function setAppointmentTimeValue(value) {
       const match = String(value || "").trim().toUpperCase().match(/^(\d{1,2}):?(\d{2})\s*(AM|PM)?$/);
-      if (!match) { $("appointmentTime").value = ""; $("appointmentTimePeriod").value = "AM"; return; }
+      if (!match) { $("appointmentTime").value = ""; updateAppointmentTimePeriodUI("AM"); return; }
       let hour = Number(match[1]);
       const period = match[3] || (hour >= 12 ? "PM" : "AM");
       if (match[3] === "PM" && hour < 12) hour += 12;
       if (match[3] === "AM" && hour === 12) hour = 0;
-      if (hour > 23 || Number(match[2]) > 59) { $("appointmentTime").value = ""; $("appointmentTimePeriod").value = "AM"; return; }
+      if (hour > 23 || Number(match[2]) > 59) { $("appointmentTime").value = ""; updateAppointmentTimePeriodUI("AM"); return; }
       const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
       $("appointmentTime").value = `${String(displayHour).padStart(2, "0")}:${match[2]}`;
-      $("appointmentTimePeriod").value = period;
+      updateAppointmentTimePeriodUI(period);
     }
     function formatInvoiceAppointmentTime(value) {
       return String(value || "").replace(/\bAM\b/gi, "AM (မနက်)").replace(/\bPM\b/gi, "PM (ညနေ)");
@@ -3705,6 +3719,20 @@
     });
 
     const timeInput = $("appointmentTime");
+    $("appointmentTimePeriodAm")?.addEventListener("click", () => {
+      updateAppointmentTimePeriodUI("AM");
+      const raw = normalizeAppointmentTime(timeInput?.value, true);
+      if (/^\d{4}$/.test(raw) && Number(raw.slice(0, 2)) < 13) setAppointmentTimeValue(raw + " AM");
+    });
+    $("appointmentTimePeriodPm")?.addEventListener("click", () => {
+      updateAppointmentTimePeriodUI("PM");
+      const raw = normalizeAppointmentTime(timeInput?.value, true);
+      if (/^\d{4}$/.test(raw) && Number(raw.slice(0, 2)) < 13) setAppointmentTimeValue(raw + " PM");
+    });
+    $("clearAppointmentTimeBtn")?.addEventListener("click", () => {
+      if (timeInput) timeInput.value = "";
+      updateAppointmentTimePeriodUI("AM");
+    });
     if (timeInput) ["change"].forEach(evt=>{ timeInput.addEventListener(evt, () => {
       const raw = normalizeAppointmentTime(timeInput.value, true);
       if (/^\d{4}$/.test(raw)) {
@@ -3712,10 +3740,7 @@
         setAppointmentTimeValue(raw + " " + period);
       }
     }); });
-    $("appointmentTimePeriod")?.addEventListener("change", () => {
-      const raw = normalizeAppointmentTime($("appointmentTime")?.value, true);
-      if (/^\d{4}$/.test(raw)) setAppointmentTimeValue(raw + " " + $("appointmentTimePeriod").value);
-    });
+    updateAppointmentTimePeriodUI($("appointmentTimePeriod")?.value || "AM");
 
     function updateDepositUI() {
       const total = Number($("price").value || 0);
@@ -6800,7 +6825,7 @@
       
       $("appointmentDate").value = ""; syncEntryDateDisplays();
       $("appointmentTime").value = "";
-      $("appointmentTimePeriod").value = "AM";
+      updateAppointmentTimePeriodUI("AM");
       $("expiryDate").value = "";
       $("alertDays").value = a.alertDays != null ? a.alertDays : "";
 
@@ -6894,7 +6919,7 @@
       $("internalRemark").value = "";
       if ($("appointmentDate")) $("appointmentDate").value = "";
       if ($("appointmentTime")) $("appointmentTime").value = "";
-      if ($("appointmentTimePeriod")) $("appointmentTimePeriod").value = "AM";
+      updateAppointmentTimePeriodUI("AM");
       if ($("expiryDate")) $("expiryDate").value = "";
       if ($("alertDays")) $("alertDays").value = "";
       if ($("paymentStatus")) $("paymentStatus").value = "unpaid";
