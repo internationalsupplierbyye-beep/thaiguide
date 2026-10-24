@@ -796,10 +796,14 @@
     #tab-scanner .inline-row input[readonly] { background: #f8fafc !important; border-color: #dbe3ef; }
     #tab-scanner .btn-copy { border-radius: 8px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
     #tab-scanner .actions { border-top-color: #e2e8f0 !important; }
-    #tab-scanner #scannerPreview { position: sticky; top: 74px; z-index: 8; box-shadow: 0 6px 18px rgba(15,23,42,.10); }
+    #tab-scanner .scanner-result-layout { display:grid; grid-template-columns:minmax(320px,.95fr) minmax(0,1.05fr); gap:16px; align-items:start; }
+    #tab-scanner .scanner-result-layout #scannerPreview { min-width:0; }
+    #tab-scanner .scanner-ocr-fields { min-width:0; }
+    #tab-scanner #scannerPreview { position: relative; top: auto; z-index: 1; box-shadow: 0 6px 18px rgba(15,23,42,.10); }
     #tab-scanner #scannerPreviewImage { max-height: 300px; object-fit: contain; }
     #tab-scanner input[id^="sc"] { background: #fff !important; cursor: text !important; }
     body.dark-mode #tab-scanner #scannerPreview { background: #0f172a !important; border-color: #475569 !important; }
+    @media (max-width: 900px) { #tab-scanner .scanner-result-layout { grid-template-columns:1fr; } }
 
     /* Dashboard */
     #tab-dashboard .summary-grid {
@@ -1733,6 +1737,7 @@
             </div>
           </div>
 
+          <div class="scanner-result-layout">
           <div id="scannerPreview" class="scanner-preview-box" style="display:none; margin:0 0 16px; padding:10px; border:1px solid #cbd5e1; border-radius:12px; background:#f8fafc;">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
               <strong>📷 Scan Preview</strong>
@@ -1748,7 +1753,7 @@
             <small style="display:block; margin-top:6px; color:#64748b;">Zoom ခလုတ်၊ mouse wheel၊ pinch၊ drag ဖြင့် ပုံကို ကြည့်နိုင်ပါသည်။</small>
           </div>
 
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px 18px;">
+          <div class="scanner-ocr-fields" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px 18px;">
               <div class="field">
                  <label>Full Name</label>
                  <div class="inline-row" style="flex-wrap:nowrap;">
@@ -1813,10 +1818,12 @@
                  </div>
               </div>
           </div>
+          </div>
           
           <div class="actions" style="margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
              <button type="button" class="btn btn-outline" id="btnClearScanner">Clear Data</button>
              <button type="button" class="btn btn-secondary" id="btnCopyAllScan" style="background:#0f172a; color:#fff;">📋 Copy All Info</button>
+             <button type="button" class="btn btn-primary" id="btnSendScannerToEntry">➡️ Entry သို့ ဖြည့်မည်</button>
           </div>
           <div id="scanMessage" class="message"></div>
         </div>
@@ -1869,9 +1876,10 @@
               <input type="text" id="name" placeholder="Customer Name" required />
             </div>
 
-            <div class="field">
+            <div class="field" style="position:relative;">
               <label for="docNumber">Passport / Work Permit No.</label>
-              <input type="text" id="docNumber" placeholder="Document Number" />
+              <input type="text" id="docNumber" placeholder="Document Number" autocomplete="off" />
+              <div id="docNumberSuggestions" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:50; background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 10px 20px rgba(15,23,42,.15); max-height:220px; overflow-y:auto; margin-top:2px;"></div>
             </div>
 
             <div class="field">
@@ -1932,9 +1940,11 @@
             <div class="field">
               <label for="appointmentTime">ဝန်ဆောင်မှုယူရန်လာရမည့်အချိန်</label>
               <div style="display:flex; gap:6px; align-items:center;">
-                <input type="time" id="appointmentTime" step="300" style="flex:1;" />
-                <button type="button" class="btn btn-outline" onclick="document.getElementById('appointmentTime').value=''" style="padding: 8px 12px; font-size: 14px;" title="အချိန်ကို ဖျက်မည်">✖</button>
+                <input type="text" id="appointmentTime" placeholder="0300" inputmode="numeric" maxlength="5" autocomplete="off" style="flex:1;" />
+                <select id="appointmentTimePeriod" style="width:82px; flex:0 0 82px;"><option value="AM">AM</option><option value="PM">PM</option></select>
+                <button type="button" class="btn btn-outline" onclick="document.getElementById('appointmentTime').value='';document.getElementById('appointmentTimePeriod').value='AM'" style="padding: 8px 12px; font-size: 14px;" title="အချိန်ကို ဖျက်မည်">✖</button>
               </div>
+              <small>ဂဏန်း ၄ လုံးရိုက်ပါ — 0300 + PM = 03:00 PM၊ 1400 = 02:00 PM၊ 2300 = 11:00 PM</small>
             </div>
 
             <div class="field">
@@ -2823,6 +2833,73 @@
     let lastVisibleDoc = null; 
 
     const $ = (id) => document.getElementById(id);
+    const MYANMAR_DIGITS = "၀၁၂၃၄၅၆၇၈၉";
+    function toEnglishDigits(value) {
+      return String(value ?? "").replace(/[၀-၉]/g, ch => String(MYANMAR_DIGITS.indexOf(ch)));
+    }
+    // Browser number inputs reject Myanmar digits before normal input handlers can run,
+    // so number fields are made text-compatible and normalized while typing.
+    document.querySelectorAll('input[type="number"]').forEach((input) => {
+      input.type = "text";
+      input.inputMode = "decimal";
+      input.addEventListener("input", () => {
+        const normalized = toEnglishDigits(input.value);
+        if (input.value !== normalized) input.value = normalized;
+      });
+    });
+    document.addEventListener("input", (event) => {
+      const input = event.target;
+      if (!(input instanceof HTMLInputElement)) return;
+      if (input.id === "appointmentTime") {
+        const normalized = toEnglishDigits(input.value).replace(/[^0-9]/g, "").slice(0, 4);
+        if (input.value !== normalized && !/^\d{2}:\d{2}$/.test(input.value)) input.value = normalized;
+        return;
+      }
+      if (input.type === "tel" || input.inputMode === "numeric" || input.dataset.numeric === "true") {
+        const normalized = toEnglishDigits(input.value);
+        if (input.value !== normalized) input.value = normalized;
+      }
+    }, true);
+    function normalizeAppointmentTime(value, finalize = false) {
+      let digits = toEnglishDigits(value).replace(/[^0-9]/g, "").slice(0, 4);
+      if (!finalize) return digits;
+      return digits.length === 3 ? `0${digits}` : digits;
+    }
+    function getAppointmentTimeValue() {
+      const digits = normalizeAppointmentTime($("appointmentTime")?.value, true);
+      if (!/^\d{4}$/.test(digits)) return null;
+      let hour = Number(digits.slice(0, 2));
+      const minute = Number(digits.slice(2));
+      if (hour > 23 || minute > 59) return null;
+      const period = hour >= 13 ? "PM" : ($("appointmentTimePeriod")?.value === "PM" ? "PM" : "AM");
+      if (hour === 0) hour = 12;
+      else if (hour > 12) hour -= 12;
+      return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")} ${period}`;
+    }
+    function setAppointmentTimeValue(value) {
+      const match = String(value || "").trim().toUpperCase().match(/^(\d{1,2}):?(\d{2})\s*(AM|PM)?$/);
+      if (!match) { $("appointmentTime").value = ""; $("appointmentTimePeriod").value = "AM"; return; }
+      let hour = Number(match[1]);
+      const period = match[3] || (hour >= 12 ? "PM" : "AM");
+      if (match[3] === "PM" && hour < 12) hour += 12;
+      if (match[3] === "AM" && hour === 12) hour = 0;
+      if (hour > 23 || Number(match[2]) > 59) { $("appointmentTime").value = ""; $("appointmentTimePeriod").value = "AM"; return; }
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      $("appointmentTime").value = `${String(displayHour).padStart(2, "0")}:${match[2]}`;
+      $("appointmentTimePeriod").value = period;
+    }
+    function formatInvoiceAppointmentTime(value) {
+      return String(value || "").replace(/\bAM\b/gi, "AM (မနက်)").replace(/\bPM\b/gi, "PM (ညနေ)");
+    }
+    document.addEventListener("blur", (event) => {
+      if (event.target?.id === "appointmentTime") {
+        const raw = normalizeAppointmentTime(event.target.value, true);
+        if (/^\d{4}$/.test(raw)) {
+          const period = Number(raw.slice(0, 2)) >= 13 ? "PM" : ($("appointmentTimePeriod")?.value || "AM");
+          setAppointmentTimeValue(raw + " " + period);
+        }
+      }
+    }, true);
     // --- Normalized case/settlement model and audit helpers ---
     function getCaseStatus(data = {}) { return data.caseStatus || data.customerStatus || "Pending"; }
     function paymentStatusLabel(status = "unpaid") {
@@ -3628,7 +3705,17 @@
     });
 
     const timeInput = $("appointmentTime");
-    ["click","focus"].forEach(evt=>{ timeInput.addEventListener(evt, () => { if (typeof timeInput.showPicker === "function") timeInput.showPicker(); }); });
+    if (timeInput) ["change"].forEach(evt=>{ timeInput.addEventListener(evt, () => {
+      const raw = normalizeAppointmentTime(timeInput.value, true);
+      if (/^\d{4}$/.test(raw)) {
+        const period = Number(raw.slice(0, 2)) >= 13 ? "PM" : ($("appointmentTimePeriod")?.value || "AM");
+        setAppointmentTimeValue(raw + " " + period);
+      }
+    }); });
+    $("appointmentTimePeriod")?.addEventListener("change", () => {
+      const raw = normalizeAppointmentTime($("appointmentTime")?.value, true);
+      if (/^\d{4}$/.test(raw)) setAppointmentTimeValue(raw + " " + $("appointmentTimePeriod").value);
+    });
 
     function updateDepositUI() {
       const total = Number($("price").value || 0);
@@ -3768,24 +3855,8 @@
       }, 6000);
     }
 
-    $("phone").addEventListener("blur", async (e) => {
-      const phoneVal = e.target.value.trim();
-      if (!phoneVal || editingDocId) return; 
-
-      try {
-        const q = query(collection(db, "appointments"), where("phone", "==", phoneVal));
-        const snap = await getDocs(q);
-
-        if (!snap.empty) {
-          let records = [];
-          snap.forEach(docSnap => records.push(docSnap.data()));
-          records.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
-          applyReturningCustomerData(records[0]);
-        }
-      } catch (err) {
-        console.error("Auto-fill Error:", err);
-      }
-    });
+    // Phone lookup now waits for an explicit UPDATE or NEW choice;
+    // blur must not silently import the latest old record.
 
     // --- 🚀 NEW: Phone Suggestion Dropdown (type-ahead, before leaving the field) ---
     let phoneSuggestTimer = null;
@@ -3810,28 +3881,36 @@
           // ဖုန်းနံပါတ်တူပေမယ့် Passport/Appointment မတူနိုင်သောကြောင့် phone အလိုက် deduplicate မလုပ်ပါ။
           // ဥပမာ မိသားစု ၁၀ ယောက်ကို ဖုန်းတစ်ခုတည်းသုံးလျှင် ၁၀ ကြောင်း သီးခြားရွေးနိုင်ရမည်။
           const phoneMatches = [];
-          snap.forEach(docSnap => phoneMatches.push({ ...docSnap.data(), _recordId: docSnap.id }));
-          phoneMatches.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+          snap.forEach(docSnap => phoneMatches.push({ ...docSnap.data(), id: docSnap.id, _recordId: docSnap.id }));
+          const phoneRecordTime = (d) => d.createdAt?.toMillis?.() || (d.createdAt ? new Date(d.createdAt).getTime() : 0) || (d.date ? new Date(d.date).getTime() : 0) || (d.appointmentDate ? new Date(d.appointmentDate).getTime() : 0);
+          phoneMatches.sort((a, b) => phoneRecordTime(b) - phoneRecordTime(a));
 
           box.innerHTML = phoneMatches.map((d, i) => `
-            <div class="phone-suggest-item" data-idx="${i}" style="padding:8px 10px; cursor:pointer; border-bottom:1px solid #f1f5f9; font-size:12px;">
+            <div class="phone-suggest-item" data-idx="${i}" style="padding:8px 10px; border-bottom:1px solid #f1f5f9; font-size:12px;">
               <strong>${d.name || "-"}</strong> — ${d.phone}
               ${d.docNumber ? `<span style="color:var(--muted);"> · Passport: ${d.docNumber}</span>` : ""}
-              <span style="display:block;color:var(--muted);font-size:10px;margin-top:2px;">${d.invoiceId || d._recordId || ""}${d.date ? ` · Entry: ${d.date}` : ""}</span>
+              <span style="display:block;color:var(--muted);font-size:10px;margin-top:2px;">${d.serviceType || "Service -"}${d.servicePackage ? ` · ${d.servicePackage}` : ""} · ${d.invoiceId || d._recordId || ""}${d.date ? ` · Entry: ${d.date}` : ""}</span>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;"><button type="button" class="btn-mini phone-use-old" data-idx="${i}" style="padding:4px 9px;font-size:10px;">UPDATE</button><button type="button" class="btn-mini phone-use-new" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">NEW</button></div>
             </div>
           `).join("");
           box.style.display = "block";
 
-          box.querySelectorAll(".phone-suggest-item").forEach((el, i) => {
+          box.querySelectorAll(".phone-suggest-item").forEach((el) => {
             el.addEventListener("mouseenter", () => el.style.background = "#eef2ff");
             el.addEventListener("mouseleave", () => el.style.background = "#fff");
-            el.addEventListener("click", () => {
-              const chosen = phoneMatches[i];
-              $("phone").value = chosen.phone || "";
-              applyReturningCustomerData(chosen);
-              box.style.display = "none"; box.innerHTML = "";
-            });
           });
+          box.querySelectorAll(".phone-use-old").forEach((btn) => btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const chosen = phoneMatches[Number(btn.dataset.idx)];
+            box.style.display = "none"; box.innerHTML = "";
+            window.startEditAppointment(chosen);
+          }));
+          box.querySelectorAll(".phone-use-new").forEach((btn) => btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const chosen = phoneMatches[Number(btn.dataset.idx)];
+            box.style.display = "none"; box.innerHTML = "";
+            startNewServiceFromCustomer(chosen);
+          }));
         } catch (err) {
           console.error("Phone suggest error:", err);
         }
@@ -3842,6 +3921,49 @@
       if (box && !box.contains(e.target) && e.target.id !== "phone") { box.style.display = "none"; }
     });
 
+
+    let docSuggestTimer = null;
+    $("docNumber")?.addEventListener("input", (e) => {
+      const box = $("docNumberSuggestions");
+      if (!box) return;
+      const val = e.target.value.trim().toUpperCase();
+      clearTimeout(docSuggestTimer);
+      if (val.length < 3) { box.style.display = "none"; box.innerHTML = ""; return; }
+      docSuggestTimer = setTimeout(async () => {
+        try {
+          const q = query(collection(db, "appointments"), where("docNumber", ">=", val), where("docNumber", "<=", val + "\uf8ff"), limit(20));
+          const snap = await getDocs(q);
+          const matches = [];
+          snap.forEach(docSnap => matches.push({ ...docSnap.data(), id: docSnap.id, _recordId: docSnap.id }));
+          const recordTime = (d) => d.createdAt?.toMillis?.() || (d.createdAt ? new Date(d.createdAt).getTime() : 0) || (d.date ? new Date(d.date).getTime() : 0) || (d.appointmentDate ? new Date(d.appointmentDate).getTime() : 0);
+          matches.sort((a, b) => recordTime(b) - recordTime(a));
+          if (!matches.length) { box.style.display = "none"; box.innerHTML = ""; return; }
+          const safe = (v) => String(v || "").replace(/[&<>\"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[ch]));
+          box.innerHTML = matches.map((d, i) => `<div class="doc-suggest-item" data-idx="${i}" style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;"><strong>${safe(d.docNumber || "-")}</strong> · ${safe(d.name || "-")}<span style="display:block;color:var(--muted);font-size:10px;margin-top:2px;">${safe(d.serviceType || "Service -")}${d.servicePackage ? ` · ${safe(d.servicePackage)}` : ""} · ${safe(d.phone || "")}${d.date ? ` · Entry: ${safe(d.date)}` : ""}</span><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;"><button type="button" class="btn-mini doc-use-old" data-idx="${i}" style="padding:4px 9px;font-size:10px;">UPDATE</button><button type="button" class="btn-mini doc-use-new" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">NEW</button></div></div>`).join("");
+          box.style.display = "block";
+          box.querySelectorAll(".doc-suggest-item").forEach((el) => {
+            el.addEventListener("mouseenter", () => el.style.background = "#f8fafc");
+            el.addEventListener("mouseleave", () => el.style.background = "#fff");
+          });
+          box.querySelectorAll(".doc-use-old").forEach((btn) => btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const chosen = matches[Number(btn.dataset.idx)];
+              box.style.display = "none"; box.innerHTML = "";
+              window.startEditAppointment(chosen);
+          }));
+          box.querySelectorAll(".doc-use-new").forEach((btn) => btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const chosen = matches[Number(btn.dataset.idx)];
+              box.style.display = "none"; box.innerHTML = "";
+              startNewServiceFromCustomer(chosen);
+          }));
+        } catch (err) { console.error("Document ID suggest error:", err); }
+      }, 300);
+    });
+    document.addEventListener("click", (e) => {
+      const box = $("docNumberSuggestions");
+      if (box && !box.contains(e.target) && e.target.id !== "docNumber") { box.style.display = "none"; }
+    });
 
     // --- Entry Auto-fill OCR accuracy helpers ---
     function entryOcrRawText(result) {
@@ -3972,6 +4094,9 @@
       name = name.replace(/\s+\d{1,2}[\\/.-]\d{1,2}[\\/.-]\d{2,4}.*$/, "");
       name = name.replace(/\s+\d{4}[\\/.-]\d{1,2}[\\/.-]\d{1,2}.*$/, "");
       name = name.replace(/\s+(?:DATE\s+OF\s+BIRTH|DOB|DATE|SEX|GENDER|PASSPORT|DOCUMENT|ID|NO)\b.*$/i, "");
+      // Passport names တွင် 00 / 0O / O0 ကို OCR က digit သုညအဖြစ်မှားဖတ်တတ်သည်။
+      // Name field တွင် digit မဖြစ်သင့်သောကြောင့် O သို့ normalize လုပ်သည်။
+      name = name.replace(/0/g, "O");
       return name.replace(/[,:;|]+$/g, "").trim();
     }
 
@@ -4755,6 +4880,8 @@
             }
             if ($("name").value && $("docNumber").value) break;
           }
+          // OCR က code ဖြင့် Document ID ထည့်သောအခါလည်း manual typing နှင့်တူအောင် ရှိပြီးသား ID lookup ကို ခေါ်သည်။
+          $("docNumber")?.dispatchEvent(new Event("input", { bubbles: true }));
           // ဖတ်ပြီးသော ပုံများကို ✓ badge ဖြင့် thumbnail grid ပြန်ပြသည် (တင်ထားသောပုံအားလုံး ပျောက်မသွားစေရန်)
           renderDocumentPreviews(accumulatedCustomerFiles, getExistingDocumentLinks());
           if ($("name").value || $("docNumber").value) {
@@ -5337,7 +5464,7 @@
         invoiceId, 
         date: $("date").value, 
         appointmentDate: $("appointmentDate").value, 
-        appointmentTime: $("appointmentTime").value || null,
+        appointmentTime: getAppointmentTimeValue(),
         expiryDate: $("expiryDate").value || null,
         alertDays: $("alertDays").value ? Number($("alertDays").value) : null,
         name: $("name").value.trim(), 
@@ -6673,6 +6800,7 @@
       
       $("appointmentDate").value = ""; syncEntryDateDisplays();
       $("appointmentTime").value = "";
+      $("appointmentTimePeriod").value = "AM";
       $("expiryDate").value = "";
       $("alertDays").value = a.alertDays != null ? a.alertDays : "";
 
@@ -6742,6 +6870,40 @@
       
       const msg = $("message"); 
       msg.textContent = "Duplicate Mode: Review and Save as New."; 
+      msg.className = "message success";
+      document.querySelector('.tab-btn[data-tab="entry"]').click();
+    }
+    function startNewServiceFromCustomer(a) {
+      // Use the existing duplicate reset for invoice/date/payment/settlement safety,
+      // then clear every service-specific value so only customer identity and documents remain.
+      duplicateAppointment(a);
+      ensureOption($("customerStatus"), "Pending");
+      $("customerStatus").value = "Pending";
+      ensureOption($("channel"), a.channel);
+      $("channel").value = a.channel || "";
+      $("location").value = "";
+      $("serviceType").value = "";
+      if ($("servicePackage")) { if (typeof updatePackageDropdown === "function") updatePackageDropdown(); $("servicePackage").value = ""; }
+      $("paymentType").value = "";
+      $("currency").value = "THB";
+      $("exchangeRate").value = "";
+      $("cost").value = "";
+      $("price").value = "";
+      $("depositAmount").value = "";
+      $("remark").value = "";
+      $("internalRemark").value = "";
+      if ($("appointmentDate")) $("appointmentDate").value = "";
+      if ($("appointmentTime")) $("appointmentTime").value = "";
+      if ($("appointmentTimePeriod")) $("appointmentTimePeriod").value = "AM";
+      if ($("expiryDate")) $("expiryDate").value = "";
+      if ($("alertDays")) $("alertDays").value = "";
+      if ($("paymentStatus")) $("paymentStatus").value = "unpaid";
+      if ($("paymentTransferDate")) $("paymentTransferDate").value = "";
+      if ($("entrySettlementEnabled")) $("entrySettlementEnabled").checked = false;
+      syncEntrySettlementUI();
+      updateDepositUI(); refreshEntryPaymentButton(); syncEntryDateDisplays(); syncEntryPreviewQuickFields();
+      const msg = $("message");
+      msg.textContent = "NEW Service Mode: Customer data and documents reused. Please fill the new service details.";
       msg.className = "message success";
       document.querySelector('.tab-btn[data-tab="entry"]').click();
     }
@@ -6878,7 +7040,7 @@
 
       $("date").value = a.date || ""; 
       $("appointmentDate").value = a.appointmentDate || ""; syncEntryDateDisplays(); 
-      $("appointmentTime").value = a.appointmentTime || "";
+      setAppointmentTimeValue(a.appointmentTime || "");
       $("expiryDate").value = a.expiryDate || ""; syncEntryDateDisplays();
       $("alertDays").value = a.alertDays != null ? a.alertDays : "";
 
@@ -7296,7 +7458,8 @@
         
         const customerDocNumber = String(data.docNumber || "").trim();
         const customerNameHtml = `${data.name || "-"}${customerDocNumber ? ` <small class="invoice-doc-inline">· ${customerDocNumber}</small>` : ""}`;
-        $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${customerNameHtml}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${data.appointmentTime ? ` ${data.appointmentTime}` : ""}</span></div>`;
+        const invoiceAppointmentTime = formatInvoiceAppointmentTime(data.appointmentTime);
+        $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${customerNameHtml}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${invoiceAppointmentTime ? ` ${invoiceAppointmentTime}` : ""}</span></div>`;
         
         const sTypeStr = data.servicePackage ? `${data.serviceType} (${data.servicePackage})` : (data.serviceType || "-");
         
@@ -7499,7 +7662,7 @@
       const total = Number($("price")?.value || 0), deposit = Number($("depositAmount")?.value || 0);
       entryPreviewData = {
         id: previewId, invoiceId: previewId,
-        date: $("date")?.value || todayISO(), appointmentDate: $("appointmentDate")?.value || "", appointmentTime: $("appointmentTime")?.value || null,
+        date: $("date")?.value || todayISO(), appointmentDate: $("appointmentDate")?.value || "", appointmentTime: getAppointmentTimeValue(),
         name: $("name")?.value.trim() || "-", phone: $("phone")?.value.trim() || "-", location: $("location")?.value || "-",
         serviceType: $("serviceType")?.value || "-", servicePackage: $("servicePackage")?.value || null, paymentType: $("paymentType")?.value || "-",
         customerStatus: $("customerStatus")?.value || "Pending", remark: $("remark")?.value.trim() || null,
@@ -7730,9 +7893,11 @@
     // Scanner image preview with wheel, drag, pinch, and button zoom.
     let scannerPreviewObjectUrl = "";
     let scannerPreviewZoomApi = null;
+    let scannerSourceFile = null;
     function clearScannerImagePreview() {
       if (scannerPreviewObjectUrl) { try { URL.revokeObjectURL(scannerPreviewObjectUrl); } catch (e) {} scannerPreviewObjectUrl = ""; }
       scannerPreviewZoomApi = null;
+      scannerSourceFile = null;
       const box = $("scannerPreview");
       const img = $("scannerPreviewImage");
       if (img) { img.removeAttribute("src"); img.style.transform = ""; }
@@ -7741,6 +7906,7 @@
     function showScannerImagePreview(file) {
       if (!file || !file.type.startsWith("image/")) return;
       clearScannerImagePreview();
+      scannerSourceFile = file;
       scannerPreviewObjectUrl = URL.createObjectURL(file);
       const box = $("scannerPreview");
       const wrap = $("scannerPreviewWrap");
@@ -7969,6 +8135,7 @@
               .replace(/\bCOUNTRY\s*CODE\s*[A-Z]{2,4}\b/gi, " ")
               .replace(/\b(?:SURNAME|GIVEN\s*NAMES?|TYPE|CODE)\s*[:#-]?\s*/gi, " ")
               .replace(/\bALSO\s+KNOWN\s+AS\b.*$/i, " ")
+              .replace(/0/g, "O")
               .replace(/\s+/g, " ")
               .trim();
 
@@ -8031,6 +8198,27 @@
           setTimeout(() => this.innerHTML = oldText, 2000);
        });
     }
+
+    $("btnSendScannerToEntry")?.addEventListener("click", () => {
+      const name = $("scName")?.value.trim() || "";
+      const docNo = normalizeEntryDocumentNumber($("scDocNo")?.value || "");
+      const expiry = $("scExpiry")?.value.trim() || "";
+      if (!name && !docNo && !scannerSourceFile) {
+        showToast("Scanner မှ Entry သို့ လွှဲရန် OCR Data သို့မဟုတ် ပုံ မရှိသေးပါ။", "error");
+        return;
+      }
+      if ($("name")) $("name").value = name;
+      if ($("docNumber")) $("docNumber").value = docNo;
+      $("docNumber")?.dispatchEvent(new Event("input", { bubbles: true }));
+      if ($("expiryDate") && /^\d{4}-\d{2}-\d{2}$/.test(expiry)) {
+        $("expiryDate").value = expiry;
+        syncEntryDateDisplays();
+      }
+      if (scannerSourceFile) addFilesToCustomerSelection([scannerSourceFile]);
+      syncEntryPreviewQuickFields();
+      document.querySelector('.tab-btn[data-tab="entry"]')?.click();
+      showToast("✅ Scanner မှ Name, Passport No. နှင့် ပုံကို Entry သို့ လွှဲပြီးပါပြီ။", "success");
+    });
 
     if ($("btnClearScanner")) {
        $("btnClearScanner").addEventListener("click", () => {
