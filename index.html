@@ -3915,7 +3915,7 @@
               <strong>${d.name || "-"}</strong> — ${d.phone}
               ${d.docNumber ? `<span style="color:var(--muted);"> · Passport: ${d.docNumber}</span>` : ""}
               <span style="display:block;color:var(--muted);font-size:10px;margin-top:2px;">${d.serviceType || "Service -"}${d.servicePackage ? ` · ${d.servicePackage}` : ""} · ${d.invoiceId || d._recordId || ""}${d.date ? ` · Entry: ${d.date}` : ""}</span>
-              <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;"><button type="button" class="btn-mini phone-use-old" data-idx="${i}" style="padding:4px 9px;font-size:10px;">UPDATE</button><button type="button" class="btn-mini phone-use-new" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">NEW</button></div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;"><button type="button" class="btn-mini phone-use-old" data-idx="${i}" style="padding:4px 9px;font-size:10px;">UPDATE</button><button type="button" class="btn-mini phone-use-duplicate" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#fef3c7;color:#92400e;border-color:#fcd34d;">DUPLICATE</button><button type="button" class="btn-mini phone-use-new" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">NEW</button></div>
             </div>
           `).join("");
           box.style.display = "block";
@@ -3929,6 +3929,12 @@
             const chosen = phoneMatches[Number(btn.dataset.idx)];
             box.style.display = "none"; box.innerHTML = "";
             window.startEditAppointment(chosen);
+          }));
+          box.querySelectorAll(".phone-use-duplicate").forEach((btn) => btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const chosen = phoneMatches[Number(btn.dataset.idx)];
+            box.style.display = "none"; box.innerHTML = "";
+            duplicateAppointment(chosen);
           }));
           box.querySelectorAll(".phone-use-new").forEach((btn) => btn.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -3964,7 +3970,7 @@
           matches.sort((a, b) => recordTime(b) - recordTime(a));
           if (!matches.length) { box.style.display = "none"; box.innerHTML = ""; return; }
           const safe = (v) => String(v || "").replace(/[&<>\"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[ch]));
-          box.innerHTML = matches.map((d, i) => `<div class="doc-suggest-item" data-idx="${i}" style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;"><strong>${safe(d.docNumber || "-")}</strong> · ${safe(d.name || "-")}<span style="display:block;color:var(--muted);font-size:10px;margin-top:2px;">${safe(d.serviceType || "Service -")}${d.servicePackage ? ` · ${safe(d.servicePackage)}` : ""} · ${safe(d.phone || "")}${d.date ? ` · Entry: ${safe(d.date)}` : ""}</span><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;"><button type="button" class="btn-mini doc-use-old" data-idx="${i}" style="padding:4px 9px;font-size:10px;">UPDATE</button><button type="button" class="btn-mini doc-use-new" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">NEW</button></div></div>`).join("");
+          box.innerHTML = matches.map((d, i) => `<div class="doc-suggest-item" data-idx="${i}" style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;"><strong>${safe(d.docNumber || "-")}</strong> · ${safe(d.name || "-")}<span style="display:block;color:var(--muted);font-size:10px;margin-top:2px;">${safe(d.serviceType || "Service -")}${d.servicePackage ? ` · ${safe(d.servicePackage)}` : ""} · ${safe(d.phone || "")}${d.date ? ` · Entry: ${safe(d.date)}` : ""}</span><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;"><button type="button" class="btn-mini doc-use-old" data-idx="${i}" style="padding:4px 9px;font-size:10px;">UPDATE</button><button type="button" class="btn-mini doc-use-duplicate" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#fef3c7;color:#92400e;border-color:#fcd34d;">DUPLICATE</button><button type="button" class="btn-mini doc-use-new" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">NEW</button></div></div>`).join("");
           box.style.display = "block";
           box.querySelectorAll(".doc-suggest-item").forEach((el) => {
             el.addEventListener("mouseenter", () => el.style.background = "#f8fafc");
@@ -3975,6 +3981,12 @@
               const chosen = matches[Number(btn.dataset.idx)];
               box.style.display = "none"; box.innerHTML = "";
               window.startEditAppointment(chosen);
+          }));
+          box.querySelectorAll(".doc-use-duplicate").forEach((btn) => btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const chosen = matches[Number(btn.dataset.idx)];
+              box.style.display = "none"; box.innerHTML = "";
+              duplicateAppointment(chosen);
           }));
           box.querySelectorAll(".doc-use-new").forEach((btn) => btn.addEventListener("click", (e) => {
               e.stopPropagation();
@@ -4128,7 +4140,7 @@
     function entryParseLabeledFields(lines, rawText) {
       const result = { name: "", docNumber: "", warnings: [] };
       const joined = lines.join(" ");
-      const nameLabel = /\b(?:FULL\s+NAME|NAME)\s*[:#-]?\s*(.+?)(?=\s+(?:NATIONALITY|COUNTRY|DATE|SEX|GENDER|PASSPORT|DOCUMENT|ID|NO|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i;
+      const nameLabel = /\b(?:PRIMARY\s+NAME|FULL\s+NAME|NAME)\s*[:#-]?\s*(.+?)(?=\s+(?:NATIONALITY|COUNTRY|DATE|SEX|GENDER|PASSPORT|DOCUMENT|ID|NO|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i;
       const titleName = /\b(?:MR|MS|MRS|MISS)\.?\s+([A-Z][A-Z\s]*?)(?=\s+(?:PASSPORT|DOCUMENT|NO|NATIONALITY|COUNTRY|DATE|SEX|GENDER|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i;
       const nameMatch = joined.match(nameLabel) || joined.match(titleName);
       if (nameMatch && nameMatch[1]) result.name = entryCleanName(nameMatch[1]);
@@ -4151,7 +4163,8 @@
       const mrz = entryParseMrz(entryFindMrz(lines));
       const labeled = entryParseLabeledFields(lines, rawText);
       const parsed = {
-        name: mrz?.name || labeled.name || "",
+        // Visual PRIMARY NAME/FULL NAME is preferred; MRZ is the fallback and verification source.
+        name: labeled.name || mrz?.name || "",
         // Checksum မမှန်လျှင် warning ပြမည်၊ သို့သော် MRZ မှရသော Passport No. ကို မဖျောက်ဘဲ manual ပြင်နိုင်ရန် ဖြည့်ထားမည်။
         docNumber: mrz?.docNumber || labeled.docNumber || "",
         dob: (mrz && mrz.mrzValid) ? (mrz.dob || "") : "",
@@ -4206,7 +4219,8 @@
       const prompt = [
         "Read this passport, work permit, or identity document image carefully.",
         "Return ONLY the visible text, preserving the two MRZ lines exactly when present.",
-        "For the main name, return the primary passport name only; do not append or treat 'Also Known As' or any alias as part of the main name.",
+        "For the main name, inspect the printed visual name field carefully and return it on a separate line as PRIMARY NAME: exactly as printed. Do not append or treat 'Also Known As' or any alias as part of the primary name.",
+        "Compare the printed PRIMARY NAME with the MRZ name; if the image is unclear, do not guess or silently correct spelling. Preserve the exact Latin spelling from the document.",
         "For the document/passport number, read it from the visual document number field and verify it against the MRZ first 9 characters. Passport numbers can be formats such as MT845975 or CC9874587; never omit the number just because the length differs.",
         "Do not explain, translate, or invent missing values. Keep each field or MRZ line on its own line."
       ].join(" ");
@@ -6814,7 +6828,8 @@
       updateRoleUI();
     }
     
-    function duplicateAppointment(a) {
+    function duplicateAppointment(a, options = {}) {
+      const preserveCurrentIdentity = options.preserveCurrentIdentity === true;
       editingDocId = null; 
       $("invoiceId").disabled = false;
       $("autoInvoiceId").checked = true;
@@ -6829,30 +6844,33 @@
       $("expiryDate").value = "";
       $("alertDays").value = a.alertDays != null ? a.alertDays : "";
 
-      const filesDiv = $("existingFilesContainer");
-      if (filesDiv) {
-        filesDiv.innerHTML = "";
-        if (a.documentLinks && a.documentLinks.length > 0) {
-          let linksHtml = "<div style='font-size:12px; font-weight:bold; margin-bottom:4px; color:#475569;'>မူလဖိုင်မှ ကူးယူလာသော ပုံများ:</div>";
-          a.documentLinks.forEach((link, idx) => {
-             linksHtml += `<a href="${link}" target="_blank" style="display:inline-block; margin-right:10px; margin-bottom:6px; padding:4px 10px; background:#e0e7ff; color:#3730a3; border-radius:6px; text-decoration:none; font-size:11px; border:1px solid #c7d2fe;">📄 File ${idx + 1}</a>`;
-          });
-          filesDiv.innerHTML = linksHtml;
+      if (!preserveCurrentIdentity) {
+        const filesDiv = $("existingFilesContainer");
+        if (filesDiv) {
+          filesDiv.innerHTML = "";
+          if (a.documentLinks && a.documentLinks.length > 0) {
+            let linksHtml = "<div style='font-size:12px; font-weight:bold; margin-bottom:4px; color:#475569;'>မူလဖိုင်မှ ကူးယူလာသော ပုံများ:</div>";
+            a.documentLinks.forEach((link, idx) => {
+               linksHtml += `<a href="${link}" target="_blank" style="display:inline-block; margin-right:10px; margin-bottom:6px; padding:4px 10px; background:#e0e7ff; color:#3730a3; border-radius:6px; text-decoration:none; font-size:11px; border:1px solid #c7d2fe;">📄 File ${idx + 1}</a>`;
+            });
+            filesDiv.innerHTML = linksHtml;
+          }
+          currentSavedMatchedLinks = a.ocrMatchedLinks || [];
+          renderDocumentPreviews([], a.documentLinks || []);
         }
-        currentSavedMatchedLinks = a.ocrMatchedLinks || [];
-        renderDocumentPreviews([], a.documentLinks || []);
-      }
-      accumulatedCustomerFiles = [];
-      ocrMatchedFileKeys.clear();
-      if($("customerFiles")) $("customerFiles").value = "";
-      $("appointmentForm").dataset.dupLinks = JSON.stringify(a.documentLinks || []);
-      $("appointmentForm").dataset.dupMatchedLinks = JSON.stringify(a.ocrMatchedLinks || []);
+        accumulatedCustomerFiles = [];
+        ocrMatchedFileKeys.clear();
+        if($("customerFiles")) $("customerFiles").value = "";
+        $("appointmentForm").dataset.dupLinks = JSON.stringify(a.documentLinks || []);
+        $("appointmentForm").dataset.dupMatchedLinks = JSON.stringify(a.ocrMatchedLinks || []);
 
-      $("name").value = a.name || ""; 
-      $("docNumber").value = a.docNumber || "";
+        $("name").value = a.name || ""; 
+        $("docNumber").value = a.docNumber || "";
+        $("phone").value = a.phone || ""; 
+      }
+      // For a phone match, only these reusable contact fields are copied.
       $("socialName").value = a.socialName || "";
-      $("socialLink").value = a.socialLink || ""; 
-      $("phone").value = a.phone || ""; 
+      $("socialLink").value = a.socialLink || "";
 
       ensureOption($("customerStatus"), "Pending");
       ensureOption($("channel"), a.channel); ensureOption($("location"), a.location); ensureOption($("serviceType"), a.serviceType); ensureOption($("paymentType"), a.paymentType);
@@ -6899,9 +6917,8 @@
       document.querySelector('.tab-btn[data-tab="entry"]').click();
     }
     function startNewServiceFromCustomer(a) {
-      // Use the existing duplicate reset for invoice/date/payment/settlement safety,
-      // then clear every service-specific value so only customer identity and documents remain.
-      duplicateAppointment(a);
+      // Keep the currently entered/scanned identity and files; reuse only contact fields from the phone match.
+      duplicateAppointment(a, { preserveCurrentIdentity: true });
       ensureOption($("customerStatus"), "Pending");
       $("customerStatus").value = "Pending";
       ensureOption($("channel"), a.channel);
@@ -6928,7 +6945,7 @@
       syncEntrySettlementUI();
       updateDepositUI(); refreshEntryPaymentButton(); syncEntryDateDisplays(); syncEntryPreviewQuickFields();
       const msg = $("message");
-      msg.textContent = "NEW Service Mode: Customer data and documents reused. Please fill the new service details.";
+      msg.textContent = "NEW Service Mode: Current Name / Passport / Scan files kept. Social Name, Social Link and Channel reused from the phone match.";
       msg.className = "message success";
       document.querySelector('.tab-btn[data-tab="entry"]').click();
     }
@@ -8007,6 +8024,7 @@
               : await requestEntryOcrPayload(compressedObj);
 
             const rawText = result.text;
+            const parsedText = parseEntryOcrText(result);
             const lines = rawText.split('\n').map(l => l.replace(/\s+/g, '').replace(/[«‹\(\[\{]/g, '<').toUpperCase());
             
             let mrzLine1 = lines.find(l => l.startsWith('P') && l.includes('<') && l.length >= 28);
@@ -8018,7 +8036,7 @@
 
             // ၁။ အောက်ခြေ MRZ ကို ဖတ်ခြင်း
             if (structuredMrz) {
-               extName = structuredMrz.name || "";
+               extName = parsedText.name || structuredMrz.name || "";
                extDocNo = structuredMrz.docNumber || "";
                extDob = structuredMrz.dob || "";
                extExpiry = structuredMrz.expiry || "";
