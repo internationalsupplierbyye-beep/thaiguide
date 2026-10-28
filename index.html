@@ -340,6 +340,9 @@
       border-left: 4px solid var(--primary); border-radius: 4px;
     }
     .invoice-grid{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 12px;font-size:13px; }
+    #invCustomerInfo{position:relative;}
+    .invoice-portrait-watermark{position:absolute;left:67%;top:0;width:31%;height:118px;display:none;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:cover;border:0;outline:0;border-radius:0;opacity:.08;filter:grayscale(1);pointer-events:none;z-index:0;mix-blend-mode:multiply;}
+    #invCustomerInfo > div:not(.invoice-portrait-watermark){position:relative;z-index:1;}
     .invoice-label{color:#6b7280;font-weight:800}
     .invoice-value{font-weight:800;color:#111827; font-size:15px;}
     .invoice-doc-inline{font-size:10px;font-weight:700;color:#64748b;white-space:nowrap;margin-left:5px;}
@@ -451,7 +454,7 @@
 
     /* --- 🚀 NEW: Toast Notification Styles --- */
     #toast-container {
-      position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+      position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
     }
     .toast-msg {
       padding: 14px 24px; border-radius: 8px; color: #fff; font-size: 14px; font-weight: 600;
@@ -462,6 +465,8 @@
     .toast-msg.success { background: #16a34a; }
     .toast-msg.error { background: #dc2626; }
     .toast-msg.info { background: #4f46e5; }
+    .toast-msg.progress { background: #0f172a; border: 1px solid rgba(255,255,255,.2); }
+    .toast-msg.progress::before { content: "⏳"; margin-right: 8px; }
     @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     /* --- 🚀 ဤနေရာတွင် ဖျက်လိုက်သော Dark Mode CSS များကို ပြန်ထည့်ပါ --- */
     body.dark-mode {
@@ -2369,7 +2374,7 @@
                 </div>
 
                 <div class="invoice-section-title" id="lblCustomerInfo">Customer Info</div>
-                <div class="invoice-grid" id="invCustomerInfo"></div>
+                <div class="invoice-grid" id="invCustomerInfo"><div id="invPortraitWatermark" class="invoice-portrait-watermark" aria-hidden="true"></div></div>
 
                 <div class="invoice-section-title" id="lblServiceInfo">Service Detail</div>
                 <div class="invoice-grid" id="invServiceInfo"></div>
@@ -3127,11 +3132,36 @@
       toast.textContent = msg;
       container.appendChild(toast);
       
-      setTimeout(() => {
+      if (type !== "progress") setTimeout(() => {
         toast.style.animation = 'fadeOutUp 0.3s ease forwards';
         setTimeout(() => toast.remove(), 300);
       }, 3000);
       return toast;
+    }
+    let activeProgressToast = null;
+    function showProgressToast(msg, type = "progress") {
+      if (!activeProgressToast || !document.body.contains(activeProgressToast)) {
+        activeProgressToast = showToast(msg, type);
+        activeProgressToast.classList.add("progress");
+        activeProgressToast.dataset.progress = "true";
+        activeProgressToast.style.cursor = "default";
+      } else {
+        activeProgressToast.textContent = msg;
+        activeProgressToast.className = `toast-msg ${type} progress`;
+        activeProgressToast.dataset.progress = "true";
+      }
+      activeProgressToast.style.animation = "none";
+      return activeProgressToast;
+    }
+    function finishProgressToast(msg, type = "success") {
+      if (!activeProgressToast || !document.body.contains(activeProgressToast)) return showToast(msg, type);
+      activeProgressToast.textContent = msg;
+      activeProgressToast.className = `toast-msg ${type}`;
+      activeProgressToast.dataset.progress = "false";
+      const finishedToast = activeProgressToast;
+      activeProgressToast = null;
+      setTimeout(() => { finishedToast.style.animation = "fadeOutUp 0.3s ease forwards"; setTimeout(() => finishedToast.remove(), 300); }, 2500);
+      return finishedToast;
     }
     function showInvoiceToast(idOrData, message, type = "info") {
       const id = typeof idOrData === "object" ? (idOrData?.invoiceId || idOrData?.id) : idOrData;
@@ -3455,6 +3485,61 @@
       });
     }
     
+    async function createInvoicePortraitWatermarkDataUrl(documentLinks) {
+      const links = Array.isArray(documentLinks) ? documentLinks.filter(Boolean) : [];
+      for (const link of links.slice(0, 3)) {
+        let sourceForFallback = "";
+        try {
+          const src = await getBase64FromUrl(link);
+          sourceForFallback = src;
+          const img = await new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.onerror = reject;
+            image.src = src;
+          });
+          const w = img.naturalWidth || img.width;
+          const h = img.naturalHeight || img.height;
+          if (!w || !h) continue;
+
+          let crop = null;
+          let cropMode = "safe";
+          // Prefer a browser face box when supported; otherwise use the common passport portrait area.
+          if ("FaceDetector" in window) {
+            try {
+              const faces = await new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 }).detect(img);
+              const face = faces?.[0]?.boundingBox;
+              if (face && face.width > 4 && face.height > 4) {
+                const side = Math.max(face.width, face.height) * 2.5;
+                crop = { x: face.x + face.width / 2 - side / 2, y: face.y + face.height * 0.55 - side * 0.42, width: side, height: side };
+                cropMode = "face";
+              }
+            } catch (e) { console.warn("Invoice portrait face detection skipped:", e); }
+          }
+          if (!crop) {
+            crop = w >= h
+              ? { x: w * 0.03, y: h * 0.24, width: w * 0.43, height: h * 0.70 }
+              : { x: w * 0.03, y: h * 0.38, width: w * 0.45, height: h * 0.56 };
+          }
+          const x = Math.max(0, Math.min(w - 1, crop.x));
+          const y = Math.max(0, Math.min(h - 1, crop.y));
+          const width = Math.max(1, Math.min(w - x, crop.width));
+          const height = Math.max(1, Math.min(h - y, crop.height));
+          const canvas = document.createElement("canvas");
+          canvas.width = 180; canvas.height = 160;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, x, y, width, height, 0, 0, canvas.width, canvas.height);
+          return { dataUrl: canvas.toDataURL("image/jpeg", 0.82), mode: cropMode };
+        } catch (e) {
+          console.warn("Invoice portrait watermark skipped for document:", e);
+          // If Canvas is blocked by Drive/CORS, the browser may still display the image
+          // as a CSS background. Return it so the invoice can use a visual Safe Crop.
+          if (sourceForFallback) return { dataUrl: sourceForFallback, mode: "source" };
+        }
+      }
+      return { dataUrl: "", mode: "none" };
+    }
+
     function renderDashboardStatusTabs() {
       const container = document.getElementById("statusTabsContainer");
       if (!container) return;
@@ -3652,6 +3737,7 @@
     $("saveSettings").addEventListener("click", async () => {
       if(currentRole !== "admin") return;
       const msg = $("settingsMessage"); msg.textContent = ""; msg.className = "message";
+      showProgressToast("⚙️ Settings များကို သိမ်းဆည်းနေပါသည်...", "progress");
 
       dropdownSettings.customerStatuses = $("statusesSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
       dropdownSettings.customerChannels = $("channelsSetting").value.split("\n").map(s=>s.trim()).filter(Boolean);
@@ -3715,7 +3801,8 @@
         renderDropdowns();
         syncEntrySettlementUI();
         msg.textContent = "✅ Settings များကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။"; msg.className = "message success";
-      } catch(e) { msg.textContent = "❌ Save failed: " + e.message; msg.className = "message error"; }
+        finishProgressToast("✅ Settings များ သိမ်းဆည်းပြီးပါပြီ", "success");
+      } catch(e) { msg.textContent = "❌ Save failed: " + e.message; msg.className = "message error"; finishProgressToast("❌ Settings သိမ်းဆည်းမအောင်မြင်ပါ", "error"); }
     });
 
     const timeInput = $("appointmentTime");
@@ -4140,14 +4227,33 @@
     function entryParseLabeledFields(lines, rawText) {
       const result = { name: "", docNumber: "", warnings: [] };
       const joined = lines.join(" ");
-      const nameLabel = /\b(?:PRIMARY\s+NAME|FULL\s+NAME|NAME)\s*[:#-]?\s*(.+?)(?=\s+(?:NATIONALITY|COUNTRY|DATE|SEX|GENDER|PASSPORT|DOCUMENT|ID|NO|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i;
-      const titleName = /\b(?:MR|MS|MRS|MISS)\.?\s+([A-Z][A-Z\s]*?)(?=\s+(?:PASSPORT|DOCUMENT|NO|NATIONALITY|COUNTRY|DATE|SEX|GENDER|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i;
-      const nameMatch = joined.match(nameLabel) || joined.match(titleName);
-      if (nameMatch && nameMatch[1]) result.name = entryCleanName(nameMatch[1]);
+      // Read a name only from a dedicated line. This prevents labels from an adjacent
+      // Thai departure card (FAMILY NAME / FIRST & MIDDLE NAME) becoming the passport name.
+      for (let i = 0; i < lines.length && !result.name; i++) {
+        const line = lines[i];
+        if (/\b(?:FAMILY\s+NAME|FIRST\s*AND\s*MIDDLE\s+NAME|FIRST\s*\+\s*MIDDLE\s+NAME|DEPARTURE\s+CARD|IMMIGRATION\s+BUREAU)\b/i.test(line)) continue;
+        const nameMatch = line.match(/^(?:PRIMARY\s+NAME|FULL\s+NAME|NAME)\s*[:#-]?\s*(.*)$/i);
+        if (!nameMatch) continue;
+        let candidate = nameMatch[1].trim();
+        if (!candidate && lines[i + 1] && !/^(?:PRIMARY\s+NAME|FULL\s+NAME|NAME|PASSPORT|DOCUMENT|ID|NO|NATIONALITY|DATE|SEX|GENDER)\b/i.test(lines[i + 1])) candidate = lines[i + 1];
+        if (candidate) result.name = entryCleanName(candidate);
+      }
+      if (!result.name) {
+        const titleName = joined.match(/\b(?:MR|MS|MRS|MISS)\.?\s+([A-Z][A-Z\s]*?)(?=\s+(?:PASSPORT|DOCUMENT|NO|NATIONALITY|COUNTRY|DATE|SEX|GENDER|\d{1,2}\s+(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+\d{4})\b|$)/i);
+        if (titleName && titleName[1]) result.name = entryCleanName(titleName[1]);
+      }
 
-      const docLabel = /\b(?:PASSPORT\s*(?:NO|NUMBER)|DOCUMENT\s*(?:NO|NUMBER)|ID\s*(?:NO|NUMBER))\s*[:#-]?\s*([A-Z0-9<]{6,16})\b/i;
+      const docLabel = /\b(?:PASSPORT\s*(?:NO|NUMBER)|CERTIFICATE\s*(?:OF\s+IDENTITY\s*)?(?:NO|NUMBER)|DOCUMENT\s*(?:NO|NUMBER)|ID\s*(?:NO|NUMBER))\s*[.:#-]?\s*([A-Z0-9<]{5,20})\b/i;
       const docMatch = joined.match(docLabel);
       if (docMatch && docMatch[1]) result.docNumber = docMatch[1].replace(/</g, "").trim();
+      if (!result.docNumber) {
+        for (let i = 0; i < lines.length - 1; i++) {
+          if (/^(?:PASSPORT\s*(?:NO|NUMBER)|CERTIFICATE\s*(?:OF\s+IDENTITY\s*)?(?:NO|NUMBER)|DOCUMENT\s*(?:NO|NUMBER)|ID\s*(?:NO|NUMBER))\s*[.:#-]?$/i.test(lines[i])) {
+            const next = lines[i + 1].match(/^([A-Z0-9<]{5,20})$/i);
+            if (next) { result.docNumber = next[1].replace(/</g, "").trim(); break; }
+          }
+        }
+      }
       if (!result.docNumber) {
         const mmPassport = joined.match(/\b([A-Z]{1,3}[0-9]{6,9})\b/i);
         const thaiId = joined.match(/\b(\d{1}[\s-]?\d{4}[\s-]?\d{5}[\s-]?\d{2}[\s-]?\d{1})\b/);
@@ -4163,17 +4269,19 @@
       const mrz = entryParseMrz(entryFindMrz(lines));
       const labeled = entryParseLabeledFields(lines, rawText);
       const parsed = {
-        // Visual PRIMARY NAME/FULL NAME is preferred; MRZ is the fallback and verification source.
+        // Main passport text is preferred; MRZ is only a fallback when the visual field is missing.
         name: labeled.name || mrz?.name || "",
         // Checksum မမှန်လျှင် warning ပြမည်၊ သို့သော် MRZ မှရသော Passport No. ကို မဖျောက်ဘဲ manual ပြင်နိုင်ရန် ဖြည့်ထားမည်။
-        docNumber: mrz?.docNumber || labeled.docNumber || "",
+        docNumber: labeled.docNumber || mrz?.docNumber || "",
         dob: (mrz && mrz.mrzValid) ? (mrz.dob || "") : "",
         expiry: (mrz && mrz.mrzValid) ? (mrz.expiry || "") : "",
         mrzFound: Boolean(mrz),
         mrzValid: Boolean(mrz?.mrzValid),
         warnings: [...(mrz?.warnings || []), ...(labeled.warnings || [])]
       };
-      parsed.shouldRetry = !parsed.docNumber || !parsed.name || (parsed.mrzFound && !parsed.mrzValid);
+      // Do not retry a clear document just because MRZ checksum is imperfect;
+      // the visible Name/Document Number are already usable and a second AI call is slow.
+      parsed.shouldRetry = !parsed.docNumber || !parsed.name;
       parsed.score = (parsed.name ? 2 : 0) + (parsed.docNumber ? 3 : 0) + (parsed.mrzValid ? 4 : 0);
       parsed.warnings = [...new Set(parsed.warnings)];
       return parsed;
@@ -4217,8 +4325,9 @@
       if (!apiKey) throw new Error("Gemini API Key မရှိသေးပါ။ Settings > Integrations မှာ ထည့်ပြီး Save လုပ်ပါ။");
       const models = await listGeminiOcrModels(apiKey);
       const prompt = [
-        "Read this passport, work permit, or identity document image carefully.",
-        "Return ONLY the visible text, preserving the two MRZ lines exactly when present.",
+        "Read only the requested passport, Certificate of Identity, work permit, or identity document in this image. If another card, form, departure card, immigration card, watermark, or surrounding document is visible, ignore it completely.",
+        "Use the passport page itself as the source of truth; do not combine text from two different documents in one result.",
+        "Return concise labeled lines only: PRIMARY NAME: ..., DOCUMENT NUMBER: ..., DATE OF BIRTH: ..., DATE OF EXPIRY: ..., NATIONALITY: ..., followed by the two MRZ lines exactly when present. Do not repeat unrelated labels or paragraphs.",
         "For the main name, inspect the printed visual name field carefully and return it on a separate line as PRIMARY NAME: exactly as printed. Do not append or treat 'Also Known As' or any alias as part of the primary name.",
         "Compare the printed PRIMARY NAME with the MRZ name; if the image is unclear, do not guess or silently correct spelling. Preserve the exact Latin spelling from the document.",
         "For the document/passport number, read it from the visual document number field and verify it against the MRZ first 9 characters. Passport numbers can be formats such as MT845975 or CC9874587; never omit the number just because the length differs.",
@@ -4867,8 +4976,8 @@
         const files = fileInput.files;
         const msg = $("message");
 
-        if (!telegramSettings.ocrUrl) {
-          msg.textContent = "⚠️ Settings ထဲတွင် Google OCR URL ထည့်သွင်းထားခြင်း မရှိသေးပါ။"; msg.className = "message error"; return;
+        if (!(telegramSettings.geminiApiKey || "").trim() && !telegramSettings.ocrUrl) {
+          msg.textContent = "⚠️ Settings ထဲတွင် Gemini API Key သို့မဟုတ် OCR URL ထည့်သွင်းထားခြင်း မရှိသေးပါ။"; msg.className = "message error"; return;
         }
 
         if (!files || files.length === 0) {
@@ -4876,6 +4985,7 @@
         }
 
         msg.textContent = `🔍 ပုံများကို Google Cloud AI ဖြင့် ဖတ်နေပါသည်... (ခဏစောင့်ပါ)`;
+        showProgressToast(`🔍 ပုံများကို Google Cloud AI ဖြင့် ဖတ်နေပါသည်...`, "progress");
         msg.className = "message";
         btnRunOCR.disabled = true; $("saveBtn").disabled = true;
 
@@ -4889,7 +4999,9 @@
             const ocrPayloads = await prepareOcrPayloads(file);
             for (let pageIndex = 0; pageIndex < ocrPayloads.length; pageIndex++) {
               const compressedObj = ocrPayloads[pageIndex];
-              msg.textContent = `🔍 ဖိုင် (${i + 1}/${files.length})${ocrPayloads.length > 1 ? `၊ စာမျက်နှာ (${pageIndex + 1}/${ocrPayloads.length})` : ""} ကို Cloud AI ဖြင့် စစ်ဆေးနေပါသည်...`;
+              const ocrProgressText = `🔍 ဖိုင် (${i + 1}/${files.length})${ocrPayloads.length > 1 ? `၊ စာမျက်နှာ (${pageIndex + 1}/${ocrPayloads.length})` : ""} ကို Cloud AI ဖြင့် စစ်ဆေးနေပါသည်...`;
+              msg.textContent = ocrProgressText;
+              showProgressToast(ocrProgressText, "progress");
 
               let previewPayload = compressedObj;
               let parsed = parseEntryOcrText(await requestEntryOcrPayload(compressedObj));
@@ -4931,6 +5043,7 @@
               if (docToSearch) {
                   try {
                       msg.textContent = `🔍 ဖောက်သည်ဟောင်း မှတ်တမ်းကို ရှာဖွေနေပါသည်...`;
+                      showProgressToast("🔍 ဖောက်သည်ဟောင်း မှတ်တမ်းကို ရှာဖွေနေပါသည်...", "progress");
                       const q = query(collection(db, "appointments"), where("docNumber", "==", docToSearch));
                       const snap = await getDocs(q);
                       
@@ -4976,14 +5089,17 @@
               } else {
                 msg.className = "message success";
               }
+              finishProgressToast(foundExisting ? "✅ OCR ပြီးပါပြီ — အရင် Customer Record တွေ့ပါသည်" : "✅ Cloud OCR ပြီးပါပြီ", "success");
           } else {
               msg.textContent = "⚠️ ပုံများထဲမှ အမည်/နံပါတ်ကို တိတိကျကျ မတွေ့ပါ (ကိုယ်တိုင်ဖြည့်သွင်းပေးပါ)";
               msg.className = "message error";
+              finishProgressToast("⚠️ OCR မှ Name / Passport No. မတွေ့ပါ", "error");
           }
         } catch (err) {
           console.error("Cloud OCR Error:", err);
           msg.textContent = "❌ AI Server သို့ ချိတ်ဆက်ရာတွင် အမှားအယွင်းဖြစ်သွားပါသည်: " + err.message;
           msg.className = "message error";
+          finishProgressToast("❌ Cloud OCR မအောင်မြင်ပါ", "error");
         } finally {
           btnRunOCR.disabled = false; $("saveBtn").disabled = false;
         }
@@ -5580,6 +5696,21 @@
            $("saveBtn").disabled = true;
            messageDiv.textContent = "⏳ ဖိုင်များကို Upload လုပ်နေပါသည်... ခဏစောင့်ပါ (မပိတ်လိုက်ပါနဲ့)"; 
            messageDiv.className = "message";
+           showProgressToast("⏳ ဖိုင်များကို Upload လုပ်နေပါသည်... ခဏစောင့်ပါ", "progress");
+
+           // Save a small local portrait crop with the appointment so Invoice rendering
+           // still works even when a Drive image later blocks Canvas/CORS access.
+           const portraitSourceFile = Array.from(fileInput.files).find(file => file.type?.startsWith("image/"));
+           if (portraitSourceFile && !data.portraitWatermarkData) {
+             try {
+               const portraitPayload = await compressImageIfNeed(portraitSourceFile, { maxWidth: 1600, maxHeight: 1600, quality: 0.86 });
+               const portraitResult = await createInvoicePortraitWatermarkDataUrl([`data:${portraitPayload.mimeType};base64,${portraitPayload.base64}`]);
+               if (portraitResult.dataUrl) {
+                 data.portraitWatermarkData = portraitResult.dataUrl;
+                 data.portraitWatermarkMode = portraitResult.mode;
+               }
+             } catch (portraitError) { console.warn("Local invoice portrait crop skipped:", portraitError); }
+           }
 
            const filesToUpload = Array.from(fileInput.files);
            const uploadOneFile = async (originalFile, index) => {
@@ -5620,6 +5751,7 @@
              const batch = filesToUpload.slice(start, start + batchSize);
              const completedBefore = start;
              messageDiv.textContent = `⏳ Upload ${completedBefore + 1}-${Math.min(completedBefore + batch.length, filesToUpload.length)}/${filesToUpload.length}`;
+             showProgressToast(`⏳ Upload ${completedBefore + 1}-${Math.min(completedBefore + batch.length, filesToUpload.length)}/${filesToUpload.length}`, "progress");
              await Promise.all(batch.map((file, offset) => uploadOneFile(file, completedBefore + offset)));
            }
         }
@@ -5651,6 +5783,7 @@
           
           messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; 
           messageDiv.className = "message success";
+          finishProgressToast("✅ Appointment Update ပြီးပါပြီ", "success");
           showInvoiceToast({ id: editingDocId, invoiceId: data.invoiceId || editingDocId, customerStatus: data.customerStatus }, `Status ${data.customerStatus || "Pending"} သို့ ရောက်ပြီးပါပြီ · Appointment Update လုပ်ပြီးပါပြီ`, "success");
           
           await sendMultiTelegramNotifications(lastSavedData);
@@ -5698,6 +5831,7 @@
           
           messageDiv.textContent = "✅ Saved! Invoice ID: " + invoiceId; 
           messageDiv.className = "message success";
+          finishProgressToast("✅ Appointment Save ပြီးပါပြီ", "success");
           
           // --- 🚀 NEW: Show Toast Notification ---
           showInvoiceToast({ id: invoiceId, invoiceId, customerStatus: data.customerStatus }, `Status ${data.customerStatus || "Pending"} သို့ ရောက်ပြီးပါပြီ · Appointment သိမ်းဆည်းပြီးပါပြီ`, "success");
@@ -5719,6 +5853,7 @@
       } catch (err) { 
         messageDiv.textContent = "❌ Error saving data: " + err.message; 
         messageDiv.className = "message error"; 
+        finishProgressToast("❌ Save မအောင်မြင်ပါ", "error");
         $("saveBtn").disabled = false; 
       }
     });
@@ -7502,6 +7637,34 @@
         const customerNameHtml = `${data.name || "-"}${customerDocNumber ? ` <small class="invoice-doc-inline">· ${customerDocNumber}</small>` : ""}`;
         const invoiceAppointmentTime = formatInvoiceAppointmentTime(data.appointmentTime);
         $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${customerNameHtml}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${invoiceAppointmentTime ? ` ${invoiceAppointmentTime}` : ""}</span></div>`;
+        const portraitWatermark = document.createElement("div");
+        portraitWatermark.id = "invPortraitWatermark";
+        portraitWatermark.className = "invoice-portrait-watermark";
+        portraitWatermark.setAttribute("aria-hidden", "true");
+        $("invCustomerInfo").appendChild(portraitWatermark);
+        showProgressToast("🖼️ Passport / Document လူပုံ Watermark ကို စစ်ဆေးနေပါသည်...", "progress");
+        if (data.portraitWatermarkData) {
+          portraitWatermark.style.backgroundImage = `url("${data.portraitWatermarkData}")`;
+          portraitWatermark.style.backgroundSize = "cover";
+          portraitWatermark.style.backgroundPosition = "center";
+          portraitWatermark.style.display = "block";
+          finishProgressToast(data.portraitWatermarkMode === "face" ? "🖼️ Portrait Watermark: Face Detection ဖြင့် Crop လုပ်ထားပါသည်" : "🖼️ Portrait Watermark: Saved Safe Crop ဖြင့် ထည့်ထားပါသည်", "success");
+        }
+        const portraitLinks = [...new Set([...(Array.isArray(data.documentLinks) ? data.documentLinks : []), ...(Array.isArray(data.ocrMatchedLinks) ? data.ocrMatchedLinks : [])].filter(Boolean))];
+        if (!data.portraitWatermarkData && portraitLinks.length) {
+          const portraitResult = await createInvoicePortraitWatermarkDataUrl(portraitLinks);
+          if (portraitResult.dataUrl) {
+            portraitWatermark.style.backgroundImage = `url("${portraitResult.dataUrl}")`;
+            portraitWatermark.style.backgroundSize = portraitResult.mode === "source" ? "240% auto" : "cover";
+            portraitWatermark.style.backgroundPosition = portraitResult.mode === "source" ? "18% 72%" : "center";
+            portraitWatermark.style.display = "block";
+            finishProgressToast(portraitResult.mode === "face" ? "🖼️ Portrait Watermark: Face Detection ဖြင့် Crop လုပ်ထားပါသည်" : portraitResult.mode === "source" ? "🖼️ Portrait Watermark: Source Image Safe Crop ဖြင့် ထည့်ထားပါသည်" : "🖼️ Portrait Watermark: Safe Crop ဖြင့် ထည့်ထားပါသည်", "success");
+          } else {
+            finishProgressToast("⚠️ Portrait Watermark မထည့်နိုင်ပါ — Document ပုံကို မရရှိသေးပါ", "error");
+          }
+        } else {
+          finishProgressToast("⚠️ Portrait Watermark မထည့်နိုင်ပါ — Invoice မှာ Document ဖိုင်မရှိပါ", "info");
+        }
         
         const sTypeStr = data.servicePackage ? `${data.serviceType} (${data.servicePackage})` : (data.serviceType || "-");
         
@@ -8015,6 +8178,7 @@
         }
 
         msg.textContent = `🔍 Passport ကို Scan ဖတ်နေပါသည်... (ခဏစောင့်ပါ)`; msg.className = "message";
+        showProgressToast("🔍 Passport ကို Scan ဖတ်နေပါသည်... (ခဏစောင့်ပါ)", "progress");
         btnRunScanner.disabled = true;
 
         try {
@@ -8037,7 +8201,7 @@
             // ၁။ အောက်ခြေ MRZ ကို ဖတ်ခြင်း
             if (structuredMrz) {
                extName = parsedText.name || structuredMrz.name || "";
-               extDocNo = structuredMrz.docNumber || "";
+               extDocNo = parsedText.docNumber || structuredMrz.docNumber || "";
                extDob = structuredMrz.dob || "";
                extExpiry = structuredMrz.expiry || "";
                extNat = structuredMrz.nationality || "";
@@ -8198,12 +8362,14 @@
 
             msg.textContent = `✨ Passport Scan အောင်မြင်ပါသည်။ (Copy ကူးယူနိုင်ပါပြီ)`;
             msg.className = "message success";
+            finishProgressToast("✅ Passport OCR Scan ပြီးပါပြီ", "success");
             // Keep the preview visible after successful OCR so the scanned source can be checked.
           $("scanInputFile").value = ""; 
 
         } catch(err) {
             msg.textContent = "❌ Error: " + err.message;
             msg.className = "message error";
+            finishProgressToast("❌ Passport OCR မအောင်မြင်ပါ", "error");
         } finally {
             btnRunScanner.disabled = false;
         }
