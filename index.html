@@ -341,7 +341,10 @@
     }
     .invoice-grid{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 12px;font-size:13px; }
     #invCustomerInfo{position:relative;}
-    .invoice-portrait-watermark{position:absolute;left:67%;top:0;width:31%;height:118px;display:none;background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:cover;border:0;outline:0;border-radius:0;opacity:.08;filter:grayscale(1);pointer-events:none;z-index:0;mix-blend-mode:multiply;}
+    .invoice-portrait-watermark{position:absolute;left:67%;top:0;width:31%;height:118px;display:none;background-color:transparent;border:0;outline:0;border-radius:0;opacity:.22;filter:grayscale(1);pointer-events:none;z-index:2;mix-blend-mode:multiply;overflow:hidden;}
+    .invoice-portrait-watermark img{display:block;width:100%;height:100%;object-fit:cover;border:0;outline:0;border-radius:0;}
+    .invoice-portrait-watermark.source-crop img{width:240%;height:auto;max-width:none;object-fit:initial;transform:translate(-18%,-72%);}
+    .invoice-portrait-watermark img{position:relative;z-index:3;}
     #invCustomerInfo > div:not(.invoice-portrait-watermark){position:relative;z-index:1;}
     .invoice-label{color:#6b7280;font-weight:800}
     .invoice-value{font-weight:800;color:#111827; font-size:15px;}
@@ -3507,7 +3510,9 @@
           // Prefer a browser face box when supported; otherwise use the common passport portrait area.
           if ("FaceDetector" in window) {
             try {
-              const faces = await new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 }).detect(img);
+              const detectorPromise = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 }).detect(img);
+              const timeoutPromise = new Promise(resolve => setTimeout(() => resolve([]), 700));
+              const faces = await Promise.race([detectorPromise, timeoutPromise]);
               const face = faces?.[0]?.boundingBox;
               if (face && face.width > 4 && face.height > 4) {
                 const side = Math.max(face.width, face.height) * 2.5;
@@ -3538,6 +3543,24 @@
         }
       }
       return { dataUrl: "", mode: "none" };
+    }
+
+    function setInvoicePortraitImage(container, url) {
+      if (!container || !url) return false;
+      const image = document.createElement("img");
+      image.alt = "";
+      image.setAttribute("aria-hidden", "true");
+      let proxyTried = false;
+      image.onerror = () => {
+        if (proxyTried) { image.remove(); return; }
+        proxyTried = true;
+        image.src = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+      };
+      image.onload = () => { container.style.display = "block"; };
+      image.src = url;
+      container.replaceChildren(image);
+      container.style.display = "block";
+      return true;
     }
 
     function renderDashboardStatusTabs() {
@@ -7644,26 +7667,23 @@
         $("invCustomerInfo").appendChild(portraitWatermark);
         showProgressToast("🖼️ Passport / Document လူပုံ Watermark ကို စစ်ဆေးနေပါသည်...", "progress");
         if (data.portraitWatermarkData) {
-          portraitWatermark.style.backgroundImage = `url("${data.portraitWatermarkData}")`;
-          portraitWatermark.style.backgroundSize = "cover";
-          portraitWatermark.style.backgroundPosition = "center";
-          portraitWatermark.style.display = "block";
+          setInvoicePortraitImage(portraitWatermark, data.portraitWatermarkData);
           finishProgressToast(data.portraitWatermarkMode === "face" ? "🖼️ Portrait Watermark: Face Detection ဖြင့် Crop လုပ်ထားပါသည်" : "🖼️ Portrait Watermark: Saved Safe Crop ဖြင့် ထည့်ထားပါသည်", "success");
-        }
-        const portraitLinks = [...new Set([...(Array.isArray(data.documentLinks) ? data.documentLinks : []), ...(Array.isArray(data.ocrMatchedLinks) ? data.ocrMatchedLinks : [])].filter(Boolean))];
-        if (!data.portraitWatermarkData && portraitLinks.length) {
-          const portraitResult = await createInvoicePortraitWatermarkDataUrl(portraitLinks);
-          if (portraitResult.dataUrl) {
-            portraitWatermark.style.backgroundImage = `url("${portraitResult.dataUrl}")`;
-            portraitWatermark.style.backgroundSize = portraitResult.mode === "source" ? "240% auto" : "cover";
-            portraitWatermark.style.backgroundPosition = portraitResult.mode === "source" ? "18% 72%" : "center";
-            portraitWatermark.style.display = "block";
-            finishProgressToast(portraitResult.mode === "face" ? "🖼️ Portrait Watermark: Face Detection ဖြင့် Crop လုပ်ထားပါသည်" : portraitResult.mode === "source" ? "🖼️ Portrait Watermark: Source Image Safe Crop ဖြင့် ထည့်ထားပါသည်" : "🖼️ Portrait Watermark: Safe Crop ဖြင့် ထည့်ထားပါသည်", "success");
-          } else {
-            finishProgressToast("⚠️ Portrait Watermark မထည့်နိုင်ပါ — Document ပုံကို မရရှိသေးပါ", "error");
-          }
         } else {
-          finishProgressToast("⚠️ Portrait Watermark မထည့်နိုင်ပါ — Invoice မှာ Document ဖိုင်မရှိပါ", "info");
+          const portraitLinks = [...new Set([...(Array.isArray(data.documentLinks) ? data.documentLinks : []), ...(Array.isArray(data.ocrMatchedLinks) ? data.ocrMatchedLinks : [])].filter(Boolean))];
+          if (portraitLinks.length) {
+            // Show the source immediately; do not block Invoice rendering on remote Drive/CORS crop work.
+            portraitWatermark.classList.add("source-crop");
+            setInvoicePortraitImage(portraitWatermark, portraitLinks[0]);
+            finishProgressToast("🖼️ Portrait Watermark: Source Image ကို ချက်ချင်းပြထားပါသည်", "success");
+            createInvoicePortraitWatermarkDataUrl(portraitLinks).then(portraitResult => {
+              if (!portraitResult?.dataUrl || !document.body.contains(portraitWatermark)) return;
+              portraitWatermark.classList.toggle("source-crop", portraitResult.mode === "source");
+              setInvoicePortraitImage(portraitWatermark, portraitResult.dataUrl);
+            }).catch(e => console.warn("Background portrait refinement skipped:", e));
+          } else {
+            finishProgressToast("⚠️ Portrait Watermark မထည့်နိုင်ပါ — Invoice မှာ Document ဖိုင်မရှိပါ", "info");
+          }
         }
         
         const sTypeStr = data.servicePackage ? `${data.serviceType} (${data.servicePackage})` : (data.serviceType || "-");
