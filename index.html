@@ -343,8 +343,13 @@
     #invCustomerInfo{position:relative;}
     .invoice-portrait-watermark{position:absolute;left:67%;top:0;width:31%;height:118px;display:none;background-color:transparent;border:0;outline:0;border-radius:0;opacity:.22;filter:grayscale(1);pointer-events:none;z-index:2;mix-blend-mode:multiply;overflow:hidden;}
     .invoice-portrait-watermark img{display:block;width:100%;height:100%;object-fit:cover;border:0;outline:0;border-radius:0;}
-    .invoice-portrait-watermark.source-crop img{width:240%;height:auto;max-width:none;object-fit:initial;transform:translate(-18%,-72%);}
+    .invoice-portrait-watermark.source-crop img{width:300%;height:auto;max-width:none;object-fit:initial;transform:translate(-12%,-48%);}
     .invoice-portrait-watermark img{position:relative;z-index:3;}
+    .manual-portrait-crop-panel{display:flex;flex-direction:column;gap:8px;padding:10px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;margin-top:8px;}
+    .manual-portrait-crop-canvas{max-width:100%;height:auto;max-height:430px;align-self:center;touch-action:none;cursor:crosshair;background:#111827;}
+    .manual-portrait-crop-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+    .manual-portrait-result{display:none;gap:5px;align-items:center;margin-top:5px;padding:4px 6px;background:#ecfdf5;border:1px solid #86efac;border-radius:6px;color:#166534;font-size:11px;font-weight:700;width:max-content;}
+    .manual-portrait-result img{width:48px;height:42px;object-fit:cover;border:0;border-radius:3px;background:#fff;}
     #invCustomerInfo > div:not(.invoice-portrait-watermark){position:relative;z-index:1;}
     .invoice-label{color:#6b7280;font-weight:800}
     .invoice-value{font-weight:800;color:#111827; font-size:15px;}
@@ -2094,6 +2099,7 @@
                 <div id="documentPreviewEmpty" class="document-preview-empty">Customer Documents မှ ပုံ/PDF ရွေးပြီး OCR လုပ်ပါ။<br />အဟောင်း record ဖြစ်လျှင် ယခင်တင်ထားသော document ကို ပြပါမည်။</div>
                 <div id="documentPreviewGrid" class="document-preview-grid"></div>
                 <div id="documentPreviewExpanded" class="document-preview-expanded" style="display:none;"></div>
+                <div id="manualPortraitResult" class="manual-portrait-result"><img alt="Manual portrait crop result" /><span>✅ Crop</span></div>
               </div>
             </div>
 
@@ -2349,6 +2355,12 @@
                 <label class="toggle" title="Show QR Code">
                   <input type="checkbox" id="showQrOnInvoice" checked />
                   QR Code ဖြင့်ငွေချေရန် ပြသမည်
+                </label>
+              </div>
+              <div class="field full-width" style="margin-top:10px;">
+                <label class="toggle" title="Show customer portrait">
+                  <input type="checkbox" id="showPortraitOnInvoice" checked />
+                  လူပုံပါမည်
                 </label>
               </div>
               <div class="actions" style="justify-content:flex-start; margin-top:12px;">
@@ -3452,40 +3464,35 @@
     initSettingsTabs();
 
     async function getBase64FromUrl(url) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = url;
-        img.onload = () => {
-          try {
-            const canvas = document.createElement("canvas");
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0);
-            resolve(canvas.toDataURL("image/png"));
-          } catch (e) {
-            console.error("Canvas Base64 error:", e);
-            resolve(url); // Error တက်ပါက မူလ URL အတိုင်း ပြန်သုံးမည်
-          }
-        };
-        img.onerror = () => {
-          // Direct image fail ဖြစ်ပါက သီးသန့် CORS Proxy ပြောင်းသုံးမည်
-          const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
-          const imgProxy = new Image();
-          imgProxy.crossOrigin = "anonymous";
-          imgProxy.src = proxyUrl;
-          imgProxy.onload = () => {
-            const canvas = document.createElement("canvas");
-            canvas.width = imgProxy.width;
-            canvas.height = imgProxy.height;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(imgProxy, 0, 0);
-            resolve(canvas.toDataURL("image/png"));
-          };
-          imgProxy.onerror = () => resolve(url);
-        };
-      });
+      if (String(url).startsWith("data:")) return url;
+      const candidates = [
+        url,
+        "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
+        "https://images.weserv.nl/?url=" + encodeURIComponent(url)
+      ];
+      for (const candidate of candidates) {
+        try {
+          const dataUrl = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            const timer = setTimeout(() => reject(new Error("image timeout")), 6000);
+            img.onload = () => {
+              clearTimeout(timer);
+              try {
+                const canvas = document.createElement("canvas");
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                canvas.getContext("2d").drawImage(img, 0, 0);
+                resolve(canvas.toDataURL("image/png"));
+              } catch (error) { reject(error); }
+            };
+            img.onerror = () => { clearTimeout(timer); reject(new Error("image load failed")); };
+            img.src = candidate;
+          });
+          if (dataUrl) return dataUrl;
+        } catch (error) { console.warn("Image conversion candidate skipped:", candidate, error.message); }
+      }
+      return url;
     }
     
     async function createInvoicePortraitWatermarkDataUrl(documentLinks) {
@@ -3523,8 +3530,8 @@
           }
           if (!crop) {
             crop = w >= h
-              ? { x: w * 0.03, y: h * 0.24, width: w * 0.43, height: h * 0.70 }
-              : { x: w * 0.03, y: h * 0.38, width: w * 0.45, height: h * 0.56 };
+              ? { x: w * 0.08, y: h * 0.28, width: w * 0.28, height: h * 0.48 }
+              : { x: w * 0.10, y: h * 0.42, width: w * 0.28, height: h * 0.36 };
           }
           const x = Math.max(0, Math.min(w - 1, crop.x));
           const y = Math.max(0, Math.min(h - 1, crop.y));
@@ -3547,6 +3554,7 @@
 
     function setInvoicePortraitImage(container, url) {
       if (!container || !url) return false;
+      if (String(url).startsWith("data:")) window.currentInvoicePortraitDataUrl = url;
       const image = document.createElement("img");
       image.alt = "";
       image.setAttribute("aria-hidden", "true");
@@ -4438,6 +4446,7 @@
 
     // --- Entry document preview helpers ---
     let documentPreviewObjectUrls = [];
+    let manualPortraitCropDataUrl = "";
     function normalizeEntryDocumentNumber(value) {
       return String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
     }
@@ -4482,6 +4491,8 @@
       if (empty) empty.style.display = "flex";
       const status = $("documentPreviewStatus");
       if (status) status.textContent = "ပုံမရှိသေးပါ";
+      const manualResult = $("manualPortraitResult");
+      if (manualResult) manualResult.style.display = "none";
     }
 
     function showDocumentPreviewGrid() {
@@ -4489,6 +4500,66 @@
       const expanded = $("documentPreviewExpanded");
       if (expanded) { expanded.style.display = "none"; expanded.innerHTML = ""; }
       if (grid) grid.style.display = "flex";
+    }
+
+    function showManualPortraitResult(dataUrl) {
+      const result = $("manualPortraitResult");
+      const image = result?.querySelector("img");
+      if (!result || !image || !dataUrl) return;
+      image.src = dataUrl;
+      result.style.display = "flex";
+    }
+
+    function openManualPortraitCrop(src, name) {
+      const expanded = $("documentPreviewExpanded");
+      const grid = $("documentPreviewGrid");
+      const empty = $("documentPreviewEmpty");
+      if (!expanded || !src) return;
+      if (empty) empty.style.display = "none";
+      if (grid) grid.style.display = "none";
+      expanded.style.display = "block";
+      expanded.innerHTML = "";
+      const panel = document.createElement("div"); panel.className = "manual-portrait-crop-panel";
+      const title = document.createElement("strong"); title.textContent = "👤 လူပုံ Crop — Scroll / Pinch ဖြင့် Zoom၊ Move Mode ဖြင့် ရွှေ့ပါ";
+      const canvas = document.createElement("canvas"); canvas.className = "manual-portrait-crop-canvas";
+      const zoomRow = document.createElement("label"); zoomRow.textContent = "🔍 Zoom ";
+      const zoom = document.createElement("input"); zoom.type = "range"; zoom.min = "1"; zoom.max = "3"; zoom.step = ".05"; zoom.value = "1"; zoom.style.width = "min(100%, 240px)"; zoomRow.appendChild(zoom);
+      const modeBtn = document.createElement("button"); modeBtn.type = "button"; modeBtn.className = "btn btn-outline"; modeBtn.textContent = "✂️ Crop Mode"; modeBtn.style.marginLeft = "8px"; zoomRow.appendChild(modeBtn);
+      const actions = document.createElement("div"); actions.className = "manual-portrait-crop-actions";
+      const cancel = document.createElement("button"); cancel.type = "button"; cancel.className = "btn btn-outline"; cancel.textContent = "မလုပ်တော့ပါ";
+      cancel.addEventListener("click", () => expandDocumentPreview({ src, name, isIframe: false, openUrl: src }));
+      const save = document.createElement("button"); save.type = "button"; save.className = "btn btn-primary"; save.textContent = "💾 လူပုံ Crop သိမ်းမည်"; save.disabled = true;
+      actions.append(cancel, save); panel.append(title, zoomRow, canvas, actions); expanded.appendChild(panel);
+      const image = new Image();
+      let selection = null, dragging = false, cropDataReady = false, fitScale = 1, zoomLevel = 1, panX = 0, panY = 0, interactionMode = "crop";
+      const view = () => { const iw = image.naturalWidth * fitScale * zoomLevel, ih = image.naturalHeight * fitScale * zoomLevel; const maxX = Math.max(0, (iw - canvas.width) / 2), maxY = Math.max(0, (ih - canvas.height) / 2); panX = Math.max(-maxX, Math.min(maxX, panX)); panY = Math.max(-maxY, Math.min(maxY, panY)); return { iw, ih, dx: (canvas.width - iw) / 2 + panX, dy: (canvas.height - ih) / 2 + panY }; };
+      const draw = () => { const ctx = canvas.getContext("2d"); const v = view(); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = "#111827"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(image, v.dx, v.dy, v.iw, v.ih); if (!selection) return; ctx.fillStyle = "rgba(15,23,42,.48)"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.clearRect(selection.x, selection.y, selection.w, selection.h); ctx.strokeStyle = "#22c55e"; ctx.lineWidth = 3; ctx.strokeRect(selection.x, selection.y, selection.w, selection.h); };
+      const point = event => { const r = canvas.getBoundingClientRect(); return { x: Math.max(0, Math.min(canvas.width, (event.clientX - r.left) * canvas.width / r.width)), y: Math.max(0, Math.min(canvas.height, (event.clientY - r.top) * canvas.height / r.height)) }; };
+      const pointers = new Map(); let pinchDistance = 0, pinchZoom = 1;
+      const distance = () => { const values = [...pointers.values()]; return values.length < 2 ? 0 : Math.hypot(values[0].x - values[1].x, values[0].y - values[1].y); };
+      modeBtn.addEventListener("click", () => { interactionMode = interactionMode === "crop" ? "move" : "crop"; modeBtn.textContent = interactionMode === "crop" ? "✂️ Crop Mode" : "✋ Move Mode"; });
+      zoom.addEventListener("input", () => { zoomLevel = Number(zoom.value) || 1; draw(); });
+      canvas.addEventListener("wheel", event => { event.preventDefault(); zoomLevel = Math.max(1, Math.min(3, zoomLevel + (event.deltaY < 0 ? .12 : -.12))); zoom.value = zoomLevel.toFixed(2); draw(); }, { passive:false });
+      canvas.addEventListener("pointerdown", event => { const p = point(event); pointers.set(event.pointerId, p); canvas.setPointerCapture?.(event.pointerId); if (pointers.size === 2) { pinchDistance = distance(); pinchZoom = zoomLevel; dragging = false; return; } dragging = true; if (interactionMode === "move") { selection = null; selection = { x:p.x, y:p.y, w:0, h:0, panStartX:panX, panStartY:panY }; } else selection = { x:p.x, y:p.y, w:0, h:0 }; draw(); });
+      canvas.addEventListener("pointermove", event => { const p = point(event); if (pointers.has(event.pointerId)) pointers.set(event.pointerId, p); if (pointers.size >= 2 && pinchDistance) { zoomLevel = Math.max(1, Math.min(3, pinchZoom * distance() / pinchDistance)); zoom.value = zoomLevel.toFixed(2); draw(); return; } if (!dragging) return; if (interactionMode === "move") { panX += p.x - (selection.x + selection.w); panY += p.y - (selection.y + selection.h); selection.x = p.x; selection.y = p.y; draw(); } else { selection.w = p.x - selection.x; selection.h = p.y - selection.y; draw(); } });
+      const endPointer = event => { pointers.delete(event.pointerId); if (pointers.size < 2) pinchDistance = 0; dragging = false; if (interactionMode === "crop" && selection && Math.abs(selection.w) > 8 && Math.abs(selection.h) > 8) save.disabled = !cropDataReady; };
+      canvas.addEventListener("pointerup", endPointer); canvas.addEventListener("pointercancel", endPointer);
+      image.onload = () => { title.textContent = cropDataReady ? "👤 Scroll / Pinch ဖြင့် Zoom၊ Move Mode ဖြင့် ရွှေ့ပြီး Crop Mode ဖြင့် ရွေးပါ" : "👤 ပုံမြင်ရပါပြီ — Crop Save ခလုတ်ဖွင့်ရန် ပုံဖတ်နေဆဲ..."; const maxWidth = Math.min(760, image.naturalWidth || image.width); fitScale = maxWidth / (image.naturalWidth || image.width); canvas.width = Math.max(1, Math.round((image.naturalWidth || image.width) * fitScale)); canvas.height = Math.max(1, Math.round((image.naturalHeight || image.height) * fitScale)); draw(); };
+      image.onerror = () => { title.textContent = "❌ ပုံကို Crop Tool ထဲ မဖွင့်နိုင်ပါ — ပုံဖိုင်ကို အရင်ရွေးပါ"; save.disabled = true; };
+      save.addEventListener("click", () => { if (!selection || !cropDataReady) return; const v = view(), sx = Math.min(selection.x, selection.x + selection.w), sy = Math.min(selection.y, selection.y + selection.h), sw = Math.abs(selection.w), sh = Math.abs(selection.h), sourceX = Math.max(0, (sx - v.dx) / (fitScale * zoomLevel)), sourceY = Math.max(0, (sy - v.dy) / (fitScale * zoomLevel)), sourceW = Math.min(image.naturalWidth - sourceX, sw / (fitScale * zoomLevel)), sourceH = Math.min(image.naturalHeight - sourceY, sh / (fitScale * zoomLevel)), out = document.createElement("canvas"); out.width = 180; out.height = 160; out.getContext("2d").drawImage(image, sourceX, sourceY, sourceW, sourceH, 0, 0, out.width, out.height); try { manualPortraitCropDataUrl = out.toDataURL("image/jpeg", .82); } catch (error) { showToast("❌ Crop မသိမ်းနိုင်သေးပါ။ ပုံဖတ်ပြီးစီးရန် ခဏစောင့်ပါ။", "error"); return; } showManualPortraitResult(manualPortraitCropDataUrl); const status = $("documentPreviewStatus"); if (status) status.textContent = "✅ လူပုံ Crop သိမ်းထားပါပြီ"; showToast("✅ လူပုံ Crop သိမ်းထားပါပြီ", "success"); showDocumentPreviewGrid(); });
+      title.textContent = "⏳ Crop Tool ထဲသို့ ပုံဖတ်နေပါသည်...";
+      // Show the direct image immediately so a Drive image never leaves a black canvas.
+      image.removeAttribute("crossorigin");
+      image.src = src;
+      // In the background, try to obtain a same-origin/data URL so Save Crop can work too.
+      getBase64FromUrl(src).then(cropSource => {
+          if (String(cropSource).startsWith("data:")) {
+            cropDataReady = true;
+            if (selection && Math.abs(selection.w) > 8 && Math.abs(selection.h) > 8) save.disabled = false;
+            image.removeAttribute("crossorigin");
+            image.src = cropSource;
+        }
+      }).catch(error => console.warn("Manual portrait crop data conversion skipped:", error));
     }
 
     function expandDocumentPreview({ src, name, isIframe, openUrl }) {
@@ -4509,7 +4580,16 @@
       closeBtn.className = "document-preview-expanded-close";
       closeBtn.textContent = "✕ ပိတ်မည်";
       closeBtn.addEventListener("click", showDocumentPreviewGrid);
-      header.append(title, closeBtn);
+      header.append(title);
+      if (!isIframe) {
+        const cropBtn = document.createElement("button");
+        cropBtn.type = "button";
+        cropBtn.className = "document-preview-expanded-close";
+        cropBtn.textContent = "👤 လူပုံ Crop";
+        cropBtn.addEventListener("click", () => openManualPortraitCrop(src, name));
+        header.appendChild(cropBtn);
+      }
+      header.appendChild(closeBtn);
       expanded.appendChild(header);
 
       if (isIframe) {
@@ -4681,9 +4761,9 @@
       return null;
     }
 
-    function driveThumbnailUrl(link) {
+    function driveThumbnailUrl(link, size = 200) {
       const id = driveFileIdFromLink(link);
-      return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w200-h200` : null;
+      return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w${size}-h${size}` : null;
     }
 
     function appendDocumentPreviewCard({ src, name, source, isPdf, openUrl, onRemove }) {
@@ -4826,16 +4906,16 @@
       // Old record ၏ document များကိုလည်း thumbnail အသေးလေးအဖြစ် ပြသည် (Drive thumbnail ပုံမှန်ပြပေးမည်)။
       if (links.length > 0) {
         links.forEach((link, idx) => {
-          const thumbSrc = driveThumbnailUrl(link);
-          appendDocumentThumb({
-            src: thumbSrc,
-            name: `Saved document ${idx + 1}`,
-            isPdf: !thumbSrc,
-            openUrl: link,
-            expandSrc: drivePreviewUrl(link),
-            expandIsIframe: true,
-            matched: currentSavedMatchedLinks.includes(link)
-          });
+          const thumbSrc = driveThumbnailUrl(link, 800);
+            appendDocumentThumb({
+              src: thumbSrc,
+              name: `Saved document ${idx + 1}`,
+              isPdf: !thumbSrc,
+              openUrl: link,
+              expandSrc: driveThumbnailUrl(link, 1600) || thumbSrc,
+              expandIsIframe: false,
+              matched: currentSavedMatchedLinks.includes(link)
+            });
         });
         const status = $("documentPreviewStatus");
         if (status) status.textContent = `${links.length} ဖိုင် ရှိသည်`;
@@ -4982,9 +5062,10 @@
     });
 
     // Form ကို reset() ခေါ်တိုင်း (New Entry / Save အပြီး) စုစည်းထားသော ဖိုင်များကိုပါ ရှင်းမည်။
-    if ($("appointmentForm")) {
+      if ($("appointmentForm")) {
       $("appointmentForm").addEventListener("reset", () => {
         accumulatedCustomerFiles = [];
+        manualPortraitCropDataUrl = "";
         ocrMatchedFileKeys.clear();
         currentSavedMatchedLinks = [];
         clearDocumentPreview();
@@ -5704,6 +5785,11 @@
       data.serviceCost = Number($("cost").value || 0);
       data.serviceProfit = data.price - data.serviceCost;
       Object.assign(data, normalizeAppointmentModel(data));
+      if (manualPortraitCropDataUrl) {
+        data.portraitWatermarkData = manualPortraitCropDataUrl;
+        data.portraitWatermarkMode = "manual";
+        data.portraitWatermarkCropVersion = 3;
+      }
 
       data.updatedAt = serverTimestamp();
       data.updatedBy = currentUserName;
@@ -5731,6 +5817,7 @@
                if (portraitResult.dataUrl) {
                  data.portraitWatermarkData = portraitResult.dataUrl;
                  data.portraitWatermarkMode = portraitResult.mode;
+                 data.portraitWatermarkCropVersion = 2;
                }
              } catch (portraitError) { console.warn("Local invoice portrait crop skipped:", portraitError); }
            }
@@ -7015,6 +7102,8 @@
           }
           currentSavedMatchedLinks = a.ocrMatchedLinks || [];
           renderDocumentPreviews([], a.documentLinks || []);
+          manualPortraitCropDataUrl = a.portraitWatermarkData || "";
+          if (manualPortraitCropDataUrl) showManualPortraitResult(manualPortraitCropDataUrl);
         }
         accumulatedCustomerFiles = [];
         ocrMatchedFileKeys.clear();
@@ -7231,6 +7320,8 @@
         }
         currentSavedMatchedLinks = a.ocrMatchedLinks || [];
         renderDocumentPreviews([], a.documentLinks || []);
+        manualPortraitCropDataUrl = a.portraitWatermarkData || "";
+        if (manualPortraitCropDataUrl) showManualPortraitResult(manualPortraitCropDataUrl);
       }
       accumulatedCustomerFiles = [];
       ocrMatchedFileKeys.clear();
@@ -7619,6 +7710,11 @@
           if (data.createdAt?.toDate) createdAt = data.createdAt.toDate();
           else if (data.createdAt?.toMillis) createdAt = new Date(data.createdAt.toMillis());
         }
+        window.currentInvoiceRenderData = data;
+        // Any saved data URL is immediately renderable and does not depend on Drive/CORS.
+        // New saves use crop version 2; older saved crops are still preferable to a blank slot.
+        const savedPortraitData = data.portraitWatermarkData || "";
+        window.currentInvoicePortraitDataUrl = savedPortraitData;
 
         const lang = $("invoiceLanguage")?.value || "mm";
         const t = invoiceTranslations[lang];
@@ -7665,10 +7761,18 @@
         portraitWatermark.className = "invoice-portrait-watermark";
         portraitWatermark.setAttribute("aria-hidden", "true");
         $("invCustomerInfo").appendChild(portraitWatermark);
+        const showPortrait = $("showPortraitOnInvoice") ? $("showPortraitOnInvoice").checked : true;
+        if (!showPortrait) {
+          portraitWatermark.style.display = "none";
+          finishProgressToast("လူပုံ Watermark ကို မပြသဘဲ Invoice ထုတ်ပါမည်", "info");
+        }
+        if (!showPortrait) {
+          // Skip all image loading/cropping when the user unselects the portrait option.
+        } else {
         showProgressToast("🖼️ Passport / Document လူပုံ Watermark ကို စစ်ဆေးနေပါသည်...", "progress");
-        if (data.portraitWatermarkData) {
-          setInvoicePortraitImage(portraitWatermark, data.portraitWatermarkData);
-          finishProgressToast(data.portraitWatermarkMode === "face" ? "🖼️ Portrait Watermark: Face Detection ဖြင့် Crop လုပ်ထားပါသည်" : "🖼️ Portrait Watermark: Saved Safe Crop ဖြင့် ထည့်ထားပါသည်", "success");
+        if (savedPortraitData) {
+          setInvoicePortraitImage(portraitWatermark, savedPortraitData);
+          finishProgressToast(data.portraitWatermarkMode === "manual" ? "🖼️ Portrait Watermark: ကိုယ်တိုင်ရွေးထားသော လူပုံ Crop" : data.portraitWatermarkMode === "face" ? "🖼️ Portrait Watermark: Face Detection ဖြင့် Crop လုပ်ထားပါသည်" : "🖼️ Portrait Watermark: Saved Safe Crop ဖြင့် ထည့်ထားပါသည်", "success");
         } else {
           const portraitLinks = [...new Set([...(Array.isArray(data.documentLinks) ? data.documentLinks : []), ...(Array.isArray(data.ocrMatchedLinks) ? data.ocrMatchedLinks : [])].filter(Boolean))];
           if (portraitLinks.length) {
@@ -7684,6 +7788,7 @@
           } else {
             finishProgressToast("⚠️ Portrait Watermark မထည့်နိုင်ပါ — Invoice မှာ Document ဖိုင်မရှိပါ", "info");
           }
+        }
         }
         
         const sTypeStr = data.servicePackage ? `${data.serviceType} (${data.servicePackage})` : (data.serviceType || "-");
@@ -7868,6 +7973,11 @@
     }
 
     $("loadInvoice").addEventListener("click", loadInvoice);
+    $("showPortraitOnInvoice")?.addEventListener("change", (event) => {
+      const portrait = $("invPortraitWatermark");
+      if (portrait) portrait.style.display = event.target.checked ? "block" : "none";
+      if (event.target.checked) loadInvoice();
+    });
     
     $("invoiceLanguage")?.addEventListener("change", () => {
       if ($("invoiceDocId").value.trim()) {
@@ -7925,6 +8035,18 @@
       const card = $("invoiceCard"); const msg = $("invoiceMessage"); msg.textContent = "Rendering JPEG..."; msg.className = "message";
       try {
         await inlineInvoiceLogo();
+        // Convert the remote portrait to a local data URL before html2canvas runs;
+        // otherwise the browser preview can show it while the downloaded JPEG omits it.
+        if (!window.currentInvoicePortraitDataUrl && window.currentInvoiceRenderData) {
+          const exportLinks = [...new Set([...(Array.isArray(window.currentInvoiceRenderData.documentLinks) ? window.currentInvoiceRenderData.documentLinks : []), ...(Array.isArray(window.currentInvoiceRenderData.ocrMatchedLinks) ? window.currentInvoiceRenderData.ocrMatchedLinks : [])].filter(Boolean))];
+          if (exportLinks.length) {
+            const exportPortrait = await createInvoicePortraitWatermarkDataUrl(exportLinks);
+            if (exportPortrait.dataUrl) {
+              window.currentInvoicePortraitDataUrl = exportPortrait.dataUrl;
+              setInvoicePortraitImage($("invPortraitWatermark"), exportPortrait.dataUrl);
+            }
+          }
+        }
         const canvas = await html2canvas(card, {
           scale: 3,
           useCORS: true,
@@ -7966,6 +8088,12 @@
                 const src = img.getAttribute("src") || "";
                 // Keep only the locally generated QR and the inlined logo.
                 // Both are data URLs, so neither can taint the export canvas.
+                if (img.closest("#invPortraitWatermark") && window.currentInvoicePortraitDataUrl) {
+                  img.src = window.currentInvoicePortraitDataUrl;
+                  img.style.display = "block";
+                  img.style.visibility = "visible";
+                  return;
+                }
                 if (!["invDynamicQR", "promptpayLogo", "invoiceLogoImage"].includes(img.id) || !src.startsWith("data:")) {
                   img.removeAttribute("src");
                   img.style.display = "none";
