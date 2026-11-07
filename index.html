@@ -91,6 +91,11 @@
     #tab-dashboard .dashboard-customer-cell,#tab-dashboard .dashboard-contact-cell{line-height:1.35 !important}
     #tab-dashboard .dashboard-customer-cell > div,#tab-dashboard .dashboard-contact-cell > div{margin:0 !important;line-height:1.35 !important}
     #tab-dashboard .dashboard-customer-cell .dashboard-chat-link{display:block !important;width:max-content;margin-top:2px !important;margin-left:0 !important}
+    #tab-dashboard .dashboard-customer-detail{display:block !important;margin:0 !important;line-height:1.28 !important;white-space:normal;overflow-wrap:anywhere}
+    #tab-dashboard .dashboard-customer-detail .detail-label{color:#64748b;font-weight:700}
+    #tab-dashboard td.dashboard-service-location-cell,#tab-dashboard td.dashboard-payment-cell{text-align:center !important;vertical-align:middle !important}
+    #tab-dashboard td.dashboard-service-location-cell > div,#tab-dashboard td.dashboard-payment-cell > div{align-items:center !important;text-align:center !important;margin-left:auto !important;margin-right:auto !important}
+    #tab-dashboard td.dashboard-service-location-cell span,#tab-dashboard td.dashboard-payment-cell span{text-align:center !important}
     #tab-settlement .settlement-summary-grid .summary-card{min-height:58px;padding:7px 10px;border-radius:10px;gap:1px}
     #tab-settlement .settlement-summary-grid .summary-title{font-size:11px;line-height:1.15}
     #tab-settlement .settlement-summary-grid .summary-value{font-size:18px;line-height:1.05}
@@ -6920,7 +6925,8 @@
            nameHtml = `
              <div class="dashboard-customer-cell">
                <div class="dashboard-customer-name"><span class="jump-link" style="cursor:pointer; color:var(--error); font-weight:800; text-decoration:underline;" data-jumpid="${id}" data-targettab="${isArchive ? 'archive' : 'active'}" title="Jump to original tab">📍 ${a.name || "-"}</span></div>
-               <div class="dashboard-customer-social" style="color:var(--muted); font-weight:600;">${a.socialName ? 'Social: ' + a.socialName : ""}</div>
+               <div class="dashboard-customer-detail">${a.docNumber || "-"}</div>
+               <div class="dashboard-customer-detail"><span class="detail-label">SN:</span> ${a.socialName || "-"}</div>
                <div class="dashboard-customer-chat">${linkIcon ? linkIcon.replace('style="', 'class="dashboard-chat-link" style="') : ""}</div>
                <div style="margin:2px 0;">${tabTag}</div>
              </div>
@@ -6929,7 +6935,8 @@
            nameHtml = `
              <div class="dashboard-customer-cell">
                <div class="dashboard-customer-name"><span class="history-link" style="cursor:pointer; color:var(--primary); font-weight:700; text-decoration:underline;" data-phone="${a.phone}" data-name="${a.name}" title="${a.name || "-"}">${a.name || "-"}</span></div>
-               <div class="dashboard-customer-social" style="color:var(--muted); font-weight:600;">${a.socialName ? 'Social: ' + a.socialName : ""}</div>
+               <div class="dashboard-customer-detail">${a.docNumber || "-"}</div>
+               <div class="dashboard-customer-detail"><span class="detail-label">SN:</span> ${a.socialName || "-"}</div>
                <div class="dashboard-customer-chat">${linkIcon ? linkIcon.replace('style="', 'class="dashboard-chat-link" style="') : ""}</div>
              </div>
            `;
@@ -7026,7 +7033,7 @@
               <span style="font-size:9px;color:#475569;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;">📍 ${a.location || "-"}</span>
             </div>
           </td>
-          <td><div style="display:flex;flex-direction:column;gap:2px;line-height:1.15;white-space:nowrap;"><span style="font-weight:800;">${a.paymentType || "-"}</span><span style="font-weight:800;color:${currentPaymentStatus === "paid" ? "#166534" : currentPaymentStatus === "partial" ? "#92400e" : "#64748b"};">${depositStatusLabel}</span><button type="button" class="dashboard-deposit-btn" data-paymentid="${id}" title="Payment Status / Amount ပြင်ရန်" style="border:0;background:transparent;padding:0;text-align:left;cursor:pointer;font-size:12px;line-height:1;">💵</button></div></td>
+          <td class="dashboard-payment-cell"><div style="display:flex;flex-direction:column;gap:2px;line-height:1.15;white-space:nowrap;"><span style="font-weight:800;">${a.paymentType || "-"}</span><span style="font-weight:800;color:${currentPaymentStatus === "paid" ? "#166534" : currentPaymentStatus === "partial" ? "#92400e" : "#64748b"};">${depositStatusLabel}</span><button type="button" class="dashboard-deposit-btn" data-paymentid="${id}" title="Payment Status / Amount ပြင်ရန်" style="border:0;background:transparent;padding:0;text-align:left;cursor:pointer;font-size:12px;line-height:1;">💵</button></div></td>
           <td>${a.price != null ? Number(a.price).toFixed(2) : ""}</td>
           <td>${dep}</td>
           <td>${bal}</td>
