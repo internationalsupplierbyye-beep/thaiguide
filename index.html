@@ -75,6 +75,15 @@
     .tabs{display:flex;gap:6px;background:rgba(255,255,255,.96);padding:3px;border-radius:999px;overflow-x:auto;max-width:100%;box-shadow:0 3px 10px rgba(15,23,42,.08)}
     .tabs.is-fixed{position:fixed;top:0;left:var(--tabs-fixed-left,0px);transform:none;width:var(--tabs-fixed-width,auto);max-width:none;border-radius:0 0 12px 12px;z-index:1000;box-shadow:0 5px 16px rgba(15,23,42,.22)}
     #tab-entry small:not(.entry-date-format){display:none !important}
+    .invoice-id-label-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+    .invoice-id-label-row > label{display:flex;align-items:center;gap:3px;margin:0;white-space:nowrap}
+    .invoice-id-required{color:#dc2626;font-weight:900;font-size:10px}
+    .invoice-id-tools{display:flex;align-items:center;gap:4px;margin-left:auto}
+    .invoice-id-auto-badge,.invoice-id-new-badge{display:inline-flex !important;align-items:center;justify-content:center;box-sizing:border-box;width:64px;height:24px;padding:0 !important;border-radius:999px !important;font-size:10px !important;font-weight:800;line-height:1 !important;white-space:nowrap}
+    .invoice-id-auto-badge{gap:3px !important;border:1px solid #c7d2fe;background:#eef2ff;color:#3730a3}
+    .invoice-id-auto-badge input{margin:0 !important;width:12px !important;height:12px !important}
+    .invoice-id-new-badge{border:1px solid #c7d2fe}
+    .invoice-id-field > input#invoiceId{width:100%;box-sizing:border-box}
     #tab-dashboard table th,#tab-dashboard table td{padding:2px 4px !important;line-height:1.12 !important;font-size:11px !important}
     #tab-dashboard table tr{height:26px}
     #tab-dashboard table td > div{margin-top:0 !important;margin-bottom:0 !important;gap:2px !important;line-height:1.08 !important}
@@ -93,6 +102,45 @@
     @media (max-width:600px){#tab-settlement .settlement-summary-grid .summary-card{min-height:52px;padding:6px 8px}#tab-settlement .settlement-summary-grid .summary-value{font-size:16px}#tab-settlement .settlement-total-block{grid-template-columns:1fr}}
     #tab-dashboard table .status-select{padding:1px 4px !important;font-size:10px !important;line-height:1.15 !important}
     #tab-dashboard table .btn{padding:2px 5px !important;font-size:10px !important;line-height:1.15 !important}
+    #tab-dashboard table th:nth-child(4),#tab-dashboard table td:nth-child(4){width:146px;min-width:146px;max-width:146px;padding-left:2px !important;padding-right:2px !important}
+    #tab-dashboard .dashboard-inline-date-editor{min-width:140px !important;width:140px;max-width:140px;gap:2px !important}
+    #tab-dashboard .dashboard-inline-date-editor .dashboard-date-input{min-width:0;padding:2px 3px !important;font-size:9px !important;height:24px;line-height:1 !important}
+    #tab-dashboard .dashboard-inline-date-editor span{width:23px !important;font-size:8px !important}
+    #tab-dashboard .dashboard-inline-date-editor input[data-datefield="appointmentDate"]{width:78px !important;flex:0 0 78px !important}
+    #tab-dashboard .dashboard-inline-date-editor input[data-datefield="expiryDate"]{width:92px !important;flex:0 0 92px !important}
+    #tab-dashboard .dashboard-inline-date-editor input[data-datefield="appointmentTime"]{width:56px !important}
+    #tab-dashboard .dashboard-inline-date-editor input[data-datefield="alertDays"]{width:32px !important}
+    #tab-dashboard table th:nth-child(2),#tab-dashboard table td:nth-child(2){width:112px;min-width:112px;max-width:112px;padding-left:3px !important;padding-right:3px !important;white-space:normal}
+    #tab-dashboard table th:nth-child(6),#tab-dashboard table td:nth-child(6){width:155px;min-width:155px;max-width:155px;white-space:normal;overflow:visible;text-overflow:clip}
+    #tab-dashboard .dashboard-customer-cell{width:149px;max-width:149px;white-space:normal !important;overflow:visible}
+    #tab-dashboard .dashboard-customer-name{max-width:149px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
+    #tab-dashboard .dashboard-customer-social{max-width:149px;white-space:normal !important;overflow-wrap:anywhere;word-break:break-word;line-height:1.2 !important;font-size:10px !important;overflow:visible !important}
+    #tab-dashboard .dashboard-customer-chat{margin-top:2px !important}
+    #tab-dashboard .dashboard-customer-chat .dashboard-chat-link{margin-left:0 !important;padding:2px 6px !important;font-size:9px !important}
+    #tab-dashboard td:nth-child(2) > div:first-child{gap:2px !important;margin-bottom:2px !important}
+    #tab-dashboard td:nth-child(2) .action-dup,#tab-dashboard td:nth-child(2) .action-del{padding:2px 5px !important;font-size:9px !important;line-height:1.05 !important}
+    #tab-dashboard td:nth-child(2) .assign-select{height:23px;min-height:23px;margin-top:3px !important;padding:2px 3px !important;font-size:9px !important;line-height:1.05;border-radius:5px}
+    /* Keep Settlement visible at normal zoom while the wider record table scrolls horizontally. */
+    #tab-dashboard #dashboardTableScroller > table{border-collapse:separate;border-spacing:0}
+    #tab-dashboard table th:nth-child(8),#tab-dashboard table td:nth-child(8){width:145px;min-width:145px;max-width:145px;white-space:normal;overflow:hidden;text-overflow:ellipsis}
+    #tab-dashboard table th:nth-child(14),#tab-dashboard table td:nth-child(14){position:sticky;right:0;width:128px;min-width:128px;max-width:128px;z-index:24;white-space:normal;overflow:visible;text-overflow:clip;box-shadow:-3px 0 7px rgba(15,23,42,.10)}
+    #tab-dashboard table thead th:nth-child(14){z-index:32;background:#dbeafe !important;color:#0f172a !important}
+    #tab-dashboard table tbody td:nth-child(14){background:#fff}
+    #tab-dashboard table tbody tr:nth-child(even) td:nth-child(14){background:#f9fafb}
+    #tab-dashboard table tbody tr:hover td:nth-child(14){background:#eef2ff}
+    #tab-dashboard table td:nth-child(14) .settlement-quick-open{max-width:122px}
+    #tab-dashboard table td:nth-child(14) .settlement-quick-open .tag{font-size:9px !important;padding:2px 5px !important}
+    #tab-dashboard table td:nth-child(14) .settlement-detail-lines{max-width:118px !important;font-size:9px !important}
+    #tab-dashboard table th:nth-child(15),#tab-dashboard table td:nth-child(15){width:112px;min-width:112px;max-width:112px;white-space:normal;overflow:hidden;text-overflow:ellipsis}
+    #tab-dashboard .dashboard-service-location-cell{white-space:normal !important;overflow:visible !important}
+    /* Gentle readability bump: only the small Dashboard text, not existing large labels. */
+    #tab-dashboard table tr{height:29px}
+    #tab-dashboard .dashboard-inline-date-editor > div:first-child,#tab-dashboard .dashboard-inline-date-editor > div:nth-of-type(3){font-size:10px !important}
+    #tab-dashboard .dashboard-inline-date-editor .dashboard-date-input{font-size:9.5px !important}
+    #tab-dashboard .dashboard-service-location-cell > div > span:not(.tag){font-size:10px !important}
+    #tab-dashboard td:nth-child(2) .action-dup,#tab-dashboard td:nth-child(2) .action-del{font-size:9.5px !important}
+    #tab-dashboard td:nth-child(2) .assign-select{font-size:9.5px !important}
+    #tab-dashboard table td:nth-child(14) .settlement-detail-lines{font-size:9.5px !important}
     .tab-btn{
       border:none;background:transparent;
       padding:6px 14px;border-radius:999px;
@@ -1855,18 +1903,18 @@
           </div>
 
           <form id="appointmentForm">
-            <div class="field">
-              <label for="invoiceId">Invoice ID</label>
-              <div class="inline-row">
-                <input type="text" id="invoiceId" placeholder="TG-2025-0001" required />
-                <label class="toggle" title="Auto ID On/Off">
-                  <input type="checkbox" id="autoInvoiceId" checked />
-                  Auto ID
-                </label>
-                <button type="button" class="btn btn-outline" id="regenInvoiceId" style="padding:6px 12px;font-size:12px;">
-                  🔁 New ID
-                </button>
+            <div class="field invoice-id-field">
+              <div class="invoice-id-label-row">
+                <label for="invoiceId">Invoice ID <span class="invoice-id-required">***</span></label>
+                <div class="invoice-id-tools">
+                  <label class="toggle invoice-id-auto-badge" title="Auto ID On/Off">
+                    <input type="checkbox" id="autoInvoiceId" checked />
+                    <span>AUTO</span>
+                  </label>
+                  <button type="button" class="btn btn-outline invoice-id-new-badge" id="regenInvoiceId" title="Generate New Invoice ID">↻ NEW</button>
+                </div>
               </div>
+              <input type="text" id="invoiceId" placeholder="TG-2025-0001" required />
               <small>Auto ID (default) သို့ Manual ID နှစ်မျိုးလုံး သုံးနိုင်ပါတယ်</small>
             </div>
 
@@ -2040,7 +2088,8 @@
                 <input type="checkbox" id="entrySettlementEnabled" />
                 💼 Agent / Service Provider Settlement ကို ဒီ Entry မှာ ဖြည့်မည်
               </label>
-              <small style="display:block; margin-top:6px; color:#9a3412;">လိုအပ်တဲ့ Appointment တွေမှာပဲ ဖွင့်ပါ။ Save လုပ်ပြီးတာနဲ့ Settlement Tab ထဲကို အလိုအလျောက်ပါလာပါမယ်။</small>
+              <small style="display:block; margin-top:6px; color:#9a3412;">လိုအပ်တဲ့ Appointment တွေမှာပဲ ဖွင့်ပါ။ Pending / Noticed ဖြစ်နေစဉ် Settlement Tab မှာ မပေါ်သေးဘဲ Status ပြောင်းပြီးမှ ပေါ်ပါမယ်။</small>
+              <div id="entrySettlementNotice" role="status" style="display:none; margin-top:8px; padding:8px 10px; border-radius:8px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:12px; font-weight:700;"></div>
               <div id="entrySettlementFields" style="display:none; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:10px;">
                 <div class="field"><label for="agentName">Source / Agent</label><select id="agentName"><option value="Direct / ကိုယ်တိုင်ရ">Direct / ကိုယ်တိုင်ရ</option></select></div>
                 <div class="field"><label for="agentSettlementStatus">Agent Status</label><select id="agentSettlementStatus"><option value="pending">မရှင်းရသေး</option><option value="settled">ရှင်းပြီး</option></select></div>
@@ -2231,8 +2280,7 @@
                   <th>Status (Change)</th>
                   <th>Customer</th>
                   <th>Phone / Channel</th>
-                  <th>Service</th>
-                  <th>Location</th>
+                  <th>Service / Location</th>
                   <th>Payment</th>
                   <th>Total</th>
                   <th>Deposit</th>
@@ -2244,7 +2292,7 @@
               </thead>
               <tbody id="appointmentsTableBody">
                 <tr>
-                  <td colspan="16" style="text-align:center; padding:10px;">
+                  <td colspan="15" style="text-align:center; padding:10px;">
                     Data မရှိသေးပါ… "Reload Data" ကိုနှိပ်ပါ
                   </td>
                 </tr>
@@ -2922,6 +2970,21 @@
       $("appointmentTime").value = `${String(displayHour).padStart(2, "0")}:${match[2]}`;
       updateAppointmentTimePeriodUI(period);
     }
+    function normalizeDashboardAppointmentTime(value) {
+      const raw = String(value || "").trim().toUpperCase().replace(/\s+/g, " ");
+      const match = raw.match(/^(\d{1,2})(?::?(\d{2}))\s*(AM|PM)?$/);
+      if (!match) return null;
+      let hour = Number(match[1]);
+      const minute = Number(match[2]);
+      if (minute > 59) return null;
+      const explicitPeriod = match[3];
+      const period = explicitPeriod || (hour >= 12 ? "PM" : "AM");
+      if (explicitPeriod === "PM" && hour < 12) hour += 12;
+      if (explicitPeriod === "AM" && hour === 12) hour = 0;
+      if (hour > 23) return null;
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${String(displayHour).padStart(2, "0")}:${String(minute).padStart(2, "0")} ${period}`;
+    }
     function formatInvoiceAppointmentTime(value) {
       return String(value || "").replace(/\bAM\b/gi, "AM (မနက်)").replace(/\bPM\b/gi, "PM (ညနေ)");
     }
@@ -2936,6 +2999,38 @@
     }, true);
     // --- Normalized case/settlement model and audit helpers ---
     function getCaseStatus(data = {}) { return data.caseStatus || data.customerStatus || "Pending"; }
+    function isSettlementEligible(data = {}) {
+      const status = String(getCaseStatus(data) || "").trim().toLowerCase();
+      return status !== "" && !["pending", "noticed"].includes(status);
+    }
+    function hasSettlementData(data = {}) {
+      const sourceName = data.sourceName || data.agentName || "Direct / ကိုယ်တိုင်ရ";
+      const agentAmount = Number(data.agentCommission != null ? data.agentCommission : (data.agentPayable || 0));
+      const handlerName = data.handlerName || data.serviceProviderName || "ကိုယ်တိုင်လုပ်";
+      const handlerType = data.handlerSettlementType || data.serviceProviderSettlementType || "";
+      const handlerAmount = Number(data.handlerSettlementAmount != null ? data.handlerSettlementAmount : (data.serviceProviderSettlementAmount || 0));
+      return (sourceName !== "Direct / ကိုယ်တိုင်ရ" && (agentAmount > 0 || !!data.agentName))
+        || (handlerName !== "ကိုယ်တိုင်လုပ်" && !!handlerType && handlerAmount > 0);
+    }
+    function updateEntrySettlementNotice(data = null) {
+      const notice = $("entrySettlementNotice");
+      if (!notice) return;
+      const current = data || {
+        customerStatus: $("customerStatus")?.value || "Pending",
+        agentName: $("agentName")?.value || "",
+        agentPayable: Number($("agentPayable")?.value || 0),
+        serviceProviderName: $("serviceProviderName")?.value || "",
+        serviceProviderSettlementType: $("serviceProviderSettlementType")?.value || "",
+        serviceProviderSettlementAmount: Number($("serviceProviderSettlementAmount")?.value || 0)
+      };
+      const status = String(getCaseStatus(current) || "").trim().toLowerCase();
+      const hiddenFromSettlementTab = ["pending", "noticed"].includes(status);
+      const shouldShow = hiddenFromSettlementTab && hasSettlementData(current);
+      notice.style.display = shouldShow ? "block" : "none";
+      if (shouldShow) {
+        notice.textContent = `💼 Settlement သိမ်းထားပါသည်။ Customer Status ${getCaseStatus(current)} ဖြစ်သောကြောင့် Settlement Tab တွင် မပြသေးပါ။`;
+      }
+    }
     function paymentStatusLabel(status = "unpaid") {
       return status === "paid" ? "✅ PAID" : status === "partial" ? "🟡 PARTI PAID" : status === "credit" ? "🔵 CREDIT" : "⚪ NO PAID";
     }
@@ -3279,7 +3374,7 @@
         
         cachedAppointments = [];
         const tbody = $("appointmentsTableBody");
-        if (tbody) tbody.innerHTML = `<tr><td colspan="16" style="text-align:center; padding:10px;">🔒 Data ကြည့်ရန် Login ဝင်ပါ</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="15" style="text-align:center; padding:10px;">🔒 Data ကြည့်ရန် Login ဝင်ပါ</td></tr>`;
         const form = $("appointmentForm");
         if (form) form.reset();
         if ($("loadMoreBtn")) $("loadMoreBtn").style.display = "none";
@@ -5337,11 +5432,15 @@
         if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = "pending";
       }
     }
-    $("entrySettlementEnabled")?.addEventListener("change", syncEntrySettlementUI);
-    $("agentName")?.addEventListener("change", syncEntrySettlementUI);
-    $("appointmentForm")?.addEventListener("reset", () => setTimeout(() => { syncEntrySettlementUI(); syncEntryDateDisplays(); }, 0));
+    $("entrySettlementEnabled")?.addEventListener("change", () => { syncEntrySettlementUI(); updateEntrySettlementNotice(); });
+    $("agentName")?.addEventListener("change", () => { syncEntrySettlementUI(); updateEntrySettlementNotice(); });
+    $("customerStatus")?.addEventListener("change", () => updateEntrySettlementNotice());
+    $("agentPayable")?.addEventListener("input", () => updateEntrySettlementNotice());
+    $("serviceProviderSettlementAmount")?.addEventListener("input", () => updateEntrySettlementNotice());
+    $("appointmentForm")?.addEventListener("reset", () => setTimeout(() => { syncEntrySettlementUI(); syncEntryDateDisplays(); updateEntrySettlementNotice(); }, 0));
     $("serviceProviderName")?.addEventListener("change", () => {
       syncSettlementInputState();
+      updateEntrySettlementNotice();
     });
     $("serviceProviderSettlementType")?.addEventListener("change", () => {
       syncSettlementInputState();
@@ -5351,8 +5450,10 @@
       const price = Number($("price")?.value || 0);
       const amount = type === "receivable" ? Math.max(price - cost, 0) : cost;
       if (amount > 0 && $("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = amount.toFixed(2);
+      updateEntrySettlementNotice();
     });
     syncEntrySettlementUI();
+    updateEntrySettlementNotice();
 
     // --- 🚀 NEW: Handover Notes Log ---
     function renderNotesLog(notesArr) {
@@ -6091,7 +6192,7 @@
       const loadBtn = $("loadMoreBtn");
       
       if (!isLoadMore) {
-        body.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:8px;">Loading...</td></tr>`;
+        body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Loading...</td></tr>`;
         $("dashboardMessage").textContent = "";
         cachedAppointments = [];
         lastVisibleDoc = null;
@@ -6122,11 +6223,11 @@
           if (loadBtn) loadBtn.style.display = (snap.docs.length === fetchLimit) ? "inline-block" : "none";
         } else {
           if (loadBtn) loadBtn.style.display = "none";
-          if (!isLoadMore) body.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
+          if (!isLoadMore) body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
         }
       } catch(e) { 
         console.error(e);
-        if(!isLoadMore) body.innerHTML = `<tr><td colspan="16" style="text-align:center;color:#b91c1c;">Error loading: ${e.message}</td></tr>`; 
+        if(!isLoadMore) body.innerHTML = `<tr><td colspan="15" style="text-align:center;color:#b91c1c;">Error loading: ${e.message}</td></tr>`; 
       }
       
       if (loadBtn && loadBtn.style.display !== "none") loadBtn.textContent = "Load More (နောက်ထပ်ခေါ်ရန်)";
@@ -6280,6 +6381,9 @@
       }
       const rows = [];
       (cachedAppointments || []).forEach(a => {
+        // Pending / Noticed records retain their settlement data, but stay out of the Settlement tab
+        // until the customer moves to another status.
+        if (!isSettlementEligible(a)) return;
         const date = a.date || "";
         const service = a.serviceType || "";
         const servicePackage = a.servicePackage || "";
@@ -6604,7 +6708,7 @@
       });
 
       lastFilteredAppointments = finalFiltered;
-      if (!finalFiltered.length) { body.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`; return; }
+      if (!finalFiltered.length) { body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`; return; }
       
       const canViewProfit = currentRole === "admin" || currentRole === "manager";
       const canEditDelete = currentRole === "admin" || currentRole === "manager";
@@ -6623,9 +6727,10 @@
 
          const s = getCaseStatus(a).toLowerCase(); 
         const isArchive = (s === "completed" || s === "done" || s === "cancel");
+        const allowInlineDateEdit = canEditDelete && !a.isDraft;
 
-        let apptHtml = apptDT || "-";
-        if (a.appointmentDate && s !== "completed" && s !== "cancel") {
+        let apptHtml = allowInlineDateEdit ? "" : (apptDT || "-");
+        if (!allowInlineDateEdit && a.appointmentDate && s !== "completed" && s !== "cancel") {
           const tmr = new Date(today);
           tmr.setDate(tmr.getDate() + 1);
           const tomorrowStr = `${tmr.getFullYear()}-${String(tmr.getMonth()+1).padStart(2,'0')}-${String(tmr.getDate()).padStart(2,'0')}`;
@@ -6650,7 +6755,7 @@
           : `<select class="status-select ${getCaseStatus(a).toLowerCase()}" data-statusid="${id}" data-oldstatus="${getCaseStatus(a)}">${statusOptions}</select>`;
 
         let expHtml = "";
-        if (a.expiryDate) {
+        if (a.expiryDate && !allowInlineDateEdit) {
            let isExpiringAlert = false;
            if (s !== "cancel" && s !== "completed" && s !== "done" && a.alertDays) {
                 const expDate = new Date(a.expiryDate);
@@ -6661,6 +6766,20 @@
            const fontWeight = isExpiringAlert ? "800" : "normal";
            expHtml = `<br/><small style="color:${color};font-weight:${fontWeight};">Exp: ${a.expiryDate}</small>`;
         }
+
+        const inlineDateHtml = allowInlineDateEdit ? `
+          <div class="dashboard-inline-date-editor" style="display:flex;flex-direction:column;gap:2px;min-width:140px;width:140px;max-width:140px;">
+            <div style="font-size:9px;font-weight:900;color:#475569;line-height:1;">APPT</div>
+            <div style="display:flex;align-items:center;gap:3px;">
+              <input type="date" class="dashboard-date-input" data-dateid="${id}" data-datefield="appointmentDate" value="${a.appointmentDate || ""}" title="Appointment Date ပြောင်းရန်" style="flex:1;min-width:0;width:1%;padding:2px 3px;font-size:9px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;">
+              <input type="text" class="dashboard-date-input" data-dateid="${id}" data-datefield="appointmentTime" value="${a.appointmentTime || ""}" placeholder="03:00 PM" title="Appointment Time ပြောင်းရန်" style="width:56px;padding:2px 2px;font-size:8px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;">
+            </div>
+            <div style="font-size:9px;font-weight:900;color:#475569;line-height:1;margin-top:1px;">EXP</div>
+            <div style="display:flex;align-items:center;gap:3px;">
+              <input type="date" class="dashboard-date-input" data-dateid="${id}" data-datefield="expiryDate" value="${a.expiryDate || ""}" title="Expiry Date ပြောင်းရန်" style="flex:1;min-width:0;width:1%;padding:2px 3px;font-size:9px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;">
+              <input type="number" class="dashboard-date-input" data-dateid="${id}" data-datefield="alertDays" value="${a.alertDays != null ? a.alertDays : ""}" min="1" step="1" placeholder="Days" title="Alert Before (Days) ပြောင်းရန်" style="width:32px;padding:2px 2px;font-size:8px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;">
+            </div>
+          </div>` : "";
 
         const isHighlighted = (id === highlightDocId);
 
@@ -6804,20 +6923,20 @@
           </td>
           
           <td>${a.date || ""}</td>
-          <td>${apptHtml}${expHtml}</td>
+          <td>${inlineDateHtml}${apptHtml}${expHtml}</td>
           <td>${statusCell}</td>
           <td>${nameHtml}</td>
           <td class="dashboard-contact-cell">
             <div title="${a.phone || ""}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px;">${a.phone || ""}</div>
-            <div title="${a.channel ? 'Via: ' + a.channel : ""}" style="color:var(--muted); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px;">${a.channel ? 'Via: ' + a.channel : ""}</div>
+            <div title="${a.channel ? 'Via: ' + a.channel : ""}" style="color:var(--muted); font-weight:600; white-space:normal; overflow-wrap:anywhere; word-break:break-word; max-width:149px;">${a.channel ? 'Via: ' + a.channel : ""}</div>
           </td>
-          <td>
-            <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start; max-width: 130px;">
-              <span class="tag" title="${a.serviceType || ""}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; display:block; text-align:left;">${a.serviceType || ""}</span>
-              ${a.servicePackage ? `<span title="${a.servicePackage}" style="font-size:11px; color:#475569; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; display:block;">${a.servicePackage}</span>` : ""}
+          <td class="dashboard-service-location-cell" title="Service: ${a.serviceType || "-"} · Location: ${a.location || "-"}">
+            <div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start;max-width:145px;line-height:1.1;">
+              <span class="tag" title="${a.serviceType || ""}" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;text-align:left;font-size:10px;">${a.serviceType || "-"}</span>
+              ${a.servicePackage ? `<span title="${a.servicePackage}" style="font-size:9px;color:#475569;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;">${a.servicePackage}</span>` : ""}
+              <span style="font-size:9px;color:#475569;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;">📍 ${a.location || "-"}</span>
             </div>
           </td>
-          <td title="${a.location || ""}"><div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100px;">${a.location || ""}</div></td>
           <td><div style="display:flex;flex-direction:column;gap:2px;line-height:1.15;white-space:nowrap;"><span style="font-weight:800;">${a.paymentType || "-"}</span><span style="font-weight:800;color:${currentPaymentStatus === "paid" ? "#166534" : currentPaymentStatus === "partial" ? "#92400e" : "#64748b"};">${depositStatusLabel}</span><button type="button" class="dashboard-deposit-btn" data-paymentid="${id}" title="Payment Status / Amount ပြင်ရန်" style="border:0;background:transparent;padding:0;text-align:left;cursor:pointer;font-size:12px;line-height:1;">💵</button></div></td>
           <td>${a.price != null ? Number(a.price).toFixed(2) : ""}</td>
           <td>${dep}</td>
@@ -6836,6 +6955,36 @@
         if(isHighlighted) {
            setTimeout(() => tr.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
         }
+
+        tr.querySelectorAll(".dashboard-date-input").forEach(input => input.addEventListener("change", async () => {
+          const dateId = input.dataset.dateid;
+          const field = input.dataset.datefield;
+          if (!dateId || !["appointmentDate", "appointmentTime", "expiryDate", "alertDays"].includes(field)) return;
+          const current = cachedAppointments.find(item => item.id === dateId);
+          const oldValue = current?.[field] ?? "";
+          let nextValue = input.value || "";
+          if (field === "appointmentTime" && nextValue) nextValue = normalizeDashboardAppointmentTime(nextValue);
+          if (field === "alertDays" && nextValue !== "") nextValue = Math.max(1, Number(nextValue));
+          if (field === "appointmentTime" && input.value && !nextValue) {
+            input.value = oldValue || "";
+            return showToast("APPT Time ပုံစံမမှန်ပါ။ ဥပမာ 03:00 PM", "error");
+          }
+          const comparableOld = oldValue == null ? "" : String(oldValue);
+          const comparableNext = nextValue == null ? "" : String(nextValue);
+          if (comparableNext === comparableOld) return;
+          input.disabled = true;
+          try {
+            await updateAppointmentWithAudit(dateId, { [field]: nextValue === "" ? null : nextValue }, "dashboard_date_update");
+            notifyAppointmentChange(dateId, "date");
+            renderAppointmentsTable();
+            const label = field === "appointmentDate" ? "APPT Date" : field === "appointmentTime" ? "APPT Time" : field === "expiryDate" ? "EXP Date" : "Alert Days";
+            showInvoiceToast(current || dateId, `${label} update ပြီးပါပြီ`, "success");
+          } catch (error) {
+            input.value = oldValue || "";
+            showToast(`${field} update မအောင်မြင်ပါ: ${error.message}`, "error");
+            input.disabled = false;
+          }
+        }));
 
         const quickSettlementBtn = tr.querySelector(".settlement-quick-open");
         if (quickSettlementBtn) quickSettlementBtn.addEventListener("click", () => openQuickSettlementModal(id));
@@ -6973,6 +7122,7 @@
               cachedAppointments[idx].caseStatus = newVal;
               cachedAppointments[idx].completedAt = newVal === "Completed" ? { toDate: () => new Date(), toMillis: () => Date.now() } : null;
               Object.assign(cachedAppointments[idx], autoPaymentPatch, restorePaymentPatch);
+              renderSettlementDashboard();
               // Local Cache တွင်ပါ အချိန်ကို ချက်ချင်း Update လုပ်ပေးမည်
               cachedAppointments[idx].updatedAt = { 
                   toDate: () => new Date(), 
@@ -7364,15 +7514,16 @@
       $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
       if ($("paymentStatus")) $("paymentStatus").value = a.paymentStatus || (Number(a.depositAmount || 0) >= Number(a.price || 0) && Number(a.price || 0) > 0 ? "paid" : Number(a.depositAmount || 0) > 0 ? "partial" : "unpaid");
       if ($("paymentTransferDate")) $("paymentTransferDate").value = a.paymentTransferDate || a.depositReceivedDate || "";
-      if ($("agentName")) $("agentName").value = a.agentName || "";
-      if ($("agentPayable")) $("agentPayable").value = a.agentPayable != null ? a.agentPayable : "";
+      if ($("agentName")) $("agentName").value = a.agentName || a.sourceName || "";
+      if ($("agentPayable")) $("agentPayable").value = a.agentPayable != null ? a.agentPayable : (a.agentCommission != null ? a.agentCommission : "");
       if ($("agentSettlementStatus")) $("agentSettlementStatus").value = a.agentSettlementStatus || "pending";
-      if ($("serviceProviderName")) $("serviceProviderName").value = a.serviceProviderName || "";
-      if ($("serviceProviderSettlementType")) $("serviceProviderSettlementType").value = a.serviceProviderSettlementType || "";
-      if ($("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = a.serviceProviderSettlementAmount != null ? a.serviceProviderSettlementAmount : "";
+      if ($("serviceProviderName")) $("serviceProviderName").value = a.serviceProviderName || a.handlerName || "";
+      if ($("serviceProviderSettlementType")) $("serviceProviderSettlementType").value = a.serviceProviderSettlementType || a.handlerSettlementType || "";
+      if ($("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = a.serviceProviderSettlementAmount != null ? a.serviceProviderSettlementAmount : (a.handlerSettlementAmount != null ? a.handlerSettlementAmount : "");
       if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = a.serviceProviderSettlementStatus || "pending";
-      if ($("entrySettlementEnabled")) $("entrySettlementEnabled").checked = !!(a.entrySettlementEnabled || a.agentName || Number(a.agentPayable || 0) > 0 || a.serviceProviderName || a.serviceProviderSettlementType);
+      if ($("entrySettlementEnabled")) $("entrySettlementEnabled").checked = !!(a.entrySettlementEnabled || a.agentName || a.sourceName || Number(a.agentPayable || a.agentCommission || 0) > 0 || a.serviceProviderName || a.handlerName || a.serviceProviderSettlementType || a.handlerSettlementType);
       syncEntrySettlementUI();
+      updateEntrySettlementNotice(a);
       $("remark").value = a.remark || ""; updateDepositUI(); refreshEntryPaymentButton();
       if ($("assignedTo")) { ensureOption($("assignedTo"), a.assignedTo); $("assignedTo").value = a.assignedTo || ""; }
       pendingNewNotes = [];
