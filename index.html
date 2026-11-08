@@ -2080,7 +2080,7 @@
                 </div>
 
                 <div class="field">
-                  <label for="depositAmount">Deposit Amount (THB)</label>
+                  <label for="depositAmount">Deposit Amount (${recordCurrency})</label>
                   <input type="number" id="depositAmount" min="0" step="0.01" placeholder="0.00" />
                   <small>Payment Type ဘာရွေးရွေး ထည့်လို့ရ</small>
                 </div>
@@ -2285,6 +2285,7 @@
 
             <button class="btn btn-secondary" id="applyFilter" style="background:#0f172a; color:#fff;">Apply Filter</button>
             <button class="btn btn-outline" id="clearFilterBtn" style="border-color:#dc2626; color:#dc2626; margin-left: 8px;">✖ Clear Filter</button>
+            <button class="btn btn-secondary" id="loadMoreToolbarBtn" type="button" title="Load More records">⟳ L_M</button>
           </div>
 
           <div id="dashboardTableScroller">
@@ -2545,6 +2546,14 @@
               <div class="settings-section-intro">
                 <strong>📋 Basic Lists</strong>
                 <span>Dropdown ထဲမှာ ရွေးချယ်စရာအဖြစ် ပြမည့်စာရင်းများကို တစ်ကြောင်းစီရေးပါ။</span>
+              </div>
+              <div class="settings-block settings-block-wide" style="margin-bottom:12px;">
+                <h4>🤖 Auto Cancel Rules</h4>
+                <div class="settings-field-grid">
+                  <div class="field"><label for="autoCancelNoticedDays">NOTICED မပြောင်းလျှင် Auto Cancel(N) (ရက်)</label><input type="number" id="autoCancelNoticedDays" min="0" step="1" placeholder="ပိတ်ထားရန် အလွတ်ထားပါ" /></div>
+                  <div class="field"><label for="autoCancelPendingExpiryDays">EXP Date ကျော်ပြီး PENDING ဖြစ်နေလျှင် Auto Cancel(P) (ရက်)</label><input type="number" id="autoCancelPendingExpiryDays" min="0" step="1" placeholder="ပိတ်ထားရန် အလွတ်ထားပါ" /></div>
+                </div>
+                <small>သတ်မှတ်ထားသော ရက်ပြည့်မှသာ Auto Cancel ပြောင်းပါမည်။ အလွတ်ထားလျှင် အော်တိုမပြောင်းပါ။</small>
               </div>
               <div class="settings-list-grid">
                 <div class="settings-block">
@@ -2916,6 +2925,8 @@
     let servicePricing = {};
     let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "", sheetUrl: "", ocrUrl: "", geminiApiKey: "" };
     let paymentSettings = { promptPayId: "", mmQRs: "", invoiceFooter: "" };
+    let automationSettings = { noticedAutoCancelDays: null, pendingExpiryAutoCancelDays: null };
+    let autoCancelPromise = null;
     let invoiceLogoDataUrl = "";
 
     let cachedAppointments = [];
@@ -3193,11 +3204,27 @@
       const a = (cachedAppointments || []).find(x => x.id === id); if (!a) return;
       const old = document.getElementById("dashboardDepositModal"); if (old) old.remove();
       const total = Number(a.price || 0), current = Number(a.depositAmount || 0);
+      const recordCurrency = a.currency || "THB";
+      const recordExchangeRate = Number(a.exchangeRate || 0);
       const overlay = document.createElement("div"); overlay.id = "dashboardDepositModal";
       overlay.style.cssText = "position:fixed;inset:0;z-index:99998;background:rgba(15,23,42,.46);display:flex;align-items:center;justify-content:center;padding:16px;";
-      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(430px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💵 Payment / Deposit ပြင်ရန်</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Invoice: ${id} · Total: ${total.toFixed(2)} THB</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="dashDepositStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Deposit Amount (THB)</label><input id="dashDepositAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="dashDepositDate" type="date" value="${a.paymentTransferDate || a.depositReceivedDate || (current > 0 ? todayISO() : "")}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="dashDepositCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="dashDepositSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
+      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(430px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💵 Payment / Deposit ပြင်ရန်</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Invoice: ${id} · Total: ${total.toFixed(2)} ${recordCurrency}</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Type</label><select id="dashPaymentType" style="width:100%;">${(dropdownSettings.paymentTypes || []).map(x => `<option value="${String(x).replace(/"/g,'&quot;')}">${x}</option>`).join("")}</select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Currency</label><select id="dashPaymentCurrency" style="width:100%;"><option value="THB">THB (ထိုင်းဘတ်)</option><option value="MMK">MMK (မြန်မာကျပ်)</option></select><div id="dashExchangeRateWrap" style="display:${recordCurrency === "MMK" ? "block" : "none"};margin-top:10px;"><label style="display:block;font-weight:700;font-size:12px;margin:0 0 4px;">ပေါက်ဈေး (၁ သိန်း = ? ဘတ်)</label><input id="dashExchangeRate" type="number" min="0" step="0.01" value="${recordExchangeRate || ""}" placeholder="e.g. 780" style="width:100%;"><small id="dashMmkPreview" style="display:block;color:#4f46e5;font-weight:700;margin-top:4px;"></small></div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="dashDepositStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label id="dashDepositAmountLabel" style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Deposit Amount (${recordCurrency})</label><input id="dashDepositAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="dashDepositDate" type="date" value="${a.paymentTransferDate || a.depositReceivedDate || (current > 0 ? todayISO() : "")}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="dashDepositCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="dashDepositSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
       document.body.appendChild(overlay);
-      const status = overlay.querySelector("#dashDepositStatus"), amount = overlay.querySelector("#dashDepositAmount"), date = overlay.querySelector("#dashDepositDate");
+      const paymentType = overlay.querySelector("#dashPaymentType"), paymentCurrency = overlay.querySelector("#dashPaymentCurrency"), exchangeRate = overlay.querySelector("#dashExchangeRate"), exchangeWrap = overlay.querySelector("#dashExchangeRateWrap"), mmkPreview = overlay.querySelector("#dashMmkPreview"), status = overlay.querySelector("#dashDepositStatus"), amount = overlay.querySelector("#dashDepositAmount"), date = overlay.querySelector("#dashDepositDate");
+      const syncDashboardCurrencyUI = () => {
+        const isMMK = paymentCurrency?.value === "MMK";
+        if (exchangeWrap) exchangeWrap.style.display = isMMK ? "block" : "none";
+        const amountLabel = overlay.querySelector("#dashDepositAmountLabel");
+        if (amountLabel) amountLabel.textContent = `Deposit Amount (${isMMK ? "MMK" : "THB"})`;
+        if (mmkPreview) { const rate = Number(exchangeRate?.value || 0); const mmk = isMMK && rate > 0 ? Math.round((Number(amount?.value || 0) / rate) * 100000) : 0; mmkPreview.textContent = isMMK && rate > 0 ? `Deposit MMK ≈ ${mmk.toLocaleString()} ကျပ်` : ""; }
+      };
+      if (paymentType) paymentType.value = a.paymentType || dropdownSettings.paymentTypes?.[0] || "";
+      if (paymentCurrency) paymentCurrency.value = a.currency || "THB";
+      if (exchangeRate) exchangeRate.value = a.exchangeRate || "";
+      paymentCurrency?.addEventListener("change", syncDashboardCurrencyUI);
+      exchangeRate?.addEventListener("input", syncDashboardCurrencyUI);
+      amount?.addEventListener("input", syncDashboardCurrencyUI);
+      syncDashboardCurrencyUI();
       status.value = a.paymentStatus || a.depositStatus || (current >= total && total > 0 ? "paid" : current > 0 ? "partial" : "unpaid");
       status.addEventListener("change", () => { if (status.value === "paid") amount.value = total.toFixed(2); if (["unpaid","credit"].includes(status.value)) { amount.value = "0"; date.value = ""; } });
       amount.addEventListener("input", () => { if (status.value === "credit") return; const n = Number(amount.value || 0); status.value = n <= 0 ? "unpaid" : (total > 0 && n >= total ? "paid" : "partial"); if (n > 0 && !date.value) date.value = todayISO(); if (n <= 0) date.value = ""; });
@@ -3206,7 +3233,10 @@
         const nextAmount = Math.min(Math.max(Number(amount.value || 0), 0), total);
         const nextStatus = status.value === "credit" ? "credit" : status.value === "paid" ? "paid" : (nextAmount > 0 ? "partial" : "unpaid");
         const transferDate = overlay.querySelector("#dashDepositDate").value || null;
-        const patch = { depositAmount: nextAmount, balanceAmount: Math.max(total - nextAmount, 0), paymentStatus: nextStatus, depositStatus: nextStatus, paymentTransferDate: transferDate, depositReceivedDate: transferDate, depositUpdatedAt: serverTimestamp(), depositUpdatedBy: currentUserName };
+        const nextCurrency = paymentCurrency?.value || a.currency || "THB";
+        const nextExchangeRate = nextCurrency === "MMK" ? Number(exchangeRate?.value || 0) : 0;
+        if (nextCurrency === "MMK" && !(nextExchangeRate > 0)) return showToast("MMK အတွက် Exchange Rate ထည့်ပေးပါ", "error");
+        const patch = { paymentType: paymentType?.value || a.paymentType || "", currency: nextCurrency, exchangeRate: nextExchangeRate, depositAmount: nextAmount, balanceAmount: Math.max(total - nextAmount, 0), paymentStatus: nextStatus, depositStatus: nextStatus, paymentTransferDate: transferDate, depositReceivedDate: transferDate, depositUpdatedAt: serverTimestamp(), depositUpdatedBy: currentUserName };
         try { await updateAppointmentWithAudit(id, patch, "dashboard_deposit_update"); notifyAppointmentChange(id, "payment"); Object.assign(a, patch); overlay.remove(); renderAppointmentsTable(); showInvoiceToast(a, "Deposit / Payment Status update ပြီးပါပြီ", "success"); }
         catch (e) { showToast("Deposit update မအောင်မြင်ပါ: " + e.message, "error"); }
       };
@@ -3919,6 +3949,8 @@
 
         const paySnap = await getDoc(doc(db, "settings", "payment"));
         if (paySnap.exists()) { paymentSettings = paySnap.data(); }
+        const autoSnap = await getDoc(doc(db, "settings", "automation"));
+        if (autoSnap.exists()) { automationSettings = { ...automationSettings, ...autoSnap.data() }; }
       } catch (e) { console.error("Load settings error:", e); }
 
       renderDropdowns();
@@ -3932,6 +3964,8 @@
       if ($("staffSetting")) $("staffSetting").value = dropdownSettings.staffList.join("\n");
       if ($("sourceSetting")) $("sourceSetting").value = dropdownSettings.sourceList.join("\n");
       if ($("handlerSetting")) $("handlerSetting").value = dropdownSettings.handlerList.join("\n");
+      if ($("autoCancelNoticedDays")) $("autoCancelNoticedDays").value = automationSettings.noticedAutoCancelDays ?? "";
+      if ($("autoCancelPendingExpiryDays")) $("autoCancelPendingExpiryDays").value = automationSettings.pendingExpiryAutoCancelDays ?? "";
 
       if ($("packagesSetting")) {
           let pkgArr = [];
@@ -4017,16 +4051,21 @@
       paymentSettings.promptPayId = $("settingPromptPay").value.trim();
       paymentSettings.mmQRs = $("settingMmQRs").value.trim();
       paymentSettings.invoiceFooter = $("settingInvoiceFooter")?.value.trim() || "";
+      const parseDays = id => { const raw = String($(id)?.value ?? "").trim(); if (!raw) return null; const n = Number(raw); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null; };
+      automationSettings.noticedAutoCancelDays = parseDays("autoCancelNoticedDays");
+      automationSettings.pendingExpiryAutoCancelDays = parseDays("autoCancelPendingExpiryDays");
 
       try {
         await setDoc(doc(db, "settings", "payment"), paymentSettings, { merge: true });
         await setDoc(doc(db, "settings", "dropdowns"), dropdownSettings, { merge: true });
         await setDoc(doc(db, "settings", "telegram"), telegramSettings, { merge: true });
         await setDoc(doc(db, "settings", "servicePricing"), { services: servicePricing }, { merge: true });
+        await setDoc(doc(db, "settings", "automation"), automationSettings, { merge: true });
         renderDropdowns();
         syncEntrySettlementUI();
         msg.textContent = "✅ Settings များကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။"; msg.className = "message success";
         finishProgressToast("✅ Settings များ သိမ်းဆည်းပြီးပါပြီ", "success");
+        applyAutomaticCancellations();
       } catch(e) { msg.textContent = "❌ Save failed: " + e.message; msg.className = "message error"; finishProgressToast("❌ Settings သိမ်းဆည်းမအောင်မြင်ပါ", "error"); }
     });
 
@@ -5266,20 +5305,67 @@
       });
     }
 
+    // Saved document links ကို browser File အဖြစ်ပြောင်းပြီး Edit mode မှာ OCR ပြန်ဖတ်နိုင်ရန်။
+    async function savedDocumentLinkToFile(link, index) {
+      const rawLink = String(link);
+      const driveId = typeof driveFileIdFromLink === "function" ? driveFileIdFromLink(rawLink) : null;
+      const driveCandidates = driveId ? [
+        `https://drive.google.com/uc?export=download&id=${encodeURIComponent(driveId)}`,
+        `https://drive.usercontent.google.com/download?id=${encodeURIComponent(driveId)}&export=download&confirm=t`,
+        `https://drive.google.com/thumbnail?id=${encodeURIComponent(driveId)}&sz=w2400-h2400`
+      ] : [];
+      const candidates = [...new Set([...driveCandidates, rawLink, "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawLink)])];
+      for (const url of candidates) {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) continue;
+          const blob = await response.blob();
+          const type = blob.type || (/\.pdf(?:$|\?)/i.test(link) ? "application/pdf" : "image/jpeg");
+          if (!blob.size || (!type.startsWith("image/") && type !== "application/pdf")) continue;
+          const ext = type === "application/pdf" ? "pdf" : (type.split("/")[1] || "jpg").replace("jpeg", "jpg");
+          return new File([blob], `saved-document-${index + 1}.${ext}`, { type, lastModified: Date.now() });
+        } catch (e) { console.warn("Saved document fetch skipped:", url, e.message); }
+      }
+      const imageFallbacks = driveId && typeof driveThumbnailUrl === "function" ? [driveThumbnailUrl(rawLink, 2400), rawLink] : [rawLink];
+      for (const imageUrl of imageFallbacks) {
+        try {
+          const dataUrl = await getBase64FromUrl(imageUrl);
+          const match = String(dataUrl).match(/^data:([^;,]+);base64,(.+)$/);
+          if (match) {
+            const bytes = Uint8Array.from(atob(match[2]), ch => ch.charCodeAt(0));
+            return new File([bytes], `saved-document-${index + 1}.png`, { type: match[1] || "image/png", lastModified: Date.now() });
+          }
+        } catch (e) { console.warn("Saved document image conversion skipped:", imageUrl, e.message); }
+      }
+      return null;
+    }
+
     // --- Google Cloud AI OCR ခလုတ်နှိပ်လျှင် ---
     const btnRunOCR = $("btnRunOCR");
     if (btnRunOCR) {
       btnRunOCR.addEventListener("click", async () => {
         const fileInput = $("customerFiles");
-        const files = fileInput.files;
+        let files = Array.from(fileInput?.files || []);
+        const savedLinkByKey = new Map();
         const msg = $("message");
 
         if (!(telegramSettings.geminiApiKey || "").trim() && !telegramSettings.ocrUrl) {
           msg.textContent = "⚠️ Settings ထဲတွင် Gemini API Key သို့မဟုတ် OCR URL ထည့်သွင်းထားခြင်း မရှိသေးပါ။"; msg.className = "message error"; return;
         }
 
-        if (!files || files.length === 0) {
-          msg.textContent = "⚠️ ကျေးဇူးပြု၍ ပုံ (Passport / Work Permit) အရင်ရွေးချယ်ပါ။"; msg.className = "message error"; return;
+        if (files.length === 0) {
+          const savedLinks = getExistingDocumentLinks();
+          if (savedLinks.length) {
+            msg.textContent = "⏳ ယခင်သိမ်းထားသော Passport / Work Permit ဖိုင်ကို ပြန်ဖတ်ရန် ပြင်ဆင်နေပါသည်...";
+            showProgressToast("⏳ ယခင်သိမ်းထားသော document ကို ပြန်ဖတ်ရန် ပြင်ဆင်နေပါသည်...", "progress");
+            for (let i = 0; i < savedLinks.length; i++) {
+              const savedFile = await savedDocumentLinkToFile(savedLinks[i], i);
+              if (savedFile) { files.push(savedFile); savedLinkByKey.set(fileKey(savedFile), savedLinks[i]); }
+            }
+          }
+        }
+        if (files.length === 0) {
+          msg.textContent = "⚠️ ယခင်သိမ်းထားသောဖိုင်ကို OCR ပြန်ဖတ်မရပါ။ ဖိုင်ကို ပြန်ရွေးပါ သို့မဟုတ် link ကို စစ်ပါ။"; msg.className = "message error"; return;
         }
 
         msg.textContent = `🔍 ပုံများကို Google Cloud AI ဖြင့် ဖတ်နေပါသည်... (ခဏစောင့်ပါ)`;
@@ -5319,7 +5405,13 @@
               }
 
               if (parsed.name || parsed.docNumber) {
-                ocrMatchedFileKeys.add(fileKey(file));
+                const matchedKey = fileKey(file);
+                ocrMatchedFileKeys.add(matchedKey);
+                const savedLink = savedLinkByKey.get(matchedKey);
+                if (savedLink) {
+                  currentSavedMatchedLinks = [...new Set([...(currentSavedMatchedLinks || []), savedLink])];
+                  if ($("appointmentForm")) $("appointmentForm").dataset.dupMatchedLinks = JSON.stringify(currentSavedMatchedLinks);
+                }
               }
               if (parsed.name && !$("name").value) $("name").value = parsed.name.toUpperCase();
               if (parsed.docNumber && !$("docNumber").value) $("docNumber").value = parsed.docNumber.toUpperCase();
@@ -5406,24 +5498,24 @@
 
     function applyInvoiceIdMode(){
       const auto = $("autoInvoiceId").checked;
-      const isEditing = !!editingDocId;
-      if (isEditing){
-        $("invoiceId").disabled = true; $("autoInvoiceId").disabled = true; $("regenInvoiceId").disabled = true; return;
-      }
       $("autoInvoiceId").disabled = false; $("regenInvoiceId").disabled = false;
       if (auto){ $("invoiceId").disabled = true; } else { $("invoiceId").disabled = false; $("invoiceId").focus(); }
     }
 
-    async function ensureInvoiceIdAuto(){
-      if (currentRole === "guest" || editingDocId || !$("autoInvoiceId").checked) return;
+    async function ensureInvoiceIdAuto(options = {}){
+      if (currentRole === "guest" || (!options.allowEdit && editingDocId) || !$("autoInvoiceId").checked) return;
       $("invoiceId").value = await generateUniqueInvoiceId();
     }
 
     $("autoInvoiceId").addEventListener("change", async () => {
       applyInvoiceIdMode();
-      if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); else if (!editingDocId) $("invoiceId").value = "";
+      if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto({ allowEdit: true }); else if (!editingDocId) $("invoiceId").value = "";
     });
-    $("regenInvoiceId").addEventListener("click", async () => { if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto(); });
+    $("regenInvoiceId").addEventListener("click", async () => {
+      if (!$("autoInvoiceId")) return;
+      if ($("autoInvoiceId").checked) await ensureInvoiceIdAuto({ allowEdit: true });
+      else { $("autoInvoiceId").checked = true; applyInvoiceIdMode(); await ensureInvoiceIdAuto({ allowEdit: true }); }
+    });
     $("date").addEventListener("change", async () => { if ($("autoInvoiceId").checked && !editingDocId && currentUser) await ensureInvoiceIdAuto(); });
 
     const form = $("appointmentForm");
@@ -5914,6 +6006,7 @@
       messageDiv.textContent = ""; messageDiv.className = "message";
 
       let invoiceId = $("invoiceId").value.trim().toUpperCase();
+      const editedInvoiceId = editingDocId ? String((cachedAppointments.find(x => x.id === editingDocId) || {}).invoiceId || "") : "";
       if ($("autoInvoiceId").checked && !editingDocId && !invoiceId){
         invoiceId = await generateUniqueInvoiceId(); $("invoiceId").value = invoiceId;
       }
@@ -6066,8 +6159,13 @@
            }
         }
 
-        if (editingDocId && editingDocId === invoiceId) {
+        if (editingDocId) {
           const canEditDelete = currentRole === "admin" || currentRole === "manager";
+          const idChanged = String(invoiceId).trim().toUpperCase() !== String(editedInvoiceId || "").trim().toUpperCase();
+          if (idChanged) {
+            const duplicateIdSnap = await getDocs(query(collection(db, "appointments"), where("invoiceId", "==", invoiceId), limit(1)));
+            if (!duplicateIdSnap.empty && duplicateIdSnap.docs[0].id !== editingDocId) throw new Error("ဒီ Invoice ID နဲ့ record ရှိပြီးသားပါ။ NEW ID သို့မဟုတ် အခြား ID ရွေးပါ။");
+          }
           if(!canEditDelete) throw new Error("Permission denied to edit.");
           
           const editedAppt = cachedAppointments.find(x => x.id === editingDocId);
@@ -6076,7 +6174,7 @@
              data.documentLinks = [...existingLinks, ...uploadedDriveLinks];
           }
           const existingMatchedLinks = (editedAppt && editedAppt.ocrMatchedLinks) ? editedAppt.ocrMatchedLinks : [];
-          data.ocrMatchedLinks = [...existingMatchedLinks, ...uploadedMatchedLinks];
+          data.ocrMatchedLinks = [...new Set([...existingMatchedLinks, ...uploadedMatchedLinks, ...(currentSavedMatchedLinks || [])])];
 
           data.updatedAt = serverTimestamp();
           data.updatedBy = currentUserName;
@@ -6087,11 +6185,11 @@
           await setDoc(doc(db, "appointments", editingDocId), data, { merge: true });
           await syncSettlementRecords(editingDocId, { ...beforeEdit, ...data });
           await writeAuditLog("update", editingDocId, beforeEdit, { ...beforeEdit, ...data }, ["caseStatus","customerStatus","sourceName","sourceStatus","agentCommission","handlerName","handlerSettlementType","handlerSettlementAmount","handlerSettlementStatus","settlementStatus"]);
-          notifyAppointmentChange(invoiceId, "update");
+          notifyAppointmentChange(editingDocId, "update");
           lastSavedDocId = editingDocId; 
           lastSavedData = { ...data, id: editingDocId };
           
-          messageDiv.textContent = "✅ Updated! Invoice ID: " + editingDocId; 
+          messageDiv.textContent = "✅ Updated! Invoice ID: " + (data.invoiceId || invoiceId); 
           messageDiv.className = "message success";
           finishProgressToast("✅ Appointment Update ပြီးပါပြီ", "success");
           showInvoiceToast({ id: editingDocId, invoiceId: data.invoiceId || editingDocId, customerStatus: data.customerStatus }, `Status ${data.customerStatus || "Pending"} သို့ ရောက်ပြီးပါပြီ · Appointment Update လုပ်ပြီးပါပြီ`, "success");
@@ -6339,6 +6437,56 @@
       return dashboardStatsPromise;
     }
 
+    function timestampToDate(value) {
+      if (!value) return null;
+      if (value.toDate) return value.toDate();
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+
+    async function applyAutomaticCancellations() {
+      if (currentRole === "guest" || autoCancelPromise) return autoCancelPromise;
+      const toConfiguredDays = value => (value === null || value === undefined || String(value).trim() === "") ? null : Number(value);
+      const noticedDays = toConfiguredDays(automationSettings.noticedAutoCancelDays);
+      const pendingExpiryDays = toConfiguredDays(automationSettings.pendingExpiryAutoCancelDays);
+      if ((!Number.isFinite(noticedDays) || noticedDays < 0) && (!Number.isFinite(pendingExpiryDays) || pendingExpiryDays < 0)) return;
+      autoCancelPromise = (async () => {
+        try {
+          const [noticedSnap, pendingSnap] = await Promise.all([
+            Number.isFinite(noticedDays) && noticedDays >= 0 ? getDocs(query(collection(db, "appointments"), where("customerStatus", "==", "Noticed"))) : { docs: [] },
+            Number.isFinite(pendingExpiryDays) && pendingExpiryDays >= 0 ? getDocs(query(collection(db, "appointments"), where("customerStatus", "==", "Pending"))) : { docs: [] }
+          ]);
+          const now = new Date(); now.setHours(0, 0, 0, 0);
+          const changes = [];
+          const seen = new Set();
+          const consider = (ds, kind) => {
+            const a = { id: ds.id, ...ds.data() }; if (seen.has(a.id)) return; seen.add(a.id);
+            let shouldCancel = false, nextStatus = "";
+            if (kind === "noticed" && Number.isFinite(noticedDays) && noticedDays >= 0) {
+              const ref = timestampToDate(a.statusChangedAt) || timestampToDate(a.updatedAt) || timestampToDate(a.createdAt) || timestampToDate(a.date);
+              if (ref) { ref.setHours(0, 0, 0, 0); shouldCancel = Math.floor((now - ref) / 86400000) >= noticedDays; nextStatus = "Auto Cancel(N)"; }
+            }
+            if (kind === "pending" && Number.isFinite(pendingExpiryDays) && pendingExpiryDays >= 0 && a.expiryDate) {
+              const exp = new Date(a.expiryDate); exp.setHours(0, 0, 0, 0);
+              const due = new Date(exp); due.setDate(due.getDate() + pendingExpiryDays);
+              shouldCancel = now >= due; nextStatus = "Auto Cancel(P)";
+            }
+            if (shouldCancel) changes.push({ a, nextStatus });
+          };
+          noticedSnap.docs.forEach(ds => consider(ds, "noticed"));
+          pendingSnap.docs.forEach(ds => consider(ds, "pending"));
+          await Promise.all(changes.map(({a, nextStatus}) => updateAppointmentWithAudit(a.id, { customerStatus: nextStatus, caseStatus: nextStatus, statusChangedAt: serverTimestamp(), autoCancelReason: nextStatus === "Auto Cancel(N)" ? "NOTICED timeout" : "Expiry timeout", autoCancelledAt: serverTimestamp() }, "automatic_cancel")));
+          if (changes.length) {
+            const byId = new Map(changes.map(x => [x.a.id, x.nextStatus]));
+            [...cachedAppointments, ...dashboardStatsAppointments].forEach(a => { if (byId.has(a.id)) { a.customerStatus = byId.get(a.id); a.caseStatus = byId.get(a.id); } });
+            renderAppointmentsTable();
+          }
+        } catch (e) { console.warn("Automatic cancellation check failed:", e); }
+        finally { autoCancelPromise = null; }
+      })();
+      return autoCancelPromise;
+    }
+
     async function loadAppointments(isLoadMore = false) {
       if (currentRole === "guest") return;
       const body = $("appointmentsTableBody"); 
@@ -6370,7 +6518,7 @@
           
           cachedAppointments = [...cachedAppointments, ...newBatch];
           renderAppointmentsTable();
-          if (!isLoadMore) loadDashboardStats();
+          if (!isLoadMore) { loadDashboardStats(); applyAutomaticCancellations(); }
           
           if (loadBtn) loadBtn.style.display = (snap.docs.length === fetchLimit) ? "inline-block" : "none";
         } else {
@@ -6415,6 +6563,10 @@
 
     $("loadMoreBtn").addEventListener("click", () => {
        loadAppointments(true);
+    });
+    $("loadMoreToolbarBtn")?.addEventListener("click", () => {
+      if ($("loadMoreBtn")?.style.display !== "none") loadAppointments(true);
+      else { loadAppointments(false); showToast("Dashboard data refresh လုပ်ပြီးပါပြီ", "success"); }
     });
 
     function updateSummaryCards(baseFilteredData) {
@@ -6833,7 +6985,7 @@
         }
 
         let statusOptions = "";
-        dropdownSettings.customerStatuses.forEach(s_opt => {
+        [...new Set([...dropdownSettings.customerStatuses, "Auto Cancel(N)", "Auto Cancel(P)"])].forEach(s_opt => {
           statusOptions += `<option value="${s_opt}" ${getCaseStatus(a) === s_opt ? 'selected' : ''}>${s_opt}</option>`;
         });
         const statusCell = a.isDraft
@@ -7225,7 +7377,7 @@
             const autoPaymentPatch = completedPaymentPatch(currentAppointment, newVal);
             const restorePaymentPatch = restorePaymentAfterCompleted(currentAppointment, newVal);
             const paymentChanged = Object.keys(autoPaymentPatch).length > 0 || Object.keys(restorePaymentPatch).length > 0;
-            await updateAppointmentWithAudit(docId, { customerStatus: newVal, caseStatus: newVal, completedAt: newVal === "Completed" ? serverTimestamp() : null, ...autoPaymentPatch, ...restorePaymentPatch }, "case_status_update");
+            await updateAppointmentWithAudit(docId, { customerStatus: newVal, caseStatus: newVal, statusChangedAt: serverTimestamp(), completedAt: newVal === "Completed" ? serverTimestamp() : null, ...autoPaymentPatch, ...restorePaymentPatch }, "case_status_update");
             e.target.className = `status-select ${newVal.toLowerCase()}`;
             e.target.dataset.oldstatus = newVal;
 
@@ -7574,8 +7726,10 @@
     }
 
     window.startEditAppointment = function(a) {
-      editingDocId = (a.invoiceId || a.id || "").toUpperCase();
-      $("invoiceId").value = editingDocId; $("invoiceId").disabled = true;
+      editingDocId = a.id || a.invoiceId || "";
+      $("invoiceId").value = a.invoiceId || a.id || "";
+      $("autoInvoiceId").checked = false;
+      $("invoiceId").disabled = false;
 
       const filesDiv = $("existingFilesContainer");
       if (filesDiv) {
@@ -7654,7 +7808,7 @@
       const canEditDelete = currentRole === "admin" || currentRole === "manager";
       $("saveBtnText").textContent = "Update Appointment"; $("btnCancelEdit").style.display = canEditDelete ? "inline-flex" : "none";
       applyInvoiceIdMode();
-      const msg = $("message"); msg.textContent = "Edit Mode: Invoice " + editingDocId; msg.className = "message";
+      const msg = $("message"); msg.textContent = "Edit Mode: Invoice " + ($("invoiceId").value || editingDocId); msg.className = "message";
       document.querySelector('.tab-btn[data-tab="entry"]').click();
     }
 
@@ -8068,8 +8222,8 @@
         const total = Number(data.price || 0); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
         const cur = data.currency || "THB";
         
-        $("invTotalAmount").textContent = total.toFixed(2) + " THB"; 
-        $("invBalanceAmount").textContent = balance.toFixed(2) + " THB";
+        $("invTotalAmount").textContent = total.toFixed(2) + " " + cur; 
+        $("invBalanceAmount").textContent = balance.toFixed(2) + " " + cur;
         
         const depWrapper = $("invDepositWrapper") || $("invDepositRow");
         const depAmount = $("invDepositAmount");
@@ -8077,7 +8231,7 @@
           if(depWrapper) depWrapper.style.display = "flex"; 
           if(depAmount) {
               depAmount.style.display = "block";
-              depAmount.textContent = "-" + deposit.toFixed(2) + " THB"; 
+              depAmount.textContent = "-" + deposit.toFixed(2) + " " + cur; 
           }
         } else { 
           if(depWrapper) depWrapper.style.display = "none"; 
