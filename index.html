@@ -6493,6 +6493,7 @@
       const loadBtn = $("loadMoreBtn");
       
       if (!isLoadMore) {
+        if ($("loadMoreToolbarBtn")) $("loadMoreToolbarBtn").style.display = "none";
         body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Loading...</td></tr>`;
         $("dashboardMessage").textContent = "";
         cachedAppointments = [];
@@ -6521,8 +6522,10 @@
           if (!isLoadMore) { loadDashboardStats(); applyAutomaticCancellations(); }
           
           if (loadBtn) loadBtn.style.display = (snap.docs.length === fetchLimit) ? "inline-block" : "none";
+          if ($("loadMoreToolbarBtn")) $("loadMoreToolbarBtn").style.display = (snap.docs.length === fetchLimit) ? "inline-flex" : "none";
         } else {
           if (loadBtn) loadBtn.style.display = "none";
+          if ($("loadMoreToolbarBtn")) $("loadMoreToolbarBtn").style.display = "none";
           if (!isLoadMore) body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`;
         }
       } catch(e) { 
@@ -6549,6 +6552,7 @@
           cachedAppointments = snap.docs.map(ds => ({ id: ds.id, ...ds.data() }));
           lastVisibleDoc = null;
           if ($("loadMoreBtn")) $("loadMoreBtn").style.display = "none";
+          if ($("loadMoreToolbarBtn")) $("loadMoreToolbarBtn").style.display = "none";
           renderSettlementDashboard();
           renderAppointmentsTable();
         } catch (e) {
@@ -6566,7 +6570,6 @@
     });
     $("loadMoreToolbarBtn")?.addEventListener("click", () => {
       if ($("loadMoreBtn")?.style.display !== "none") loadAppointments(true);
-      else { loadAppointments(false); showToast("Dashboard data refresh လုပ်ပြီးပါပြီ", "success"); }
     });
 
     function updateSummaryCards(baseFilteredData) {
