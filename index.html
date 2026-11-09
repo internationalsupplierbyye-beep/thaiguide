@@ -405,6 +405,9 @@
       background: var(--primary-soft); color: var(--primary); padding: 4px 8px;
       border-left: 4px solid var(--primary); border-radius: 4px;
     }
+    #lblServiceInfo{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    .invoice-service-title-status{display:inline-flex;align-items:center;gap:4px;color:#334155;font-size:11px;font-weight:500;line-height:1;white-space:nowrap;}
+    .invoice-service-title-status .invoice-status-dot{width:7px;height:7px;flex-basis:7px;}
     .invoice-grid{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px 12px;font-size:13px; }
     #invCustomerInfo{position:relative;}
     .invoice-portrait-watermark{position:absolute;left:67%;top:0;width:31%;height:118px;display:none;background-color:transparent;border:0;outline:0;border-radius:0;opacity:.22;filter:grayscale(1);pointer-events:none;z-index:2;mix-blend-mode:multiply;overflow:hidden;}
@@ -419,6 +422,13 @@
     #invCustomerInfo > div:not(.invoice-portrait-watermark){position:relative;z-index:1;}
     .invoice-label{color:#6b7280;font-weight:800}
     .invoice-value{font-weight:800;color:#111827; font-size:15px;}
+    .invoice-status-inline{display:flex;align-items:center;justify-content:flex-end;gap:5px;font-size:11px;font-weight:800;color:#334155;white-space:nowrap;}
+    .invoice-status-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:0 0 9px;border:1px solid rgba(15,23,42,.18);}
+    .invoice-status-label{font-size:11px;font-weight:800;}
+    .invoice-status-service-block{grid-column:2;grid-row:1;align-self:start;text-align:left;min-height:48px;padding-left:2px;}
+    .invoice-status-heading{font-size:16px;font-weight:950;line-height:1.05;color:#111827;letter-spacing:.02em;}
+    .invoice-status-service-value{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:15px;font-weight:900;line-height:1.1;}
+    .invoice-status-service-value .invoice-status-dot{width:9px;height:9px;flex-basis:9px;}
     .invoice-doc-inline{font-size:10px;font-weight:700;color:#64748b;white-space:nowrap;margin-left:5px;}
     .invoice-total{
       margin-top:auto;padding-top:10px;border-top:1px dashed #d4d4d8;
@@ -2427,10 +2437,16 @@
                 </label>
               </div>
               <div class="field full-width" style="margin-top:10px;">
-                <label class="toggle" title="Show customer portrait">
-                  <input type="checkbox" id="showPortraitOnInvoice" checked />
-                  လူပုံပါမည်
-                </label>
+                <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+                  <label class="toggle" title="Show customer portrait">
+                    <input type="checkbox" id="showPortraitOnInvoice" checked />
+                    လူပုံပါမည်
+                  </label>
+                  <label class="toggle" title="Show appointment status in Service Detail">
+                    <input type="checkbox" id="showStatusOnInvoice" checked />
+                    Status ပါမည်
+                  </label>
+                </div>
               </div>
               <div class="actions" style="justify-content:flex-start; margin-top:12px;">
                 <button class="btn btn-secondary" id="loadInvoice">Load Invoice</button>
@@ -2460,7 +2476,7 @@
                 <div class="invoice-section-title" id="lblCustomerInfo">Customer Info</div>
                 <div class="invoice-grid" id="invCustomerInfo"><div id="invPortraitWatermark" class="invoice-portrait-watermark" aria-hidden="true"></div></div>
 
-                <div class="invoice-section-title" id="lblServiceInfo">Service Detail</div>
+                <div class="invoice-section-title" id="lblServiceInfo"><span id="lblServiceInfoText">Service Detail</span><span id="invoiceServiceTitleStatus" class="invoice-service-title-status" style="display:none;"></span></div>
                 <div class="invoice-grid" id="invServiceInfo"></div>
 
                 <div class="invoice-total" style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 15px;">
@@ -8163,6 +8179,19 @@
       return invoiceLogoDataUrl;
     }
 
+    function getInvoiceStatusPresentation(data = {}) {
+      const status = String(data.customerStatus || data.caseStatus || "Pending").trim() || "Pending";
+      const key = status.toLowerCase();
+      let color = "#f59e0b";
+      if (key === "completed" || key === "done") color = "#22c55e";
+      else if (key === "cancel" || key.startsWith("auto cancel")) color = "#ef4444";
+      else if (key === "confirm") color = "#8b5cf6";
+      else if (key === "ongoing") color = "#3b82f6";
+      else if (key === "processing") color = "#eab308";
+      else if (key === "noticed") color = "#f97316";
+      return { status, color };
+    }
+
     async function loadInvoice() {
       if (currentRole === "guest") return;
       const id = ($("invoiceDocId").value.trim() || lastSavedDocId || "").toUpperCase();
@@ -8198,7 +8227,8 @@
 
         if($("invSubtitle")) $("invSubtitle").textContent = t.subtitle;
         if($("lblCustomerInfo")) $("lblCustomerInfo").textContent = t.customerInfo;
-        if($("lblServiceInfo")) $("lblServiceInfo").textContent = t.serviceDetail;
+        if($("lblServiceInfoText")) $("lblServiceInfoText").textContent = t.serviceDetail;
+        else if($("lblServiceInfo")) $("lblServiceInfo").textContent = t.serviceDetail;
         if($("lblTotal")) $("lblTotal").textContent = t.total;
         if($("lblDeposit")) $("lblDeposit").textContent = t.deposit;
         if($("lblBalance")) $("lblBalance").textContent = t.balance;
@@ -8237,6 +8267,8 @@
         portraitWatermark.setAttribute("aria-hidden", "true");
         $("invCustomerInfo").appendChild(portraitWatermark);
         const showPortrait = $("showPortraitOnInvoice") ? $("showPortraitOnInvoice").checked : true;
+        const invoiceStatus = getInvoiceStatusPresentation(data);
+        const showInvoiceStatus = $("showStatusOnInvoice") ? $("showStatusOnInvoice").checked : true;
         if (!showPortrait) {
           portraitWatermark.style.display = "none";
           finishProgressToast("လူပုံ Watermark ကို မပြသဘဲ Invoice ထုတ်ပါမည်", "info");
@@ -8268,6 +8300,12 @@
         
         const sTypeStr = data.servicePackage ? `${data.serviceType} (${data.servicePackage})` : (data.serviceType || "-");
         
+        const titleStatus = $("invoiceServiceTitleStatus");
+        if (titleStatus) {
+          titleStatus.innerHTML = showInvoiceStatus ? `<span class="invoice-status-dot" style="background:${invoiceStatus.color};"></span><span>${invoiceStatus.status}</span>` : "";
+          titleStatus.style.display = showInvoiceStatus ? "inline-flex" : "none";
+          titleStatus.style.color = invoiceStatus.color;
+        }
         $("invServiceInfo").innerHTML = `<div><span class="invoice-label">${t.service}</span><br/><span class="invoice-value">${sTypeStr}</span></div><div><span class="invoice-label">${t.payment}</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div style="grid-column: 1 / -1;"><span class="invoice-label">${t.remark}</span><br/><span class="invoice-value" style="font-size: 12px; font-weight: 600; line-height: 1.5; display: inline-block; margin-top: 4px;">${data.remark || "-"}</span></div>`;
         
         const total = Number(data.price || 0); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
@@ -8451,7 +8489,10 @@
     $("showPortraitOnInvoice")?.addEventListener("change", (event) => {
       const portrait = $("invPortraitWatermark");
       if (portrait) portrait.style.display = event.target.checked ? "block" : "none";
-      if (event.target.checked) loadInvoice();
+      loadInvoice();
+    });
+    $("showStatusOnInvoice")?.addEventListener("change", () => {
+      if ($("invoiceDocId")?.value.trim()) loadInvoice();
     });
     
     $("invoiceLanguage")?.addEventListener("change", () => {
