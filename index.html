@@ -3047,6 +3047,14 @@
     }, true);
     // --- Normalized case/settlement model and audit helpers ---
     function getCaseStatus(data = {}) { return data.caseStatus || data.customerStatus || "Pending"; }
+    function isVisaExpiryExcludedStatus(data = {}) {
+      const status = String(getCaseStatus(data) || "").trim().toLowerCase();
+      return status === "cancel" || status === "completed" || status === "done" || status.startsWith("auto cancel");
+    }
+    function isCancelLikeStatus(status) {
+      const value = String(status || "").trim().toLowerCase();
+      return value === "cancel" || value.startsWith("auto cancel");
+    }
     function isSettlementEligible(data = {}) {
       const status = String(getCaseStatus(data) || "").trim().toLowerCase();
       return status !== "" && !["pending", "noticed"].includes(status);
@@ -6601,7 +6609,7 @@
           pendingCount++;
         }
 
-        if (a.expiryDate && a.alertDays && status !== "cancel" && status !== "completed" && status !== "done") {
+        if (a.expiryDate && a.alertDays && !isVisaExpiryExcludedStatus(a)) {
           const expDate = new Date(a.expiryDate);
           const diffTime = expDate - today;
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -6937,14 +6945,15 @@
          const s = getCaseStatus(a).toLowerCase();
          
          let isExpiring = false;
-         if (a.expiryDate && a.alertDays && s !== "cancel" && s !== "completed" && s !== "done") {
+         if (a.expiryDate && a.alertDays && !isVisaExpiryExcludedStatus(a)) {
             const expDate = new Date(a.expiryDate);
             const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
             if (diffDays <= Number(a.alertDays) && diffDays >= -5) isExpiring = true;
          }
 
          if (viewMode === "expiring") return isExpiring;
-         if (viewMode === "all" || viewMode === "All") return true; 
+         if (viewMode === "all" || viewMode === "All") return true;
+         if (viewMode.toLowerCase() === "cancel") return isCancelLikeStatus(s);
          return s === viewMode.toLowerCase();
       });
 
