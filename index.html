@@ -412,7 +412,7 @@
     .invoice-portrait-watermark.source-crop img{width:300%;height:auto;max-width:none;object-fit:initial;transform:translate(-12%,-48%);}
     .invoice-portrait-watermark img{position:relative;z-index:3;}
     .manual-portrait-crop-panel{display:flex;flex-direction:column;gap:8px;padding:10px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;margin-top:8px;}
-    .manual-portrait-crop-canvas{max-width:100%;height:auto;max-height:430px;align-self:center;touch-action:none;cursor:crosshair;background:#111827;}
+    .manual-portrait-crop-canvas{max-width:100%;height:auto;max-height:430px;align-self:center;touch-action:none;user-select:none;cursor:crosshair;background:#111827;}
     .manual-portrait-crop-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
     .manual-portrait-result{display:none;gap:5px;align-items:center;margin-top:5px;padding:4px 6px;background:#ecfdf5;border:1px solid #86efac;border-radius:6px;color:#166534;font-size:11px;font-weight:700;width:max-content;}
     .manual-portrait-result img{width:48px;height:42px;object-fit:cover;border:0;border-radius:3px;background:#fff;}
@@ -1633,6 +1633,8 @@
       background: #ffffff;
     }
     .document-preview-zoom-wrap {
+      touch-action: none;
+      user-select: none;
       position: relative;
       width: 100%;
       height: 440px;
@@ -4766,6 +4768,7 @@
       const zoomRow = document.createElement("label"); zoomRow.textContent = "🔍 Zoom ";
       const zoom = document.createElement("input"); zoom.type = "range"; zoom.min = "1"; zoom.max = "3"; zoom.step = ".05"; zoom.value = "1"; zoom.style.width = "min(100%, 240px)"; zoomRow.appendChild(zoom);
       const modeBtn = document.createElement("button"); modeBtn.type = "button"; modeBtn.className = "btn btn-outline"; modeBtn.textContent = "✂️ Crop Mode"; modeBtn.style.marginLeft = "8px"; zoomRow.appendChild(modeBtn);
+      const rotateCropBtn = document.createElement("button"); rotateCropBtn.type = "button"; rotateCropBtn.className = "btn btn-outline"; rotateCropBtn.textContent = "↻ Rotate 90°"; rotateCropBtn.title = "Crop မလုပ်မီ ပုံကို 90° လှည့်ရန်"; rotateCropBtn.style.marginLeft = "8px"; zoomRow.appendChild(rotateCropBtn);
       const actions = document.createElement("div"); actions.className = "manual-portrait-crop-actions";
       const cancel = document.createElement("button"); cancel.type = "button"; cancel.className = "btn btn-outline"; cancel.textContent = "မလုပ်တော့ပါ";
       cancel.addEventListener("click", () => expandDocumentPreview({ src, name, isIframe: false, openUrl: src }));
@@ -4776,14 +4779,46 @@
       const view = () => { const iw = image.naturalWidth * fitScale * zoomLevel, ih = image.naturalHeight * fitScale * zoomLevel; const maxX = Math.max(0, (iw - canvas.width) / 2), maxY = Math.max(0, (ih - canvas.height) / 2); panX = Math.max(-maxX, Math.min(maxX, panX)); panY = Math.max(-maxY, Math.min(maxY, panY)); return { iw, ih, dx: (canvas.width - iw) / 2 + panX, dy: (canvas.height - ih) / 2 + panY }; };
       const draw = () => { const ctx = canvas.getContext("2d"); const v = view(); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = "#111827"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(image, v.dx, v.dy, v.iw, v.ih); if (!selection) return; ctx.fillStyle = "rgba(15,23,42,.48)"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.clearRect(selection.x, selection.y, selection.w, selection.h); ctx.strokeStyle = "#22c55e"; ctx.lineWidth = 3; ctx.strokeRect(selection.x, selection.y, selection.w, selection.h); };
       const point = event => { const r = canvas.getBoundingClientRect(); return { x: Math.max(0, Math.min(canvas.width, (event.clientX - r.left) * canvas.width / r.width)), y: Math.max(0, Math.min(canvas.height, (event.clientY - r.top) * canvas.height / r.height)) }; };
-      const pointers = new Map(); let pinchDistance = 0, pinchZoom = 1;
+      const pointers = new Map(); let pinchDistance = 0, pinchZoom = 1, lastPoint = null;
+      canvas.style.touchAction = "none";
       const distance = () => { const values = [...pointers.values()]; return values.length < 2 ? 0 : Math.hypot(values[0].x - values[1].x, values[0].y - values[1].y); };
-      modeBtn.addEventListener("click", () => { interactionMode = interactionMode === "crop" ? "move" : "crop"; modeBtn.textContent = interactionMode === "crop" ? "✂️ Crop Mode" : "✋ Move Mode"; });
+      modeBtn.addEventListener("click", () => { interactionMode = interactionMode === "crop" ? "move" : "crop"; lastPoint = null; modeBtn.textContent = interactionMode === "crop" ? "✂️ Crop Mode" : "✋ Move Mode"; });
+      rotateCropBtn.addEventListener("click", async () => {
+        if (!cropDataReady || !image.naturalWidth || !image.naturalHeight) {
+          showToast("⏳ ပုံဖတ်ပြီးစီးမှ Rotate လုပ်နိုင်ပါမည်", "error");
+          return;
+        }
+        try {
+          const rotated = document.createElement("canvas");
+          rotated.width = image.naturalHeight; rotated.height = image.naturalWidth;
+          const rctx = rotated.getContext("2d");
+          rctx.translate(rotated.width / 2, rotated.height / 2);
+          rctx.rotate(Math.PI / 2);
+          rctx.drawImage(image, -image.naturalWidth / 2, -image.naturalHeight / 2);
+          const rotatedDataUrl = rotated.toDataURL("image/jpeg", .92);
+          selection = null; dragging = false; lastPoint = null; panX = 0; panY = 0; zoomLevel = 1; zoom.value = "1";
+          cropDataReady = false; save.disabled = true;
+          rotateCropBtn.disabled = true; rotateCropBtn.textContent = "⏳ Rotating...";
+          image.src = rotatedDataUrl;
+          image.onload = () => {
+            cropDataReady = true; save.disabled = false; rotateCropBtn.disabled = false; rotateCropBtn.textContent = "↻ Rotate 90°";
+            const maxWidth = Math.min(760, image.naturalWidth || image.width);
+            fitScale = maxWidth / (image.naturalWidth || image.width);
+            canvas.width = Math.max(1, Math.round((image.naturalWidth || image.width) * fitScale));
+            canvas.height = Math.max(1, Math.round((image.naturalHeight || image.height) * fitScale));
+            draw();
+          };
+        } catch (error) {
+          console.error("Crop rotate failed:", error);
+          rotateCropBtn.disabled = false; rotateCropBtn.textContent = "↻ Rotate 90°";
+          showToast("❌ Crop ပုံ Rotate မလုပ်နိုင်ပါ", "error");
+        }
+      });
       zoom.addEventListener("input", () => { zoomLevel = Number(zoom.value) || 1; draw(); });
       canvas.addEventListener("wheel", event => { event.preventDefault(); zoomLevel = Math.max(1, Math.min(3, zoomLevel + (event.deltaY < 0 ? .12 : -.12))); zoom.value = zoomLevel.toFixed(2); draw(); }, { passive:false });
-      canvas.addEventListener("pointerdown", event => { const p = point(event); pointers.set(event.pointerId, p); canvas.setPointerCapture?.(event.pointerId); if (pointers.size === 2) { pinchDistance = distance(); pinchZoom = zoomLevel; dragging = false; return; } dragging = true; if (interactionMode === "move") { selection = null; selection = { x:p.x, y:p.y, w:0, h:0, panStartX:panX, panStartY:panY }; } else selection = { x:p.x, y:p.y, w:0, h:0 }; draw(); });
-      canvas.addEventListener("pointermove", event => { const p = point(event); if (pointers.has(event.pointerId)) pointers.set(event.pointerId, p); if (pointers.size >= 2 && pinchDistance) { zoomLevel = Math.max(1, Math.min(3, pinchZoom * distance() / pinchDistance)); zoom.value = zoomLevel.toFixed(2); draw(); return; } if (!dragging) return; if (interactionMode === "move") { panX += p.x - (selection.x + selection.w); panY += p.y - (selection.y + selection.h); selection.x = p.x; selection.y = p.y; draw(); } else { selection.w = p.x - selection.x; selection.h = p.y - selection.y; draw(); } });
-      const endPointer = event => { pointers.delete(event.pointerId); if (pointers.size < 2) pinchDistance = 0; dragging = false; if (interactionMode === "crop" && selection && Math.abs(selection.w) > 8 && Math.abs(selection.h) > 8) save.disabled = !cropDataReady; };
+      canvas.addEventListener("pointerdown", event => { const p = point(event); pointers.set(event.pointerId, p); canvas.setPointerCapture?.(event.pointerId); if (pointers.size === 2) { pinchDistance = distance(); pinchZoom = zoomLevel; dragging = false; return; } dragging = true; lastPoint = p; if (interactionMode === "crop") selection = { x:p.x, y:p.y, w:0, h:0 }; draw(); });
+      canvas.addEventListener("pointermove", event => { const p = point(event); if (pointers.has(event.pointerId)) pointers.set(event.pointerId, p); if (pointers.size >= 2 && pinchDistance) { zoomLevel = Math.max(1, Math.min(3, pinchZoom * distance() / pinchDistance)); zoom.value = zoomLevel.toFixed(2); draw(); return; } if (!dragging) return; if (interactionMode === "move" && lastPoint) { panX += p.x - lastPoint.x; panY += p.y - lastPoint.y; lastPoint = p; } else if (interactionMode === "crop" && selection) { selection.w = p.x - selection.x; selection.h = p.y - selection.y; } draw(); });
+      const endPointer = event => { pointers.delete(event.pointerId); if (pointers.size < 2) pinchDistance = 0; dragging = false; lastPoint = null; if (interactionMode === "crop" && selection && Math.abs(selection.w) > 8 && Math.abs(selection.h) > 8) save.disabled = !cropDataReady; };
       canvas.addEventListener("pointerup", endPointer); canvas.addEventListener("pointercancel", endPointer);
       image.onload = () => { title.textContent = cropDataReady ? "👤 Scroll / Pinch ဖြင့် Zoom၊ Move Mode ဖြင့် ရွှေ့ပြီး Crop Mode ဖြင့် ရွေးပါ" : "👤 ပုံမြင်ရပါပြီ — Crop Save ခလုတ်ဖွင့်ရန် ပုံဖတ်နေဆဲ..."; const maxWidth = Math.min(760, image.naturalWidth || image.width); fitScale = maxWidth / (image.naturalWidth || image.width); canvas.width = Math.max(1, Math.round((image.naturalWidth || image.width) * fitScale)); canvas.height = Math.max(1, Math.round((image.naturalHeight || image.height) * fitScale)); draw(); };
       image.onerror = () => { title.textContent = "❌ ပုံကို Crop Tool ထဲ မဖွင့်နိုင်ပါ — ပုံဖိုင်ကို အရင်ရွေးပါ"; save.disabled = true; };
@@ -4861,7 +4896,9 @@
         btnReset.type = "button"; btnReset.textContent = "⤢"; btnReset.title = "Reset";
         const btnIn = document.createElement("button");
         btnIn.type = "button"; btnIn.textContent = "+"; btnIn.title = "Zoom In";
-        controls.append(btnOut, btnReset, btnIn);
+        const btnRotate = document.createElement("button");
+        btnRotate.type = "button"; btnRotate.textContent = "↻"; btnRotate.title = "Rotate 90°";
+        controls.append(btnOut, btnReset, btnIn, btnRotate);
         wrap.appendChild(controls);
 
         expanded.appendChild(wrap);
@@ -4869,6 +4906,7 @@
         btnOut.addEventListener("click", () => zoomApi.zoomBy(-0.5));
         btnIn.addEventListener("click", () => zoomApi.zoomBy(0.5));
         btnReset.addEventListener("click", () => zoomApi.reset());
+        btnRotate.addEventListener("click", () => zoomApi.rotateBy(90));
       }
 
       const footer = document.createElement("div");
@@ -4887,14 +4925,14 @@
     // ပုံကို Zoom in/out နှင့် ဆွဲ (pan) ကြည့်နိုင်ရန် (Wheel, Drag, Pinch, ခလုတ်များ ပံ့ပိုးသည်)
     function setupImagePanZoom(wrap, img) {
       const MIN_SCALE = 1, MAX_SCALE = 5;
-      let scale = 1, originX = 0, originY = 0;
+      let scale = 1, originX = 0, originY = 0, rotation = 0;
       let isDragging = false, startX = 0, startY = 0, startOriginX = 0, startOriginY = 0;
       let pinchStartDist = 0, pinchStartScale = 1;
 
       function apply(withTransition) {
         wrap.classList.toggle("is-transitioning", !!withTransition);
         wrap.classList.toggle("is-zoomed", scale > 1.001);
-        img.style.transform = `translate(calc(-50% + ${originX}px), calc(-50% + ${originY}px)) scale(${scale})`;
+        img.style.transform = `translate(calc(-50% + ${originX}px), calc(-50% + ${originY}px)) scale(${scale}) rotate(${rotation}deg)`;
       }
 
       function clampOrigin() {
@@ -4912,7 +4950,8 @@
         apply(true);
       }
 
-      function reset() { scale = 1; originX = 0; originY = 0; apply(true); }
+      function reset() { scale = 1; originX = 0; originY = 0; rotation = 0; apply(true); }
+      function rotateBy(degrees = 90) { rotation = (rotation + degrees) % 360; apply(true); }
       function zoomBy(delta) { setScale(scale + delta); }
 
       wrap.addEventListener("wheel", (e) => {
@@ -4985,7 +5024,7 @@
       });
 
       apply(false);
-      return { reset, zoomBy };
+      return { reset, zoomBy, rotateBy };
     }
 
     function drivePreviewUrl(link) {
