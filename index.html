@@ -398,7 +398,9 @@
     .invoice-logo img{width:100%;height:100%;object-fit:cover;display:block}
     .invoice-brand{font-weight:900;font-size:20px;letter-spacing:.04em;text-transform:uppercase}
     .invoice-sub{font-size:14px;color:#4b5563;font-weight:800}
-    .invoice-meta-row{display:flex;justify-content:space-between;font-size:12.5px;color:#6b7280;margin-bottom:8px}
+    .invoice-meta-row{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;font-size:12.5px;color:#6b7280;margin-bottom:8px}
+    .invoice-meta-block{display:flex;flex-direction:column;gap:3px;min-width:0}
+    .invoice-meta-block.right{text-align:right;align-items:flex-end}
     
     .invoice-section-title {
       font-size: 14px; font-weight: 900; margin-top: 12px; margin-bottom: 8px;
@@ -953,6 +955,12 @@
     body.dark-mode #tab-dashboard #dashboardTableScroller::-webkit-scrollbar-track{background:#1e293b}
     body.dark-mode #tab-dashboard #dashboardTableScroller::-webkit-scrollbar-thumb{background:#94a3b8;border-color:#1e293b}
 
+    .entry-payment-grid{grid-template-columns:repeat(4,minmax(0,1fr)) !important;}
+    #appointmentForm .field.full-width > .entry-payment-grid{grid-template-columns:repeat(4,minmax(0,1fr)) !important;}
+    .entry-payment-grid .field{min-width:0;}
+    .entry-payment-grid .field label{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .entry-payment-grid .field input,.entry-payment-grid .field select{min-width:0;padding:8px 7px;font-size:12px;}
+    @media(max-width:500px){.entry-payment-grid,#appointmentForm .field.full-width > .entry-payment-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}}
     /* Invoice */
     #tab-invoice .invoice-wrap {
       padding: 14px;
@@ -1768,6 +1776,31 @@
       }
     }
   </style>
+<style id="final-entry-payment-grid-fix">
+  #appointmentForm .field.full-width > div.entry-payment-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  #appointmentForm .field.full-width > div.entry-payment-grid > .field {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  #appointmentForm .field.full-width > div.entry-payment-grid input,
+  #appointmentForm .field.full-width > div.entry-payment-grid select {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  @media (max-width: 500px) {
+    #appointmentForm .field.full-width > div.entry-payment-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+  }
+</style>
 </head>
 
 <body>
@@ -2065,7 +2098,7 @@
             <div class="field full-width" style="background: #f8fafc; padding: 22px 16px 16px; border-radius: 12px; border: 1px dashed #cbd5e1; margin-top: 12px;">
               <h4 style="margin:0 0 12px 0;font-size:14px;color:var(--primary);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">💰 ဈေးနှုန်းနှင့် ငွေပေးချေမှု <button type="button" id="entryPaymentStatusBtn" class="btn btn-outline" style="min-width:230px;padding:7px 10px;text-align:left;font-size:11px;color:#334155;background:#fff;">💳 Payment Status / Amount ပြင်ရန်</button></h4>
               
-              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 18px;">
+              <div class="entry-payment-grid" style="display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px 10px;">
                 
                 <div class="field">
                   <label for="currency">ငွေပေးချေမည့် ငွေကြေး (Currency)</label>
@@ -2089,6 +2122,12 @@
                 <div class="field">
                   <label for="price">Total Price (ရောင်းဈေး - THB)</label>
                   <input type="number" id="price" min="0" step="0.01" placeholder="0.00" required />
+                </div>
+
+                <div class="field">
+                  <label for="discountAmount">Discount (လျော့ငွေ)</label>
+                  <input type="number" id="discountAmount" min="0" step="0.01" placeholder="0.00" />
+                  <small style="color:#b45309;">Total Price မှ လျော့မည်</small>
                 </div>
 
                 <div class="field">
@@ -2469,8 +2508,14 @@
                 </div>
 
                 <div class="invoice-meta-row">
-                  <div id="invRefText">Invoice No: —</div>
-                  <div id="invIssueDate">Issued: —</div>
+                  <div class="invoice-meta-block">
+                    <div id="invRefText">Invoice No: —</div>
+                    <div id="invEntryDate">Entry: —</div>
+                  </div>
+                  <div class="invoice-meta-block right">
+                    <div id="invIssueDate">Issued: —</div>
+                    <div id="invStatusUpdate">Update: —</div>
+                  </div>
                 </div>
 
                 <div class="invoice-section-title" id="lblCustomerInfo">Customer Info</div>
@@ -2497,6 +2542,10 @@
                         <div class="invoice-total-amount" id="invTotalAmount" style="white-space: nowrap; font-size: 18px;">0.00 THB</div>
                     </div>
                     
+                    <div id="invDiscountWrapper" style="display:none; justify-content: space-between; align-items: center; margin-top: 6px;">
+                        <div style="font-size:13px; color:#b45309;" id="lblDiscount">(-) Discount</div>
+                        <div id="invDiscountAmount" style="font-size:14px; color:#b45309; font-weight:700; white-space: nowrap;">-0.00 THB</div>
+                    </div>
                     <div id="invDepositWrapper" style="display:none; justify-content: space-between; align-items: center; margin-top: 6px;">
                         <div style="font-size:13px; color:#6b7280;" id="lblDeposit">(-) စရံပေးငွေ</div>
                         <div id="invDepositAmount" style="font-size:14px; color:#ef4444; font-weight:700; white-space: nowrap;">-0.00 THB</div>
@@ -3019,13 +3068,18 @@
       $("appointmentTime").value = `${String(displayHour).padStart(2, "0")}:${match[2]}`;
       updateAppointmentTimePeriodUI(period);
     }
+    function formatSystemDateDisplay(value) {
+      const raw = String(value || "").trim();
+      const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      return m ? `${m[3]}/${m[2]}/${m[1]}` : (raw.split(/[T\s]/)[0] || "");
+    }
     function formatDashboardDateDisplay(value) {
-      const m = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      return m ? `${m[3]}.${m[2]}.${m[1]}` : String(value || "");
+      return formatSystemDateDisplay(value);
     }
     function normalizeDashboardDateInput(value) {
       const raw = String(value || "").trim();
-      const m = raw.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
+      const compact = raw.match(/^(\d{2})(\d{2})(\d{4})$/);
+      const m = compact ? [raw, compact[1], compact[2], compact[3]] : raw.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
       if (!m) return null;
       const day = Number(m[1]), month = Number(m[2]), year = Number(m[3]);
       const d = new Date(year, month - 1, day);
@@ -3108,8 +3162,15 @@
     function paymentStatusLabel(status = "unpaid") {
       return status === "paid" ? "✅ PAID" : status === "partial" ? "🟡 PARTI PAID" : status === "credit" ? "🔵 CREDIT" : "⚪ NO PAID";
     }
+    function getDiscountAmount(data = {}) {
+      const listed = Math.max(Number(data.price || 0), 0);
+      return Math.min(Math.max(Number(data.discountAmount || 0), 0), listed);
+    }
+    function getPayableTotal(data = {}) {
+      return Math.max(Number(data.price || 0) - getDiscountAmount(data), 0);
+    }
     function completedPaymentPatch(data = {}, nextStatus = "") {
-      const total = Number(data.price || 0);
+      const total = getPayableTotal(data);
       if (String(nextStatus).toLowerCase() !== "completed" || total <= 0) return {};
       const paidDate = todayISO();
       return {
@@ -3214,7 +3275,7 @@
     }
     function openEntryPaymentModal() {
       const old = document.getElementById("entryPaymentModal"); if (old) old.remove();
-      const total = Number($("price")?.value || 0), current = Number($("depositAmount")?.value || 0);
+      const total = Math.max(Number($("price")?.value || 0) - Number($("discountAmount")?.value || 0), 0), current = Number($("depositAmount")?.value || 0);
       const overlay = document.createElement("div"); overlay.id = "entryPaymentModal";
       overlay.style.cssText = "position:fixed;inset:0;z-index:99998;background:rgba(15,23,42,.46);display:flex;align-items:center;justify-content:center;padding:16px;";
       overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(420px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💳 Payment Status / Amount</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Total: ${total.toFixed(2)} THB</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="entryModalPaymentStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Amount (THB)</label><input id="entryModalPaymentAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="entryModalPaymentDate" type="date" value="${$("paymentTransferDate")?.value || ""}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="entryPaymentCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="entryPaymentSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
@@ -3229,7 +3290,7 @@
     async function openDashboardDepositModal(id) {
       const a = (cachedAppointments || []).find(x => x.id === id); if (!a) return;
       const old = document.getElementById("dashboardDepositModal"); if (old) old.remove();
-      const total = Number(a.price || 0), current = Number(a.depositAmount || 0);
+      const total = getPayableTotal(a), current = Number(a.depositAmount || 0);
       const recordCurrency = a.currency || "THB";
       const recordExchangeRate = Number(a.exchangeRate || 0);
       const overlay = document.createElement("div"); overlay.id = "dashboardDepositModal";
@@ -4120,7 +4181,9 @@
     updateAppointmentTimePeriodUI($("appointmentTimePeriod")?.value || "AM");
 
     function updateDepositUI() {
-      const total = Number($("price").value || 0);
+      const listed = Number($("price").value || 0);
+      const discount = Math.min(Math.max(Number($("discountAmount")?.value || 0), 0), Math.max(listed, 0));
+      const total = Math.max(listed - discount, 0);
       const deposit = Number($("depositAmount").value || 0);
       const bal = Math.max(total - deposit, 0);
       $("balanceAmount").value = bal.toFixed(2);
@@ -4197,6 +4260,7 @@
 
     $("paymentType").addEventListener("change", updateDepositUI);
     $("price").addEventListener("input", updateDepositUI);
+    $("discountAmount")?.addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", () => {
       const amount = Number($("depositAmount").value || 0), total = Number($("price").value || 0);
@@ -4291,7 +4355,7 @@
             <div class="phone-suggest-item" data-idx="${i}" style="padding:8px 10px; border-bottom:1px solid #f1f5f9; font-size:12px;">
               <strong>${d.name || "-"}</strong> — ${d.phone}
               ${d.docNumber ? `<span style="color:var(--muted);"> · Passport: ${d.docNumber}</span>` : ""}
-              <span style="display:block;color:var(--muted);font-size:10px;margin-top:2px;">${d.serviceType || "Service -"}${d.servicePackage ? ` · ${d.servicePackage}` : ""} · ${d.invoiceId || d._recordId || ""}${d.date ? ` · Entry: ${d.date}` : ""}</span>
+              <span style="display:block;color:var(--muted);font-size:10px;margin-top:2px;">${d.serviceType || "Service -"}${d.servicePackage ? ` · ${d.servicePackage}` : ""} · ${d.invoiceId || d._recordId || ""}${d.date ? ` · Entry: ${formatSystemDateDisplay(d.date)}` : ""}</span>
               <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;"><button type="button" class="btn-mini phone-use-old" data-idx="${i}" style="padding:4px 9px;font-size:10px;">UPDATE</button><button type="button" class="btn-mini phone-use-duplicate" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#fef3c7;color:#92400e;border-color:#fcd34d;">DUPLICATE</button><button type="button" class="btn-mini phone-use-new" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">NEW</button></div>
             </div>
           `).join("");
@@ -4347,7 +4411,7 @@
           matches.sort((a, b) => recordTime(b) - recordTime(a));
           if (!matches.length) { box.style.display = "none"; box.innerHTML = ""; return; }
           const safe = (v) => String(v || "").replace(/[&<>\"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[ch]));
-          box.innerHTML = matches.map((d, i) => `<div class="doc-suggest-item" data-idx="${i}" style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;"><strong>${safe(d.docNumber || "-")}</strong> · ${safe(d.name || "-")}<span style="display:block;color:var(--muted);font-size:10px;margin-top:2px;">${safe(d.serviceType || "Service -")}${d.servicePackage ? ` · ${safe(d.servicePackage)}` : ""} · ${safe(d.phone || "")}${d.date ? ` · Entry: ${safe(d.date)}` : ""}</span><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;"><button type="button" class="btn-mini doc-use-old" data-idx="${i}" style="padding:4px 9px;font-size:10px;">UPDATE</button><button type="button" class="btn-mini doc-use-duplicate" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#fef3c7;color:#92400e;border-color:#fcd34d;">DUPLICATE</button><button type="button" class="btn-mini doc-use-new" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">NEW</button></div></div>`).join("");
+          box.innerHTML = matches.map((d, i) => `<div class="doc-suggest-item" data-idx="${i}" style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;"><strong>${safe(d.docNumber || "-")}</strong> · ${safe(d.name || "-")}<span style="display:block;color:var(--muted);font-size:10px;margin-top:2px;">${safe(d.serviceType || "Service -")}${d.servicePackage ? ` · ${safe(d.servicePackage)}` : ""} · ${safe(d.phone || "")}${d.date ? ` · Entry: ${safe(formatSystemDateDisplay(d.date))}` : ""}</span><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;"><button type="button" class="btn-mini doc-use-old" data-idx="${i}" style="padding:4px 9px;font-size:10px;">UPDATE</button><button type="button" class="btn-mini doc-use-duplicate" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#fef3c7;color:#92400e;border-color:#fcd34d;">DUPLICATE</button><button type="button" class="btn-mini doc-use-new" data-idx="${i}" style="padding:4px 9px;font-size:10px;background:#eef2ff;color:#3730a3;border-color:#c7d2fe;">NEW</button></div></div>`).join("");
           box.style.display = "block";
           box.querySelectorAll(".doc-suggest-item").forEach((el) => {
             el.addEventListener("mouseenter", () => el.style.background = "#f8fafc");
@@ -5586,10 +5650,11 @@
     function formatEntryDateDMY(value) {
       if (!value) return "";
       const parts = String(value).split("-");
-      return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : "";
+      return parts.length === 3 ? `${parts[2]}${parts[1]}${parts[0]}` : "";
     }
     function parseEntryDateDMY(value) {
-      const raw = String(value || "").trim().replace(/[/.]/g, "-");
+      const compact = String(value || "").trim().match(/^(\d{2})(\d{2})(\d{4})$/);
+      const raw = compact ? `${compact[1]}-${compact[2]}-${compact[3]}` : String(value || "").trim().replace(/[/.]/g, "-");
       const m = raw.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
       if (!m) return "";
       const day = Number(m[1]), month = Number(m[2]), year = Number(m[3]);
@@ -6074,7 +6139,10 @@
         invoiceId = await generateUniqueInvoiceId(); $("invoiceId").value = invoiceId;
       }
 
-      const total = Number($("price").value || 0); const dep = Number($("depositAmount").value || 0);
+      const listedPrice = Number($("price").value || 0);
+      const discountAmount = Math.min(Math.max(Number($("discountAmount")?.value || 0), 0), Math.max(listedPrice, 0));
+      const total = Math.max(listedPrice - discountAmount, 0);
+      const dep = Number($("depositAmount").value || 0);
       const data = {
         invoiceId, 
         date: $("date").value, 
@@ -6095,7 +6163,9 @@
         paymentType: $("paymentType").value, 
         paymentStatus: $("paymentStatus")?.value || (dep >= total && total > 0 ? "paid" : dep > 0 ? "partial" : "unpaid"),
         paymentTransferDate: $("paymentTransferDate")?.value || null,
-        price: total, 
+        price: listedPrice,
+        discountAmount,
+        payableAmount: total,
         depositAmount: dep,
         balanceAmount: Math.max(total - dep, 0), 
         currency: $("currency").value, 
@@ -6139,7 +6209,7 @@
       }
 
       data.serviceCost = Number($("cost").value || 0);
-      data.serviceProfit = data.price - data.serviceCost;
+      data.serviceProfit = total - data.serviceCost;
       Object.assign(data, normalizeAppointmentModel(data));
       if (manualPortraitCropDataUrl) {
         data.portraitWatermarkData = manualPortraitCropDataUrl;
@@ -6342,7 +6412,7 @@
     async function sendMultiTelegramNotifications(a) {
       if (!telegramSettings.botToken || !telegramSettings.mainChatId) return;
       const mainChat = telegramSettings.mainChatId;
-      const apptDT = `${a.appointmentDate || "-"}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
+      const apptDT = `${formatSystemDateDisplay(a.appointmentDate) || "-"}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
       const sTypeStr = a.servicePackage ? `${a.serviceType} (${a.servicePackage})` : a.serviceType;
 
       if (telegramSettings.threadAppt) {
@@ -6382,7 +6452,7 @@
     async function sendCompletedTelegram(a) {
       if (!telegramSettings.botToken || !telegramSettings.mainChatId || !telegramSettings.threadCompleted) return;
       const mainChat = telegramSettings.mainChatId;
-      const apptDT = `${a.appointmentDate || "-"}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
+      const apptDT = `${formatSystemDateDisplay(a.appointmentDate) || "-"}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
       const sTypeStr = a.servicePackage ? `${a.serviceType} (${a.servicePackage})` : a.serviceType;
 
       const lines = [
@@ -6653,7 +6723,7 @@
         const status = (a.customerStatus || "").toLowerCase();
         
         if (status === "completed" || status === "done") {
-          totalSales += Number(a.price || 0);
+          totalSales += getPayableTotal(a);
           const profit = (a.serviceProfit != null) 
             ? Number(a.serviceProfit) 
             : (a.price != null && a.serviceCost != null) ? Number(a.price - a.serviceCost) : 0;
@@ -7020,14 +7090,15 @@
       const canDelete = currentRole === "admin";
 
       finalFiltered.forEach(a => {
-        const profit = (a.serviceProfit != null) ? a.serviceProfit : ((a.price != null && a.serviceCost != null) ? (a.price - a.serviceCost) : null);
+        const payable = getPayableTotal(a);
+        const profit = (a.serviceProfit != null) ? a.serviceProfit : ((a.price != null && a.serviceCost != null) ? (payable - a.serviceCost) : null);
         const profitText = profit != null ? Number(profit).toFixed(2) : "";
         const displayProfit = canViewProfit ? profitText : (profitText ? "****" : "");
 
         const dep = Number(a.depositAmount||0).toFixed(2); const bal = Number(a.balanceAmount||0).toFixed(2);
-        const currentPaymentStatus = a.paymentStatus || a.depositStatus || (Number(a.depositAmount||0) >= Number(a.price||0) && Number(a.price||0) > 0 ? "paid" : Number(a.depositAmount||0) > 0 ? "partial" : "unpaid");
+        const currentPaymentStatus = a.paymentStatus || a.depositStatus || (Number(a.depositAmount||0) >= getPayableTotal(a) && Number(a.price||0) > 0 ? "paid" : Number(a.depositAmount||0) > 0 ? "partial" : "unpaid");
         const depositStatusLabel = paymentStatusLabel(currentPaymentStatus);
-        const apptDT = `${a.appointmentDate || ""}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
+        const apptDT = `${formatSystemDateDisplay(a.appointmentDate)}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
         const id = (a.invoiceId || a.id || "").toUpperCase();
 
          const s = getCaseStatus(a).toLowerCase(); 
@@ -7069,7 +7140,7 @@
            }
            const color = isExpiringAlert ? "#dc2626" : "var(--muted)";
            const fontWeight = isExpiringAlert ? "800" : "normal";
-           expHtml = `<br/><small style="color:${color};font-weight:${fontWeight};">Exp: ${a.expiryDate}</small>`;
+           expHtml = `<br/><small style="color:${color};font-weight:${fontWeight};">Exp: ${formatSystemDateDisplay(a.expiryDate)}</small>`;
         }
 
         const inlineDateHtml = allowInlineDateEdit ? `
@@ -7077,7 +7148,7 @@
             <div style="font-size:9px;font-weight:900;color:#475569;line-height:1;">APPT</div>
             <div style="display:flex;align-items:center;gap:3px;">
               <span class="dashboard-date-picker-wrap">
-                <input type="text" class="dashboard-date-input dashboard-date-text-input" data-dateid="${id}" data-datefield="appointmentDate" value="${formatDashboardDateDisplay(a.appointmentDate)}" placeholder="DD.MM.YYYY" inputmode="numeric" title="Appointment Date (DD.MM.YYYY) ပြောင်းရန်" style="flex:1;min-width:0;width:1%;padding:2px 3px;font-size:9px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;">
+                <input type="text" class="dashboard-date-input dashboard-date-text-input" data-dateid="${id}" data-datefield="appointmentDate" value="${formatDashboardDateDisplay(a.appointmentDate)}" placeholder="DD/MM/YYYY" inputmode="numeric" title="Appointment Date (DD/MM/YYYY) ပြောင်းရန်" style="flex:1;min-width:0;width:1%;padding:2px 3px;font-size:9px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;">
                 <span class="dashboard-calendar-btn">📅</span>
                 <input type="date" class="dashboard-native-date-picker" data-dateid="${id}" data-datefield="appointmentDate" value="${a.appointmentDate || ""}" aria-label="Appointment Date Calendar">
               </span>
@@ -7086,7 +7157,7 @@
             <div style="font-size:9px;font-weight:900;color:#475569;line-height:1;margin-top:1px;">EXP</div>
             <div style="display:flex;align-items:center;gap:3px;">
               <span class="dashboard-date-picker-wrap">
-                <input type="text" class="dashboard-date-input dashboard-date-text-input" data-dateid="${id}" data-datefield="expiryDate" value="${formatDashboardDateDisplay(a.expiryDate)}" placeholder="DD.MM.YYYY" inputmode="numeric" title="Expiry Date (DD.MM.YYYY) ပြောင်းရန်" style="flex:1;min-width:0;width:1%;padding:2px 3px;font-size:9px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;">
+                <input type="text" class="dashboard-date-input dashboard-date-text-input" data-dateid="${id}" data-datefield="expiryDate" value="${formatDashboardDateDisplay(a.expiryDate)}" placeholder="DD/MM/YYYY" inputmode="numeric" title="Expiry Date (DD/MM/YYYY) ပြောင်းရန်" style="flex:1;min-width:0;width:1%;padding:2px 3px;font-size:9px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;">
                 <span class="dashboard-calendar-btn">📅</span>
                 <input type="date" class="dashboard-native-date-picker" data-dateid="${id}" data-datefield="expiryDate" value="${a.expiryDate || ""}" aria-label="Expiry Date Calendar">
               </span>
@@ -7253,7 +7324,7 @@
             </div>
           </td>
           <td class="dashboard-payment-cell"><div style="display:flex;flex-direction:column;gap:2px;line-height:1.15;white-space:nowrap;"><span style="font-weight:800;">${a.paymentType || "-"}</span><span style="font-weight:800;color:${currentPaymentStatus === "paid" ? "#166534" : currentPaymentStatus === "partial" ? "#92400e" : "#64748b"};">${depositStatusLabel}</span><button type="button" class="dashboard-deposit-btn" data-paymentid="${id}" title="Payment Status / Amount ပြင်ရန်" style="border:0;background:transparent;padding:0;text-align:left;cursor:pointer;font-size:12px;line-height:1;">💵</button></div></td>
-          <td>${a.price != null ? Number(a.price).toFixed(2) : ""}</td>
+          <td title="Listed: ${Number(a.price||0).toFixed(2)} · Discount: ${getDiscountAmount(a).toFixed(2)}">${payable.toFixed(2)}${getDiscountAmount(a)>0 ? `<small style="display:block;color:#b45309;font-size:9px;">-${getDiscountAmount(a).toFixed(2)}</small>` : ""}</td>
           <td>${dep}</td>
           <td>${bal}</td>
           <td class="profit-cell" data-profit="${profitText}">${displayProfit}</td>
@@ -7621,7 +7692,7 @@
       if($("currency").value === "MMK") $("exchangeRateWrapper").style.display = "flex";
       else $("exchangeRateWrapper").style.display = "none";
 
-      $("paymentType").value = a.paymentType || ""; $("cost").value = a.serviceCost != null ? a.serviceCost : ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = "";
+      $("paymentType").value = a.paymentType || ""; $("cost").value = a.serviceCost != null ? a.serviceCost : ""; $("price").value = a.price != null ? a.price : ""; $("discountAmount").value = a.discountAmount != null ? a.discountAmount : ""; $("depositAmount").value = "";
       if ($("paymentStatus")) $("paymentStatus").value = "unpaid";
       if ($("paymentTransferDate")) $("paymentTransferDate").value = "";
       // Duplicate mode intentionally starts without the original Settlement data.
@@ -7660,6 +7731,7 @@
       $("exchangeRate").value = "";
       $("cost").value = "";
       $("price").value = "";
+      $("discountAmount").value = "";
       $("depositAmount").value = "";
       $("remark").value = "";
       $("internalRemark").value = "";
@@ -7728,7 +7800,7 @@
              <td>${a.date || "-"}</td>
              <td><span class="tag">${a.serviceType || "-"}</span></td>
              <td>${a.location || "-"}</td>
-             <td style="font-weight:700;">${Number(a.price || 0).toFixed(2)}</td>
+             <td style="font-weight:700;">${getPayableTotal(a).toFixed(2)}${getDiscountAmount(a)>0 ? `<small style="display:block;color:#b45309;">-${getDiscountAmount(a).toFixed(2)}</small>` : ""}</td>
              <td>${finalPill}</td>
              <td>
                <button class="btn btn-secondary hist-edit-btn" style="padding:2px 6px; font-size:10px;">✏️</button>
@@ -7773,9 +7845,9 @@
       const links = (a.documentLinks || []).map((link, i) => `<a href="${link}" target="_blank" rel="noopener" style="display:inline-block;margin:3px;padding:5px 8px;background:#ecfdf5;color:#047857;border-radius:6px;text-decoration:none;font-size:11px;">📄 Document ${i + 1}</a>`).join("");
       $("invoicePreviewTitle").textContent = `🔎 ${id} · ${a.name || "Invoice Details"}`;
       $("invoicePreviewBody").innerHTML = `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
-        ${row("Invoice ID", id)}${row("Entry Date", a.date)}${row("APPT Date", a.appointmentDate)}${row("Appointment Time", a.appointmentTime)}${row("Expiry Date", a.expiryDate)}${row("Case Status", getCaseStatus(a))}
+        ${row("Invoice ID", id)}${row("Entry Date", formatSystemDateDisplay(a.date))}${row("APPT Date", formatSystemDateDisplay(a.appointmentDate))}${row("Appointment Time", a.appointmentTime)}${row("Expiry Date", formatSystemDateDisplay(a.expiryDate))}${row("Case Status", getCaseStatus(a))}
         ${row("Customer", a.name)}${row("Document No.", a.docNumber)}${row("Social Name", a.socialName)}${row("Phone", a.phone)}${row("Channel", a.channel)}${row("Location", a.location)}
-        ${row("Service", a.serviceType)}${row("Package", a.servicePackage)}${row("Payment", a.paymentType)}${row("Total", money(a.price))}${row("Deposit", money(a.depositAmount))}${row("Balance", money(a.balanceAmount))}${row("Cost", money(a.serviceCost))}${row("Profit", money(a.serviceProfit))}
+        ${row("Service", a.serviceType)}${row("Package", a.servicePackage)}${row("Payment", a.paymentType)}${row("Total", money(a.price))}${getDiscountAmount(a) > 0 ? row("Discount", "-" + money(getDiscountAmount(a))) : ""}${row("Deposit", money(a.depositAmount))}${row("Balance", money(a.balanceAmount))}${row("Cost", money(a.serviceCost))}${row("Profit", money(a.serviceProfit))}
         ${row("Source / Agent", agent)}${row("Agent Amount", money(a.agentCommission != null ? a.agentCommission : a.agentPayable))}${row("Agent Status", a.sourceStatus || a.agentSettlementStatus)}
         ${row("Service Handler", handler)}${row("Handler Direction", handlerType === "receivable" ? "ရရန်" : handlerType === "payable" ? "ပေးရန်" : "-")}${row("Handler Amount", money(a.handlerSettlementAmount != null ? a.handlerSettlementAmount : a.serviceProviderSettlementAmount))}${row("Handler Status", a.handlerSettlementStatus || a.serviceProviderSettlementStatus)}${row("Settlement Status", a.settlementStatus)}${row("Remark", a.remark)}${row("Internal Remark", a.internalRemark)}
         <div style="padding-top:9px;"><strong style="color:#475569;">Documents</strong><div>${links || "-"}</div></div>
@@ -7851,8 +7923,8 @@
       if($("currency").value === "MMK") $("exchangeRateWrapper").style.display = "flex";
       else $("exchangeRateWrapper").style.display = "none";
 
-      $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
-      if ($("paymentStatus")) $("paymentStatus").value = a.paymentStatus || (Number(a.depositAmount || 0) >= Number(a.price || 0) && Number(a.price || 0) > 0 ? "paid" : Number(a.depositAmount || 0) > 0 ? "partial" : "unpaid");
+      $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("discountAmount").value = a.discountAmount != null ? a.discountAmount : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
+      if ($("paymentStatus")) $("paymentStatus").value = a.paymentStatus || (Number(a.depositAmount || 0) >= getPayableTotal(a) && getPayableTotal(a) > 0 ? "paid" : Number(a.depositAmount || 0) > 0 ? "partial" : "unpaid");
       if ($("paymentTransferDate")) $("paymentTransferDate").value = a.paymentTransferDate || a.depositReceivedDate || "";
       if ($("agentName")) $("agentName").value = a.agentName || a.sourceName || "";
       if ($("agentPayable")) $("agentPayable").value = a.agentPayable != null ? a.agentPayable : (a.agentCommission != null ? a.agentCommission : "");
@@ -8233,8 +8305,17 @@
         if($("lblDeposit")) $("lblDeposit").textContent = t.deposit;
         if($("lblBalance")) $("lblBalance").textContent = t.balance;
 
-        $("invRefText").textContent = `Invoice No: ${id}`; 
-        $("invIssueDate").textContent = `Issued: ${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
+        const formatInvoiceDateTime = value => {
+          const d = timestampToDate(value);
+          return d ? `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()} ${d.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })}` : "-";
+        };
+        $("invRefText").textContent = `Invoice No: ${id}`;
+        $("invIssueDate").textContent = `Issued: ${formatInvoiceDateTime(createdAt)}`;
+        const entryDateText = formatSystemDateDisplay(data.date) || "-";
+        const statusUpdatedAt = timestampToDate(data.updatedAt);
+        const statusUpdateText = statusUpdatedAt ? formatInvoiceDateTime(statusUpdatedAt) : formatInvoiceDateTime(createdAt);
+        $("invEntryDate").textContent = `Entry Date: ${entryDateText} xx:xx`;
+        $("invStatusUpdate").textContent = `Update: ${statusUpdateText}`;
         const watermarkContent = $("invoiceWatermark")?.querySelector(".invoice-watermark-content");
         if (watermarkContent) {
           const watermarkName = String(data.name || "").trim();
@@ -8260,7 +8341,7 @@
         const customerDocNumber = String(data.docNumber || "").trim();
         const customerNameHtml = `${data.name || "-"}${customerDocNumber ? ` <small class="invoice-doc-inline">· ${customerDocNumber}</small>` : ""}`;
         const invoiceAppointmentTime = formatInvoiceAppointmentTime(data.appointmentTime);
-        $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${customerNameHtml}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${data.appointmentDate || "-"}${invoiceAppointmentTime ? ` ${invoiceAppointmentTime}` : ""}</span></div>`;
+        $("invCustomerInfo").innerHTML = `<div><span class="invoice-label">${t.name}</span><br/><span class="invoice-value">${customerNameHtml}</span></div><div><span class="invoice-label">${t.phone}</span><br/><span class="invoice-value">${data.phone || "-"}</span></div><div><span class="invoice-label">${t.location}</span><br/><span class="invoice-value">${data.location || "-"}</span></div><div><span class="invoice-label">${t.apptDate}</span><br/><span class="invoice-value">${formatSystemDateDisplay(data.appointmentDate) || "-"}${invoiceAppointmentTime ? ` ${invoiceAppointmentTime}` : ""}</span></div>`;
         const portraitWatermark = document.createElement("div");
         portraitWatermark.id = "invPortraitWatermark";
         portraitWatermark.className = "invoice-portrait-watermark";
@@ -8308,10 +8389,13 @@
         }
         $("invServiceInfo").innerHTML = `<div><span class="invoice-label">${t.service}</span><br/><span class="invoice-value">${sTypeStr}</span></div><div><span class="invoice-label">${t.payment}</span><br/><span class="invoice-value">${data.paymentType || "-"}</span></div><div style="grid-column: 1 / -1;"><span class="invoice-label">${t.remark}</span><br/><span class="invoice-value" style="font-size: 12px; font-weight: 600; line-height: 1.5; display: inline-block; margin-top: 4px;">${data.remark || "-"}</span></div>`;
         
-        const total = Number(data.price || 0); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
+        const listedTotal = Number(data.price || 0); const discount = getDiscountAmount(data); const total = getPayableTotal(data); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
         const cur = data.currency || "THB";
         
-        $("invTotalAmount").textContent = total.toFixed(2) + " " + cur; 
+        $("invTotalAmount").textContent = (discount > 0 ? listedTotal.toFixed(2) + " " + cur : total.toFixed(2) + " " + cur);
+        const invDiscountWrapper = $("invDiscountWrapper");
+        if (invDiscountWrapper) invDiscountWrapper.style.display = discount > 0 ? "flex" : "none";
+        if ($("invDiscountAmount")) $("invDiscountAmount").textContent = "-" + discount.toFixed(2) + " " + cur;
         $("invBalanceAmount").textContent = balance.toFixed(2) + " " + cur;
         
         const depWrapper = $("invDepositWrapper") || $("invDepositRow");
@@ -8517,7 +8601,7 @@
         name: $("name")?.value.trim() || "-", phone: $("phone")?.value.trim() || "-", location: $("location")?.value || "-",
         serviceType: $("serviceType")?.value || "-", servicePackage: $("servicePackage")?.value || null, paymentType: $("paymentType")?.value || "-",
         customerStatus: $("customerStatus")?.value || "Pending", remark: $("remark")?.value.trim() || null,
-        price: total, depositAmount: deposit, balanceAmount: Math.max(total - deposit, 0), currency: $("currency")?.value || "THB",
+        price: total, discountAmount: Number($("discountAmount")?.value || 0), depositAmount: deposit, balanceAmount: Math.max(total - Number($("discountAmount")?.value || 0) - deposit, 0), currency: $("currency")?.value || "THB",
         exchangeRate: Number($("exchangeRate")?.value || 0), paymentStatus: $("paymentStatus")?.value || (deposit >= total && total > 0 ? "paid" : deposit > 0 ? "partial" : "unpaid")
       };
       try {
