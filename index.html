@@ -7797,7 +7797,7 @@
       $("socialLink").value = a.socialLink || "";
 
       ensureOption($("customerStatus"), "Pending");
-      ensureOption($("channel"), a.channel); ensureOption($("location"), a.location); ensureOption($("serviceType"), a.serviceType); ensureOption($("paymentType"), a.paymentType);
+      ensureOption($("channel"), a.channel); ensureOption($("location"), a.location); ensureOption($("serviceType"), a.serviceType);
 
       $("customerStatus").value = "Pending"; 
       $("channel").value = a.channel || ""; $("location").value = a.location || ""; 
@@ -7815,20 +7815,31 @@
       $("exchangeRate").value = a.exchangeRate || "";
       if($("currency").value === "MMK") $("exchangeRateWrapper").style.display = "flex";
       else $("exchangeRateWrapper").style.display = "none";
-      syncEntryBankAccounts();
+      syncPaymentTypeOptions(a.paymentAccount || a.bankAccount || "", a.paymentType || "");
 
-      $("paymentType").value = a.paymentType || ""; $("cost").value = a.serviceCost != null ? a.serviceCost : ""; $("price").value = a.price != null ? a.price : ""; $("discountAmount").value = a.discountAmount != null ? a.discountAmount : ""; $("depositAmount").value = "";
+      $("cost").value = a.serviceCost != null ? a.serviceCost : ""; $("price").value = a.price != null ? a.price : ""; $("discountAmount").value = a.discountAmount != null ? a.discountAmount : ""; $("depositAmount").value = "";
       if ($("paymentStatus")) $("paymentStatus").value = "unpaid";
       if ($("paymentTransferDate")) $("paymentTransferDate").value = "";
-      // Duplicate mode intentionally starts without the original Settlement data.
-      if ($("agentName")) $("agentName").value = "Direct / ကိုယ်တိုင်ရ";
-      if ($("agentPayable")) $("agentPayable").value = "";
-      if ($("agentSettlementStatus")) $("agentSettlementStatus").value = "pending";
-      if ($("serviceProviderName")) $("serviceProviderName").value = "ကိုယ်တိုင်လုပ်";
-      if ($("serviceProviderSettlementType")) $("serviceProviderSettlementType").value = "";
-      if ($("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = "";
-      if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = "pending";
-      if ($("entrySettlementEnabled")) $("entrySettlementEnabled").checked = false;
+      const duplicateHasSettlement = !!a.entrySettlementEnabled || hasSettlementData(a);
+      const duplicatePricingKey = a.servicePackage ? `${a.serviceType}::${a.servicePackage}` : (a.serviceType || "");
+      const duplicatePricing = servicePricing[duplicatePricingKey] || {};
+      const duplicateUsesAutoSettlement = !duplicateHasSettlement && duplicatePricing.autoSettlement === true;
+      const duplicateSettlementEnabled = duplicateHasSettlement || duplicateUsesAutoSettlement;
+      const autoHandler = duplicatePricing.defaultHandler || "ကိုယ်တိုင်လုပ်";
+      const autoType = duplicatePricing.handlerSettlementType || "";
+      const configuredAutoAmount = duplicatePricing.defaultHandlerAmount !== "" && duplicatePricing.defaultHandlerAmount != null ? Number(duplicatePricing.defaultHandlerAmount) : NaN;
+      const fallbackAutoAmount = autoType === "receivable"
+        ? Math.max(Number($("price")?.value || 0) - Number($("cost")?.value || 0), 0)
+        : Number($("cost")?.value || 0);
+      const autoAmount = Number.isFinite(configuredAutoAmount) ? configuredAutoAmount : (fallbackAutoAmount > 0 ? fallbackAutoAmount : "");
+      if ($("agentName")) $("agentName").value = duplicateHasSettlement ? (a.sourceName || a.agentName || "Direct / ကိုယ်တိုင်ရ") : "Direct / ကိုယ်တိုင်ရ";
+      if ($("agentPayable")) $("agentPayable").value = duplicateHasSettlement ? (a.agentCommission != null ? a.agentCommission : (a.agentPayable || "")) : "";
+      if ($("agentSettlementStatus")) $("agentSettlementStatus").value = duplicateHasSettlement ? (a.sourceStatus || a.agentSettlementStatus || "pending") : "pending";
+      if ($("serviceProviderName")) $("serviceProviderName").value = duplicateHasSettlement ? (a.handlerName || a.serviceProviderName || "ကိုယ်တိုင်လုပ်") : (duplicateUsesAutoSettlement ? autoHandler : "ကိုယ်တိုင်လုပ်");
+      if ($("serviceProviderSettlementType")) $("serviceProviderSettlementType").value = duplicateHasSettlement ? (a.handlerSettlementType || a.serviceProviderSettlementType || "") : (duplicateUsesAutoSettlement ? autoType : "");
+      if ($("serviceProviderSettlementAmount")) $("serviceProviderSettlementAmount").value = duplicateHasSettlement ? (a.handlerSettlementAmount != null ? a.handlerSettlementAmount : (a.serviceProviderSettlementAmount || "")) : (duplicateUsesAutoSettlement ? autoAmount : "");
+      if ($("serviceProviderSettlementStatus")) $("serviceProviderSettlementStatus").value = duplicateHasSettlement ? (a.handlerSettlementStatus || a.serviceProviderSettlementStatus || "pending") : "pending";
+      if ($("entrySettlementEnabled")) $("entrySettlementEnabled").checked = duplicateSettlementEnabled;
       syncEntrySettlementUI();
       $("remark").value = a.remark || ""; updateDepositUI(); refreshEntryPaymentButton();
       $("internalRemark").value = a.internalRemark || "";
