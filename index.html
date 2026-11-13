@@ -8305,6 +8305,30 @@
       }
       return invoiceLogoDataUrl;
     }
+    async function inlineInvoiceBankLogos() {
+      const logos = [...document.querySelectorAll("#invoiceCard .invoice-bank-logo")];
+      for (const logo of logos) {
+        const source = logo.getAttribute("src") || "";
+        if (!source || source.startsWith("data:")) continue;
+        const candidates = [source, `https://wsrv.nl/?url=${encodeURIComponent(source)}`];
+        let dataUrl = "";
+        for (const candidate of candidates) {
+          try {
+            const response = await fetch(candidate, { cache: "no-store" });
+            if (!response.ok) continue;
+            const blob = await response.blob();
+            dataUrl = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            if (dataUrl) break;
+          } catch (_) {}
+        }
+        if (dataUrl) logo.src = dataUrl;
+      }
+    }
 
     function getInvoiceStatusPresentation(data = {}) {
       const status = String(data.customerStatus || data.caseStatus || "Pending").trim() || "Pending";
@@ -8775,6 +8799,7 @@
       const card = $("invoiceCard"); const msg = $("invoiceMessage"); msg.textContent = "Rendering JPEG..."; msg.className = "message";
       try {
         await inlineInvoiceLogo();
+        await inlineInvoiceBankLogos();
         // Convert the remote portrait to a local data URL before html2canvas runs;
         // otherwise the browser preview can show it while the downloaded JPEG omits it.
         if (!window.currentInvoicePortraitDataUrl && window.currentInvoiceRenderData) {
@@ -8834,7 +8859,8 @@
                   img.style.visibility = "visible";
                   return;
                 }
-                if (!["invDynamicQR", "promptpayLogo", "invoiceLogoImage"].includes(img.id) || !src.startsWith("data:")) {
+                const isSafeInvoiceImage = ["invDynamicQR", "promptpayLogo", "invoiceLogoImage"].includes(img.id) || img.classList.contains("invoice-bank-logo");
+                if (!isSafeInvoiceImage || !src.startsWith("data:")) {
                   img.removeAttribute("src");
                   img.style.display = "none";
                 }
