@@ -96,6 +96,11 @@
     #tab-dashboard td.dashboard-service-location-cell,#tab-dashboard td.dashboard-payment-cell{text-align:center !important;vertical-align:middle !important}
     #tab-dashboard td.dashboard-service-location-cell > div,#tab-dashboard td.dashboard-payment-cell > div{align-items:center !important;text-align:center !important;margin-left:auto !important;margin-right:auto !important}
     #tab-dashboard td.dashboard-service-location-cell span,#tab-dashboard td.dashboard-payment-cell span{text-align:center !important}
+    #tab-dashboard td.dashboard-payment-cell > .dashboard-deposit-btn{width:100%;min-width:0;max-width:100%;display:flex !important;align-items:center !important;}
+    #tab-dashboard .dashboard-payment-line{display:flex;align-items:center;justify-content:center;width:100%;min-width:0;max-width:100%;overflow:hidden;white-space:nowrap;}
+    #tab-dashboard .dashboard-payment-type{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;}
+    #tab-dashboard .dashboard-payment-meta{display:inline-block;flex:0 1 48px;min-width:0;max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;margin-left:2px;color:#64748b;font-size:9px;font-weight:700;line-height:1;}
+    #tab-dashboard .dashboard-payment-account-line{display:block;width:100%;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#64748b;font-size:9px;font-weight:700;line-height:1.05;}
     #tab-settlement .settlement-summary-grid .summary-card{min-height:58px;padding:7px 10px;border-radius:10px;gap:1px}
     #tab-settlement .settlement-summary-grid .summary-title{font-size:11px;line-height:1.15}
     #tab-settlement .settlement-summary-grid .summary-value{font-size:18px;line-height:1.05}
@@ -3224,6 +3229,23 @@
     function paymentStatusLabel(status = "unpaid") {
       return status === "paid" ? "✅ PAID" : status === "partial" ? "🟡 PARTIAL PAID" : status === "credit" ? "🔵 CREDIT" : "⚪ NO PAID";
     }
+    function getDashboardPaymentMeta(data = {}) {
+      const currency = String(data.currency || "THB").trim().toUpperCase() || "THB";
+      const selected = String(data.paymentAccount || data.bankAccount || "").trim();
+      const options = typeof getPaymentAccountOptions === "function" ? getPaymentAccountOptions(currency) : [];
+      const matched = options.find(option => option.value === selected);
+      let account = matched ? String(matched.label || "") : "";
+      if (account) account = account.replace(/^QR\s*·\s*/i, "").replace(/^ဘဏ်\s*·\s*/i, "");
+      else if (selected) account = selected.replace(/^(promptpay|mmqr|bank):/i, "").split("|")[0].trim();
+      const paymentType = String(data.paymentType || "").trim().toLowerCase();
+      if (!account && (paymentType.includes("qr") || paymentType.includes("bank"))) account = "Account မသတ်မှတ်";
+      // Dashboard မှာ အကောင့်အပြည့်မပြဘဲ ပထမစာလုံးတစ်လုံးနဲ့သာ ပြမည်။
+      // အပြည့်အစုံကို title tooltip မှာ ထားထားသဖြင့် hover လုပ်လျှင် မြင်နိုင်သည်။
+      const compact = account ? `${currency} · ${account.trim().charAt(0)}...` : currency;
+      const title = account ? `${currency} · ${account}` : `${currency} · လက်ခံအကောင့် မရွေးထားပါ`;
+      const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+      return { compact: esc(compact), title: esc(title) };
+    }
     function getDiscountAmount(data = {}) {
       const listed = Math.max(Number(data.price || 0), 0);
       return Math.min(Math.max(Number(data.discountAmount || 0), 0), listed);
@@ -3371,14 +3393,14 @@
       overlay.querySelector("#entryPaymentSave").onclick = () => { const next = Math.min(Math.max(Number(amount.value || 0), 0), total), nextStatus = status.value === "credit" ? "credit" : status.value === "paid" ? "paid" : next > 0 ? "partial" : "unpaid"; $("depositAmount").value = next.toFixed(2); $("paymentStatus").value = nextStatus; $("paymentTransferDate").value = ["unpaid","credit"].includes(nextStatus) ? "" : (date.value || ""); updateDepositUI(); refreshEntryPaymentButton(); overlay.remove(); };
     }
     async function openDashboardDepositModal(id) {
-      const a = (cachedAppointments || []).find(x => x.id === id); if (!a) return;
+      const a = (cachedAppointments || []).find(x => x.id === id || String(x.invoiceId || "").trim().toUpperCase() === String(id || "").trim().toUpperCase()); if (!a) return;
       const old = document.getElementById("dashboardDepositModal"); if (old) old.remove();
       const total = getPayableTotal(a), current = Number(a.depositAmount || 0);
       const recordCurrency = a.currency || "THB";
       const recordExchangeRate = Number(a.exchangeRate || 0);
       const overlay = document.createElement("div"); overlay.id = "dashboardDepositModal";
       overlay.style.cssText = "position:fixed;inset:0;z-index:99998;background:rgba(15,23,42,.46);display:flex;align-items:center;justify-content:center;padding:16px;";
-      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(430px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💵 Payment / Deposit ပြင်ရန်</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Invoice: ${id} · Total: ${total.toFixed(2)} ${recordCurrency}</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Type</label><select id="dashPaymentType" style="width:100%;">${(dropdownSettings.paymentTypes || []).map(x => `<option value="${String(x).replace(/"/g,'&quot;')}">${x}</option>`).join("")}</select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Currency</label><select id="dashPaymentCurrency" style="width:100%;"><option value="THB">THB (ထိုင်းဘတ်)</option><option value="MMK">MMK (မြန်မာကျပ်)</option></select><div id="dashExchangeRateWrap" style="display:${recordCurrency === "MMK" ? "block" : "none"};margin-top:10px;"><label style="display:block;font-weight:700;font-size:12px;margin:0 0 4px;">ပေါက်ဈေး (၁ သိန်း = ? ဘတ်)</label><input id="dashExchangeRate" type="number" min="0" step="0.01" value="${recordExchangeRate || ""}" placeholder="e.g. 780" style="width:100%;"><small id="dashMmkPreview" style="display:block;color:#4f46e5;font-weight:700;margin-top:4px;"></small></div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="dashDepositStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTIAL PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label id="dashDepositAmountLabel" style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Deposit Amount (${recordCurrency})</label><input id="dashDepositAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="dashDepositDate" type="date" value="${a.paymentTransferDate || a.depositReceivedDate || (current > 0 ? todayISO() : "")}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="dashDepositCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="dashDepositSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
+      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(430px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💵 Payment / Deposit ပြင်ရန်</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Invoice: ${a.invoiceId || a.id} · Total: ${total.toFixed(2)} ${recordCurrency}</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Currency</label><select id="dashPaymentCurrency" style="width:100%;"><option value="THB">THB (ထိုင်းဘတ်)</option><option value="MMK">MMK (မြန်မာကျပ်)</option></select><div id="dashExchangeRateWrap" style="display:${recordCurrency === "MMK" ? "block" : "none"};margin-top:10px;"><label style="display:block;font-weight:700;font-size:12px;margin:0 0 4px;">ပေါက်ဈေး (၁ သိန်း = ? ဘတ်)</label><input id="dashExchangeRate" type="number" min="0" step="0.01" value="${recordExchangeRate || ""}" placeholder="e.g. 780" style="width:100%;"><small id="dashMmkPreview" style="display:block;color:#4f46e5;font-weight:700;margin-top:4px;"></small></div><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Payment Type</label><select id="dashPaymentType" style="width:100%;">${(dropdownSettings.paymentTypes || []).map(x => `<option value="${String(x).replace(/"/g,'&quot;')}">${x}</option>`).join("")}</select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Payment Status</label><select id="dashDepositStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTIAL PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label id="dashDepositAmountLabel" style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Deposit Amount (${recordCurrency})</label><input id="dashDepositAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="dashDepositDate" type="date" value="${a.paymentTransferDate || a.depositReceivedDate || (current > 0 ? todayISO() : "")}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="dashDepositCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="dashDepositSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
       document.body.appendChild(overlay);
       const paymentType = overlay.querySelector("#dashPaymentType"), paymentCurrency = overlay.querySelector("#dashPaymentCurrency"), exchangeRate = overlay.querySelector("#dashExchangeRate"), exchangeWrap = overlay.querySelector("#dashExchangeRateWrap"), mmkPreview = overlay.querySelector("#dashMmkPreview"), status = overlay.querySelector("#dashDepositStatus"), amount = overlay.querySelector("#dashDepositAmount"), date = overlay.querySelector("#dashDepositDate");
       const syncDashboardPaymentTypes = (selectedValue = "", selectedPaymentType = "") => {
@@ -3422,7 +3444,7 @@
         const selectedPaymentAccount = selectedOption ? (selectedOption.dataset.accountValue || null) : (a.paymentAccount || a.bankAccount || null);
         const selectedPaymentType = selectedOption?.dataset.paymentType || paymentType?.value || a.paymentType || "";
         const patch = { paymentType: selectedPaymentType, paymentAccount: selectedPaymentAccount, bankAccount: selectedPaymentAccount, currency: nextCurrency, exchangeRate: nextExchangeRate, depositAmount: nextAmount, balanceAmount: Math.max(total - nextAmount, 0), paymentStatus: nextStatus, depositStatus: nextStatus, paymentTransferDate: transferDate, depositReceivedDate: transferDate, depositUpdatedAt: serverTimestamp(), depositUpdatedBy: currentUserName };
-        try { await updateAppointmentWithAudit(id, patch, "dashboard_deposit_update"); notifyAppointmentChange(id, "payment"); Object.assign(a, patch); overlay.remove(); renderAppointmentsTable(); showInvoiceToast(a, "Deposit / Payment Status update ပြီးပါပြီ", "success"); }
+        try { await updateAppointmentWithAudit(a.id, patch, "dashboard_deposit_update"); notifyAppointmentChange(a.id, "payment"); Object.assign(a, patch); overlay.remove(); renderAppointmentsTable(); showInvoiceToast(a, "Deposit / Payment Status update ပြီးပါပြီ", "success"); }
         catch (e) { showToast("Deposit update မအောင်မြင်ပါ: " + e.message, "error"); }
       };
     }
@@ -7265,6 +7287,7 @@
         const dep = Number(a.depositAmount||0).toFixed(2); const bal = Number(a.balanceAmount||0).toFixed(2);
         const currentPaymentStatus = a.paymentStatus || a.depositStatus || (Number(a.depositAmount||0) >= getPayableTotal(a) && Number(a.price||0) > 0 ? "paid" : Number(a.depositAmount||0) > 0 ? "partial" : "unpaid");
         const depositStatusLabel = paymentStatusLabel(currentPaymentStatus);
+        const dashboardPaymentMeta = getDashboardPaymentMeta(a);
         const apptDT = `${formatSystemDateDisplay(a.appointmentDate)}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
         const id = (a.invoiceId || a.id || "").toUpperCase();
 
@@ -7493,7 +7516,7 @@
               <span style="font-size:9px;color:#475569;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;">📍 ${a.location || "-"}</span>
             </div>
           </td>
-          <td class="dashboard-payment-cell"><div style="display:flex;flex-direction:column;gap:2px;line-height:1.15;white-space:nowrap;"><span style="font-weight:800;">${a.paymentType || "-"}</span><span style="font-weight:800;color:${currentPaymentStatus === "paid" ? "#166534" : currentPaymentStatus === "partial" ? "#92400e" : "#64748b"};">${depositStatusLabel}</span><button type="button" class="dashboard-deposit-btn" data-paymentid="${id}" title="Payment Status / Amount ပြင်ရန်" style="border:0;background:transparent;padding:0;text-align:left;cursor:pointer;font-size:12px;line-height:1;">💵</button></div></td>
+          <td class="dashboard-payment-cell"><div class="dashboard-deposit-btn" data-paymentid="${a.id}" role="button" tabindex="0" title="Payment / Deposit ပြင်ရန် · ${dashboardPaymentMeta.title}" style="display:flex;flex-direction:column;gap:2px;line-height:1.15;white-space:nowrap;cursor:pointer;"><span class="dashboard-payment-line"><span class="dashboard-payment-type">${a.paymentType || "-"}</span></span><span class="dashboard-payment-account-line" title="${dashboardPaymentMeta.title}">${dashboardPaymentMeta.compact}</span><span style="font-weight:800;color:${currentPaymentStatus === "paid" ? "#166534" : currentPaymentStatus === "partial" ? "#92400e" : "#64748b"};">${depositStatusLabel}</span></div></td>
           <td title="Listed: ${Number(a.price||0).toFixed(2)} · Discount: ${getDiscountAmount(a).toFixed(2)}">${payable.toFixed(2)}${getDiscountAmount(a)>0 ? `<small style="display:block;color:#b45309;font-size:9px;">-${getDiscountAmount(a).toFixed(2)}</small>` : ""}</td>
           <td>${dep}</td>
           <td>${bal}</td>
@@ -7778,7 +7801,7 @@
         const editBtn = tr.querySelector("[data-editid]");
         if (editBtn) editBtn.addEventListener("click", () => { if (canEditDelete) openAppointmentNewTab(a.id, "edit"); });
         const depositBtn = tr.querySelector("[data-paymentid]");
-        if (depositBtn) depositBtn.addEventListener("click", () => openDashboardDepositModal(id));
+        if (depositBtn) depositBtn.addEventListener("click", () => openDashboardDepositModal(depositBtn.dataset.paymentid || a.id || id));
         
         const dupBtn = tr.querySelector("[data-dupid]");
         if (dupBtn) {
