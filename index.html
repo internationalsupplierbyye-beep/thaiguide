@@ -158,6 +158,9 @@
     #tab-dashboard .dashboard-service-location-cell > div > span:not(.tag){font-size:10px !important}
     #tab-dashboard td:nth-child(2) .action-dup,#tab-dashboard td:nth-child(2) .action-del{font-size:9.5px !important}
     #tab-dashboard td:nth-child(2) .assign-select{font-size:9.5px !important}
+    #tab-dashboard td:nth-child(2) .assign-copy-wrap{display:flex;align-items:center;gap:3px;margin-top:6px;width:100%}
+    #tab-dashboard td:nth-child(2) .assign-copy-wrap .assign-select{flex:1 1 auto;min-width:0;width:auto !important;margin-top:0 !important;font-size:8.5px !important;padding:2px !important}
+    #tab-dashboard td:nth-child(2) .copy-expiry-message{flex:0 0 auto;padding:3px 5px;font-size:9px;line-height:1.1;white-space:nowrap;border:1px solid #c7d2fe;border-radius:5px;background:#eef2ff;color:#3730a3;cursor:pointer}
     #tab-dashboard table td:nth-child(14) .settlement-detail-lines{font-size:9.5px !important}
     .tab-btn{
       border:none;background:transparent;
@@ -1057,9 +1060,9 @@
       color: #334155 !important;
       line-height: 1.35 !important;
     }
-    #invoiceCard .invoice-bank-accounts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:12px;width:100%;}
-    #invoiceCard .invoice-bank-title{grid-column:1/-1;font-size:12px;font-weight:900;color:#3730a3;text-align:center;margin-bottom:1px;}
-    #invoiceCard .invoice-bank-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:14px 12px;border:1px solid #c7d2fe;border-radius:12px;background:#f8faff;text-align:center;min-width:0;}
+    #invoiceCard .invoice-bank-accounts{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin-top:12px;width:100%;}
+    #invoiceCard .invoice-bank-title{width:100%;font-size:12px;font-weight:900;color:#3730a3;text-align:center;margin-bottom:1px;}
+    #invoiceCard .invoice-bank-card{display:flex;flex:0 1 300px;width:min(300px,100%);box-sizing:border-box;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:14px 12px;border:1px solid #c7d2fe;border-radius:12px;background:#f8faff;text-align:center;min-width:0;}
     #invoiceCard .invoice-bank-logo{width:58px;height:58px;flex:0 0 58px;object-fit:contain;border-radius:12px;background:#fff;border:1px solid #e2e8f0;padding:5px;}
     #invoiceCard .invoice-bank-logo[src=""]{display:none;}
     #invoiceCard .invoice-bank-details{min-width:0;font-size:13px;line-height:1.45;color:#334155;text-align:center;}
@@ -2142,13 +2145,13 @@
                 </div>
 
                 <div class="field">
-                  <label for="depositAmount">Deposit Amount (${recordCurrency})</label>
+                  <label for="depositAmount" id="depositAmountLabel">Deposit Amount (THB)</label>
                   <input type="number" id="depositAmount" min="0" step="0.01" placeholder="0.00" />
                   <small>Payment Type ဘာရွေးရွေး ထည့်လို့ရ</small>
                 </div>
 
                 <div class="field">
-                  <label for="balanceAmount">Balance (Auto) (THB)</label>
+                  <label for="balanceAmount" id="balanceAmountLabel">Balance (Auto) (THB)</label>
                   <input type="number" id="balanceAmount" placeholder="0.00" disabled />
                   <small>Auto = Total - Deposit</small>
                 </div>
@@ -2156,7 +2159,7 @@
                 <div class="field">
                   <label for="paymentType">ငွေပေးချေမှုအမျိုးအစား</label>
                   <select id="paymentType" required></select>
-                  <select id="paymentStatus" style="display:none;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select>
+                  <select id="paymentStatus" style="display:none;"><option value="unpaid">NO PAID</option><option value="partial">PARTIAL PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select>
                   <input type="date" id="paymentTransferDate" style="display:none;" />
                 </div>
 
@@ -2737,6 +2740,15 @@
                 <textarea id="settingInvoiceFooter" rows="3" placeholder="ဝန်ဆောင်မှုအသုံးပြုပေးသည့်အတွက် ကျေးဇူးတင်ပါတယ်။ ဤ Invoice ကို မှတ်တမ်းအဖြစ် သိမ်းထားပါ။"></textarea>
                 <small>Invoice အောက်ခြေမှာ ပြမည့်စာကို ဒီနေရာကနေ ပြင်နိုင်ပါတယ်။ စာကြောင်းခွဲရေးလို့ရပါတယ်။</small>
               </div>
+              <div class="settings-block settings-block-wide">
+                <h4>📋 Dashboard Expiry Message Template</h4>
+                <textarea id="settingExpiryMessageTemplate" rows="7" placeholder="မင်္ဂလာပါ ခင်ဗျ။
+
+လူကြီးမင်း {name} ရဲ့ {serviceType} ဝန်ဆောင်မှုသည် {expiryDate} ရက်ပိုင်းတွင် သက်တမ်းပြီးဆုံးမယ်လို့ မျှော်လင့်ပါတယ် ခင်ဗျ။ ဆက်လက်ပြီး သက်တမ်းတိုးဝန်ဆောင်မှုရယူလိုပါက ထိုင်းလမ်းညွှန်ဘက်မှ စီစဉ်ပေးပါ့မယ် ခင်ဗျ။ စီစဉ်ပေးဖို့လိုအပ်ပါက အကြောင်းပြန်ပေးနိုင်ပါတယ် ခင်ဗျ။
+
+ကျေးဇူးအထူးတင်ပါတယ် ခင်ဗျ။"></textarea>
+                <small>Dashboard ရှိ <b>Copy</b> ခလုတ်အတွက် စာသားကို ဒီနေရာမှာ ပြင်ပါ။ <code>{name}</code> = Passport Name၊ <code>{serviceType}</code> = Service Type၊ <code>{expiryDate}</code> = Expiry Date ဖြစ်ပါသည်။</small>
+              </div>
               <div class="settings-block settings-info-block">
                 <h4>💡 ငွေပေးချေမှု Setting အသုံးပြုပုံ</h4>
                 <p>Entry form တွင် THB သို့မဟုတ် MMK ကို ရွေးပါ။ Invoice တွင် QR ပြရန် Invoice tab ရှိ QR option ကို အသုံးပြုနိုင်ပါသည်။</p>
@@ -3015,7 +3027,12 @@
 
     let servicePricing = {};
     let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "", sheetUrl: "", ocrUrl: "", geminiApiKey: "" };
-    let paymentSettings = { promptPayId: "", mmQRs: "", thaiBanks: "", myanmarBanks: "", invoiceFooter: "" };
+    const DEFAULT_EXPIRY_MESSAGE_TEMPLATE = `မင်္ဂလာပါ ခင်ဗျ။
+
+လူကြီးမင်း {name} ရဲ့ {serviceType} ဝန်ဆောင်မှုသည် {expiryDate} ရက်ပိုင်းတွင် သက်တမ်းပြီးဆုံးမယ်လို့ မျှော်လင့်ပါတယ် ခင်ဗျ။ ဆက်လက်ပြီး သက်တမ်းတိုးဝန်ဆောင်မှုရယူလိုပါက ထိုင်းလမ်းညွှန်ဘက်မှ စီစဉ်ပေးပါ့မယ် ခင်ဗျ။ စီစဉ်ပေးဖို့လိုအပ်ပါက အကြောင်းပြန်ပေးနိုင်ပါတယ် ခင်ဗျ။
+
+ကျေးဇူးအထူးတင်ပါတယ် ခင်ဗျ။`;
+    let paymentSettings = { promptPayId: "", mmQRs: "", thaiBanks: "", myanmarBanks: "", invoiceFooter: "", expiryMessageTemplate: DEFAULT_EXPIRY_MESSAGE_TEMPLATE };
     let automationSettings = { noticedAutoCancelDays: null, pendingExpiryAutoCancelDays: null };
     let autoCancelPromise = null;
     let invoiceLogoDataUrl = "";
@@ -3184,7 +3201,7 @@
       }
     }
     function paymentStatusLabel(status = "unpaid") {
-      return status === "paid" ? "✅ PAID" : status === "partial" ? "🟡 PARTI PAID" : status === "credit" ? "🔵 CREDIT" : "⚪ NO PAID";
+      return status === "paid" ? "✅ PAID" : status === "partial" ? "🟡 PARTIAL PAID" : status === "credit" ? "🔵 CREDIT" : "⚪ NO PAID";
     }
     function getDiscountAmount(data = {}) {
       const listed = Math.max(Number(data.price || 0), 0);
@@ -3302,11 +3319,11 @@
       const total = Math.max(Number($("price")?.value || 0) - Number($("discountAmount")?.value || 0), 0), current = Number($("depositAmount")?.value || 0);
       const overlay = document.createElement("div"); overlay.id = "entryPaymentModal";
       overlay.style.cssText = "position:fixed;inset:0;z-index:99998;background:rgba(15,23,42,.46);display:flex;align-items:center;justify-content:center;padding:16px;";
-      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(420px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💳 Payment Status / Amount</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Total: ${total.toFixed(2)} THB</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="entryModalPaymentStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Amount (THB)</label><input id="entryModalPaymentAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="entryModalPaymentDate" type="date" value="${$("paymentTransferDate")?.value || ""}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="entryPaymentCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="entryPaymentSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
+      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(420px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💳 Payment Status / Amount</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Total: ${total.toFixed(2)} THB</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="entryModalPaymentStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTIAL PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Amount (THB)</label><input id="entryModalPaymentAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="entryModalPaymentDate" type="date" value="${$("paymentTransferDate")?.value || ""}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="entryPaymentCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="entryPaymentSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
       document.body.appendChild(overlay);
       const status = overlay.querySelector("#entryModalPaymentStatus"), amount = overlay.querySelector("#entryModalPaymentAmount"), date = overlay.querySelector("#entryModalPaymentDate");
       status.value = $("paymentStatus")?.value || (current >= total && total > 0 ? "paid" : current > 0 ? "partial" : "unpaid");
-      status.addEventListener("change", () => { if (status.value === "paid") amount.value = total.toFixed(2); if (["unpaid","credit"].includes(status.value)) { amount.value = "0"; date.value = ""; } });
+      status.addEventListener("change", () => { if (status.value === "paid") amount.value = total.toFixed(2); if (["unpaid","credit"].includes(status.value)) { amount.value = "0"; date.value = ""; } else if (!date.value) date.value = todayISO(); });
       amount.addEventListener("input", () => { if (status.value === "credit") return; const n = Number(amount.value || 0); status.value = n <= 0 ? "unpaid" : (total > 0 && n >= total ? "paid" : "partial"); if (n > 0 && !date.value) date.value = todayISO(); if (n <= 0) date.value = ""; });
       overlay.querySelector("#entryPaymentCancel").onclick = () => overlay.remove();
       overlay.querySelector("#entryPaymentSave").onclick = () => { const next = Math.min(Math.max(Number(amount.value || 0), 0), total), nextStatus = status.value === "credit" ? "credit" : status.value === "paid" ? "paid" : next > 0 ? "partial" : "unpaid"; $("depositAmount").value = next.toFixed(2); $("paymentStatus").value = nextStatus; $("paymentTransferDate").value = ["unpaid","credit"].includes(nextStatus) ? "" : (date.value || ""); updateDepositUI(); refreshEntryPaymentButton(); overlay.remove(); };
@@ -3319,7 +3336,7 @@
       const recordExchangeRate = Number(a.exchangeRate || 0);
       const overlay = document.createElement("div"); overlay.id = "dashboardDepositModal";
       overlay.style.cssText = "position:fixed;inset:0;z-index:99998;background:rgba(15,23,42,.46);display:flex;align-items:center;justify-content:center;padding:16px;";
-      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(430px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💵 Payment / Deposit ပြင်ရန်</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Invoice: ${id} · Total: ${total.toFixed(2)} ${recordCurrency}</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Type</label><select id="dashPaymentType" style="width:100%;">${(dropdownSettings.paymentTypes || []).map(x => `<option value="${String(x).replace(/"/g,'&quot;')}">${x}</option>`).join("")}</select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Currency</label><select id="dashPaymentCurrency" style="width:100%;"><option value="THB">THB (ထိုင်းဘတ်)</option><option value="MMK">MMK (မြန်မာကျပ်)</option></select><div id="dashExchangeRateWrap" style="display:${recordCurrency === "MMK" ? "block" : "none"};margin-top:10px;"><label style="display:block;font-weight:700;font-size:12px;margin:0 0 4px;">ပေါက်ဈေး (၁ သိန်း = ? ဘတ်)</label><input id="dashExchangeRate" type="number" min="0" step="0.01" value="${recordExchangeRate || ""}" placeholder="e.g. 780" style="width:100%;"><small id="dashMmkPreview" style="display:block;color:#4f46e5;font-weight:700;margin-top:4px;"></small></div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="dashDepositStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label id="dashDepositAmountLabel" style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Deposit Amount (${recordCurrency})</label><input id="dashDepositAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="dashDepositDate" type="date" value="${a.paymentTransferDate || a.depositReceivedDate || (current > 0 ? todayISO() : "")}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="dashDepositCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="dashDepositSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
+      overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(430px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💵 Payment / Deposit ပြင်ရန်</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Invoice: ${id} · Total: ${total.toFixed(2)} ${recordCurrency}</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Type</label><select id="dashPaymentType" style="width:100%;">${(dropdownSettings.paymentTypes || []).map(x => `<option value="${String(x).replace(/"/g,'&quot;')}">${x}</option>`).join("")}</select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Currency</label><select id="dashPaymentCurrency" style="width:100%;"><option value="THB">THB (ထိုင်းဘတ်)</option><option value="MMK">MMK (မြန်မာကျပ်)</option></select><div id="dashExchangeRateWrap" style="display:${recordCurrency === "MMK" ? "block" : "none"};margin-top:10px;"><label style="display:block;font-weight:700;font-size:12px;margin:0 0 4px;">ပေါက်ဈေး (၁ သိန်း = ? ဘတ်)</label><input id="dashExchangeRate" type="number" min="0" step="0.01" value="${recordExchangeRate || ""}" placeholder="e.g. 780" style="width:100%;"><small id="dashMmkPreview" style="display:block;color:#4f46e5;font-weight:700;margin-top:4px;"></small></div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="dashDepositStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTIAL PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label id="dashDepositAmountLabel" style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Deposit Amount (${recordCurrency})</label><input id="dashDepositAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="dashDepositDate" type="date" value="${a.paymentTransferDate || a.depositReceivedDate || (current > 0 ? todayISO() : "")}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="dashDepositCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="dashDepositSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
       document.body.appendChild(overlay);
       const paymentType = overlay.querySelector("#dashPaymentType"), paymentCurrency = overlay.querySelector("#dashPaymentCurrency"), exchangeRate = overlay.querySelector("#dashExchangeRate"), exchangeWrap = overlay.querySelector("#dashExchangeRateWrap"), mmkPreview = overlay.querySelector("#dashMmkPreview"), status = overlay.querySelector("#dashDepositStatus"), amount = overlay.querySelector("#dashDepositAmount"), date = overlay.querySelector("#dashDepositDate");
       const syncDashboardPaymentTypes = (selectedValue = "", selectedPaymentType = "") => {
@@ -3349,7 +3366,7 @@
       amount?.addEventListener("input", syncDashboardCurrencyUI);
       syncDashboardCurrencyUI();
       status.value = a.paymentStatus || a.depositStatus || (current >= total && total > 0 ? "paid" : current > 0 ? "partial" : "unpaid");
-      status.addEventListener("change", () => { if (status.value === "paid") amount.value = total.toFixed(2); if (["unpaid","credit"].includes(status.value)) { amount.value = "0"; date.value = ""; } });
+      status.addEventListener("change", () => { if (status.value === "paid") amount.value = total.toFixed(2); if (["unpaid","credit"].includes(status.value)) { amount.value = "0"; date.value = ""; } else if (!date.value) date.value = todayISO(); });
       amount.addEventListener("input", () => { if (status.value === "credit") return; const n = Number(amount.value || 0); status.value = n <= 0 ? "unpaid" : (total > 0 && n >= total ? "paid" : "partial"); if (n > 0 && !date.value) date.value = todayISO(); if (n <= 0) date.value = ""; });
       overlay.querySelector("#dashDepositCancel").onclick = () => overlay.remove();
       overlay.querySelector("#dashDepositSave").onclick = async () => {
@@ -3360,7 +3377,7 @@
         const nextExchangeRate = nextCurrency === "MMK" ? Number(exchangeRate?.value || 0) : 0;
         if (nextCurrency === "MMK" && !(nextExchangeRate > 0)) return showToast("MMK အတွက် Exchange Rate ထည့်ပေးပါ", "error");
         const selectedOption = paymentType?.selectedOptions[0];
-        const selectedPaymentAccount = selectedOption?.dataset.accountValue || a.paymentAccount || a.bankAccount || null;
+        const selectedPaymentAccount = selectedOption ? (selectedOption.dataset.accountValue || null) : (a.paymentAccount || a.bankAccount || null);
         const selectedPaymentType = selectedOption?.dataset.paymentType || paymentType?.value || a.paymentType || "";
         const patch = { paymentType: selectedPaymentType, paymentAccount: selectedPaymentAccount, bankAccount: selectedPaymentAccount, currency: nextCurrency, exchangeRate: nextExchangeRate, depositAmount: nextAmount, balanceAmount: Math.max(total - nextAmount, 0), paymentStatus: nextStatus, depositStatus: nextStatus, paymentTransferDate: transferDate, depositReceivedDate: transferDate, depositUpdatedAt: serverTimestamp(), depositUpdatedBy: currentUserName };
         try { await updateAppointmentWithAudit(id, patch, "dashboard_deposit_update"); notifyAppointmentChange(id, "payment"); Object.assign(a, patch); overlay.remove(); renderAppointmentsTable(); showInvoiceToast(a, "Deposit / Payment Status update ပြီးပါပြီ", "success"); }
@@ -4106,6 +4123,7 @@
       if ($("settingThaiBanks")) $("settingThaiBanks").value = paymentSettings.thaiBanks || "";
       if ($("settingMyanmarBanks")) $("settingMyanmarBanks").value = paymentSettings.myanmarBanks || "";
       if ($("settingInvoiceFooter")) $("settingInvoiceFooter").value = paymentSettings.invoiceFooter || "";
+      if ($("settingExpiryMessageTemplate")) $("settingExpiryMessageTemplate").value = paymentSettings.expiryMessageTemplate || DEFAULT_EXPIRY_MESSAGE_TEMPLATE;
       syncPaymentTypeOptions();
       
       if ($("settingGasUrl")) $("settingGasUrl").value = telegramSettings.gasUrl || "";
@@ -4182,6 +4200,7 @@
       paymentSettings.thaiBanks = $("settingThaiBanks")?.value.trim() || "";
       paymentSettings.myanmarBanks = $("settingMyanmarBanks")?.value.trim() || "";
       paymentSettings.invoiceFooter = $("settingInvoiceFooter")?.value.trim() || "";
+      paymentSettings.expiryMessageTemplate = $("settingExpiryMessageTemplate")?.value.trim() || DEFAULT_EXPIRY_MESSAGE_TEMPLATE;
       const parseDays = id => { const raw = String($(id)?.value ?? "").trim(); if (!raw) return null; const n = Number(raw); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null; };
       automationSettings.noticedAutoCancelDays = parseDays("autoCancelNoticedDays");
       automationSettings.pendingExpiryAutoCancelDays = parseDays("autoCancelPendingExpiryDays");
@@ -4232,6 +4251,10 @@
       const deposit = Number($("depositAmount").value || 0);
       const bal = Math.max(total - deposit, 0);
       $("balanceAmount").value = bal.toFixed(2);
+      if ($("paymentStatus") && $("paymentStatus").value !== "credit") {
+        $("paymentStatus").value = deposit <= 0 ? "unpaid" : (total > 0 && deposit >= total ? "paid" : "partial");
+      }
+      refreshEntryPaymentButton();
       
       if($("currency").value === "MMK") {
          const rate = Number($("exchangeRate").value || 0);
@@ -4313,15 +4336,16 @@
     $("discountAmount")?.addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", () => {
-      const amount = Number($("depositAmount").value || 0), total = Number($("price").value || 0);
+      const amount = Number($("depositAmount").value || 0), total = getPayableTotal({ price: $("price").value, discountAmount: $("discountAmount")?.value });
       if ($("paymentStatus")) $("paymentStatus").value = amount <= 0 ? "unpaid" : (total > 0 && amount >= total ? "paid" : "partial");
       if ($("paymentTransferDate")) $("paymentTransferDate").value = amount > 0 ? ($("paymentTransferDate").value || todayISO()) : "";
       refreshEntryPaymentButton();
     });
     $("entryPaymentStatusBtn")?.addEventListener("click", openEntryPaymentModal);
     $("paymentStatus")?.addEventListener("change", () => {
-      if ($("paymentStatus").value === "unpaid" && $("paymentTransferDate")) $("paymentTransferDate").value = "";
-      if ($("paymentStatus").value === "paid" && $("depositAmount") && Number($("price").value || 0) > 0) $("depositAmount").value = Number($("price").value).toFixed(2);
+      if (["unpaid","credit"].includes($("paymentStatus").value) && $("paymentTransferDate")) $("paymentTransferDate").value = "";
+      if (["partial","paid"].includes($("paymentStatus").value) && $("paymentTransferDate") && !$("paymentTransferDate").value) $("paymentTransferDate").value = todayISO();
+      if ($("paymentStatus").value === "paid" && $("depositAmount") && getPayableTotal({ price: $("price").value, discountAmount: $("discountAmount")?.value }) > 0) $("depositAmount").value = getPayableTotal({ price: $("price").value, discountAmount: $("discountAmount")?.value }).toFixed(2);
       updateDepositUI(); refreshEntryPaymentButton();
     });
 
@@ -6192,7 +6216,7 @@
       const listedPrice = Number($("price").value || 0);
       const discountAmount = Math.min(Math.max(Number($("discountAmount")?.value || 0), 0), Math.max(listedPrice, 0));
       const total = Math.max(listedPrice - discountAmount, 0);
-      const dep = Number($("depositAmount").value || 0);
+      const dep = Math.min(Math.max(Number($("depositAmount").value || 0), 0), total);
       const data = {
         invoiceId, 
         date: $("date").value, 
@@ -6214,7 +6238,9 @@
         bankAccount: $("bankAccount")?.value || null,
         paymentAccount: $("bankAccount")?.value || null,
         paymentStatus: $("paymentStatus")?.value || (dep >= total && total > 0 ? "paid" : dep > 0 ? "partial" : "unpaid"),
+        depositStatus: $("paymentStatus")?.value || (dep >= total && total > 0 ? "paid" : dep > 0 ? "partial" : "unpaid"),
         paymentTransferDate: $("paymentTransferDate")?.value || null,
+        depositReceivedDate: $("paymentTransferDate")?.value || null,
         price: listedPrice,
         discountAmount,
         payableAmount: total,
@@ -7107,6 +7133,45 @@
       } catch (e) { showToast("Settlement သိမ်းမရပါ: " + e.message, "error"); }
     });
 
+    async function copyExpiryNoticeMessage(appointment, button) {
+      const customerName = String(appointment?.name || "").trim();
+      const serviceName = String(appointment?.serviceType || "").trim();
+      const expiryDate = String(appointment?.expiryDate || "").trim();
+      if (!customerName || !serviceName || !expiryDate) {
+        showToast("Copy လုပ်ရန် Passport Name၊ Service Type နှင့် Expiry Date ပြည့်စုံရန်လိုပါသည်", "error");
+        return;
+      }
+      const displayExpiryDate = formatSystemDateDisplay(expiryDate) || expiryDate;
+      const template = String(paymentSettings.expiryMessageTemplate || DEFAULT_EXPIRY_MESSAGE_TEMPLATE);
+      const message = template
+        .replaceAll("{name}", customerName)
+        .replaceAll("{serviceType}", serviceName)
+        .replaceAll("{expiryDate}", displayExpiryDate);
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(message);
+        } else {
+          const textarea = document.createElement("textarea");
+          textarea.value = message;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          document.execCommand("copy");
+          textarea.remove();
+        }
+        const originalText = button?.textContent || "Copy";
+        if (button) {
+          button.textContent = "Copied";
+          setTimeout(() => { if (button.isConnected) button.textContent = originalText; }, 1200);
+        }
+        showToast("✅ Expiry Message ကို Copy ကူးပြီးပါပြီ", "success");
+      } catch (error) {
+        showToast("Copy မလုပ်နိုင်ပါ: " + error.message, "error");
+      }
+    }
+
     function renderAppointmentsTable() {
       const body = $("appointmentsTableBody"); body.innerHTML = "";
       
@@ -7355,9 +7420,12 @@
                <button class="btn btn-outline action-dup" style="padding:4px 8px;font-size:11px;" data-dupid="${id}">Duplicate</button>
                <button class="btn btn-danger action-del" style="padding:4px 8px;font-size:11px;${canDelete?"":"display:none;"}" data-delid="${id}">Delete</button>
             </div>
-            <select class="assign-select" data-assignid="${id}" style="margin-top:6px; font-size:10px; padding:3px 4px; border-radius:6px; width:100%;" title="Assign To">
-               ${assignOptions}
-            </select>
+            <div class="assign-copy-wrap">
+              <select class="assign-select" data-assignid="${id}" title="Assign To">
+                 ${assignOptions}
+              </select>
+              <button type="button" class="copy-expiry-message" title="Expiry message ကို Copy ကူးရန်">Copy</button>
+            </div>
           </td>
           
           <td>${a.date || ""}</td>
@@ -7622,6 +7690,10 @@
             }
             e.target.disabled = false;
           });
+        }
+        const copyExpiryMessageBtn = tr.querySelector(".copy-expiry-message");
+        if (copyExpiryMessageBtn) {
+          copyExpiryMessageBtn.addEventListener("click", () => copyExpiryNoticeMessage(a, copyExpiryMessageBtn));
         }
 
         tr.querySelector("[data-docid]").addEventListener("click", () => openAppointmentNewTab(a.id, "invoice"));
@@ -7976,10 +8048,10 @@
       $("exchangeRate").value = a.exchangeRate || "";
       if($("currency").value === "MMK") $("exchangeRateWrapper").style.display = "flex";
       else $("exchangeRateWrapper").style.display = "none";
-      syncEntryBankAccounts(a.paymentAccount || a.bankAccount || "");
+      syncPaymentTypeOptions(a.paymentAccount || a.bankAccount || "", a.paymentType || "");
 
-      $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("discountAmount").value = a.discountAmount != null ? a.discountAmount : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
-      if ($("paymentStatus")) $("paymentStatus").value = a.paymentStatus || (Number(a.depositAmount || 0) >= getPayableTotal(a) && getPayableTotal(a) > 0 ? "paid" : Number(a.depositAmount || 0) > 0 ? "partial" : "unpaid");
+      $("price").value = a.price != null ? a.price : ""; $("discountAmount").value = a.discountAmount != null ? a.discountAmount : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
+      if ($("paymentStatus")) $("paymentStatus").value = a.paymentStatus || a.depositStatus || (Number(a.depositAmount || 0) >= getPayableTotal(a) && getPayableTotal(a) > 0 ? "paid" : Number(a.depositAmount || 0) > 0 ? "partial" : "unpaid");
       if ($("paymentTransferDate")) $("paymentTransferDate").value = a.paymentTransferDate || a.depositReceivedDate || "";
       if ($("agentName")) $("agentName").value = a.agentName || a.sourceName || "";
       if ($("agentPayable")) $("agentPayable").value = a.agentPayable != null ? a.agentPayable : (a.agentCommission != null ? a.agentCommission : "");
@@ -8365,7 +8437,7 @@
       if (!accounts.length) { container.innerHTML = ""; container.style.display = "none"; return; }
       const title = "ငွေပေးချေရန် ဘဏ်အကောင့် အချက်အလက်";
       container.innerHTML = `<div class="invoice-bank-title">${title}</div>${accounts.map(account => `<div class="invoice-bank-card">${account.logo ? `<img class="invoice-bank-logo" src="${escapeInvoiceHtml(account.logo)}" alt="${escapeInvoiceHtml(account.bankName)} logo" onerror="this.style.display='none'">` : ""}<div class="invoice-bank-details"><div class="invoice-bank-name">${escapeInvoiceHtml(account.bankName)}</div><div class="invoice-bank-holder">ဘဏ်နာမည်: ${escapeInvoiceHtml(account.holderName || "-")}</div><div class="invoice-bank-number">ဘဏ်နံပါတ်: ${escapeInvoiceHtml(account.accountNumber || "-")}</div></div></div>`).join("")}`;
-      container.style.display = "grid";
+      container.style.display = "flex";
     }
     function getPaymentAccountOptions(currency) {
       const isMmk = currency === "MMK";
