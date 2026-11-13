@@ -2658,7 +2658,7 @@
                 <div class="settings-block">
                   <h4>Payment Type List</h4>
                   <textarea id="paymentsSetting" rows="5" placeholder="Cash\nBank Transfer\nQR Payment"></textarea>
-                  <small>Cash / Deposit / Free လို Currency မခွဲသည့် အမျိုးအစားများသာ ထည့်ပါ။ Thai/Myanmar QR နှင့် Bank အမည်များကို အောက်က THB/MMK Settings ထဲမှာ ထည့်ပါ။</small>
+                  <small>ဒီစာရင်းကို အလွတ်ထားလည်း Cash က အမြဲပါမည်။ လိုအပ်လျှင် Cash အပြင် Generic Payment Method များသာ ထည့်ပါ။ Thai/Myanmar QR နှင့် Bank အမည်များကို Payment &amp; Invoice Settings မှ အော်တိုဆွဲယူပါမည်။</small>
                 </div>
                 <div class="settings-block">
                   <h4>Service Location List</h4>
@@ -3011,7 +3011,7 @@
       customerChannels: ["Facebook Page","Messenger","Telegram","Line","Phone Call","Walk-in","Agent / Referral","Other"],
       serviceTypes: ["Bank Account Opening","Visa Service","TM30 / 90 Days Report","Money Exchange","Flight / Ticket","Other Service"],
       servicePackages: {}, 
-      paymentTypes: ["Cash","Bank Transfer","QR Payment","Deposit (Partial)","Deposit (50%)","Deposit (Custom)","Free of Charge"],
+      paymentTypes: ["Cash"],
       locations: ["Chiang Mai Office","Bangkok Office","Online Service"],
       staffList: [],
       sourceList: ["Direct / ကိုယ်တိုင်ရ"],
@@ -3342,7 +3342,7 @@
       const syncDashboardPaymentTypes = (selectedValue = "", selectedPaymentType = "") => {
         if (!paymentType) return;
         const currency = paymentCurrency?.value || "THB";
-        const baseTypes = (dropdownSettings.paymentTypes || []).filter(type => !["bank transfer", "qr payment"].includes(String(type).trim().toLowerCase()) && !/(bank|qr|promptpay|kpay|wave\s*pay|kbz|aya)/i.test(String(type)));
+        const baseTypes = [...new Set(["Cash", ...(dropdownSettings.paymentTypes || [])])].filter(type => !["bank transfer", "qr payment"].includes(String(type).trim().toLowerCase()) && !/(bank|qr|promptpay|kpay|wave\s*pay|kbz|aya)/i.test(String(type)));
         const options = getPaymentAccountOptions(currency);
         paymentType.innerHTML = "";
         baseTypes.forEach(type => { const option = document.createElement("option"); option.value = type; option.textContent = type; option.dataset.paymentType = type; option.dataset.accountValue = ""; paymentType.appendChild(option); });
@@ -8473,7 +8473,7 @@
       if (!select) return;
       const currency = $("currency")?.value || "THB";
       const accountOptions = getPaymentAccountOptions(currency);
-      const baseTypes = (dropdownSettings.paymentTypes || []).filter(type => !["bank transfer", "qr payment"].includes(String(type).trim().toLowerCase()) && !/(bank|qr|promptpay|kpay|wave\s*pay|kbz|aya)/i.test(String(type)));
+      const baseTypes = [...new Set(["Cash", ...(dropdownSettings.paymentTypes || [])])].filter(type => !["bank transfer", "qr payment"].includes(String(type).trim().toLowerCase()) && !/(bank|qr|promptpay|kpay|wave\s*pay|kbz|aya)/i.test(String(type)));
       select.innerHTML = "";
       const addOption = (value, label, paymentType, accountValue = "") => {
         const option = document.createElement("option");
