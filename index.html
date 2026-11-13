@@ -161,6 +161,12 @@
     #tab-dashboard td:nth-child(2) .assign-copy-wrap{display:flex;align-items:center;gap:3px;margin-top:6px;width:100%}
     #tab-dashboard td:nth-child(2) .assign-copy-wrap .assign-select{flex:1 1 auto;min-width:0;width:auto !important;margin-top:0 !important;font-size:8.5px !important;padding:2px !important}
     #tab-dashboard td:nth-child(2) .copy-expiry-message{flex:0 0 auto;padding:3px 5px;font-size:9px;line-height:1.1;white-space:nowrap;border:1px solid #c7d2fe;border-radius:5px;background:#eef2ff;color:#3730a3;cursor:pointer}
+    .invoice-display-options{display:flex;align-items:center;justify-content:flex-start;gap:10px 16px;flex-wrap:wrap;width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc}
+    .invoice-display-options .toggle{display:inline-flex;align-items:center;gap:5px;margin:0;white-space:nowrap;font-size:11px;line-height:1.25}
+    .invoice-display-options .toggle input{margin:0;width:14px;height:14px;flex:0 0 auto}
+    .invoice-note-option-title{font-size:11px;font-weight:800;color:#475569;white-space:nowrap}
+    .invoice-display-options-divider{width:1px;height:18px;background:#cbd5e1;display:inline-block}
+    @media (max-width:700px){.invoice-display-options{gap:8px 12px}.invoice-display-options-divider{display:none}}
     #tab-dashboard table td:nth-child(14) .settlement-detail-lines{font-size:9.5px !important}
     .tab-btn{
       border:none;background:transparent;
@@ -1070,6 +1076,7 @@
     #invoiceCard .invoice-bank-holder{font-size:13px;font-weight:800;overflow-wrap:anywhere;}
     #invoiceCard .invoice-bank-number{font-size:14px;font-weight:950;letter-spacing:.04em;overflow-wrap:anywhere;margin-top:2px;}
     #invoiceCard .invoice-bank-holder{overflow-wrap:anywhere;}
+    #invoiceCard #invPaymentNote{display:none;width:100%;margin:10px auto 0;padding:8px 12px;border:1px dashed #a5b4fc;border-radius:9px;background:#eef2ff;color:#3730a3;font-size:12px;font-weight:700;line-height:1.5;text-align:center;white-space:pre-line;overflow-wrap:anywhere;}
     body.dark-mode #invoiceCard .invoice-bank-card{background:#eef2ff;border-color:#c7d2fe;}
     #invoiceCard .invoice-amounts {
       flex: 1 1 auto;
@@ -2485,14 +2492,19 @@
                   <option value="th">Thai (ไทย)</option>
                 </select>
               </div>
-              <div class="field full-width" style="margin-top:10px;">
-                <label class="toggle" title="Show QR Code">
-                  <input type="checkbox" id="showQrOnInvoice" checked />
-                  QR Code ဖြင့်ငွေချေရန် ပြသမည်
-                </label>
-              </div>
-              <div class="field full-width" style="margin-top:10px;">
-                <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+              <div class="field full-width invoice-display-options-field" style="margin-top:10px;">
+                <div class="invoice-display-options">
+                  <label class="toggle" title="Show QR Code">
+                    <input type="checkbox" id="showQrOnInvoice" checked />
+                    QR Code ဖြင့်ငွေချေရန် ပြသမည်
+                  </label>
+                  <span class="invoice-display-options-divider" aria-hidden="true"></span>
+                  <span class="invoice-note-option-title">Payment Note ပြမည်</span>
+                  <label class="toggle invoice-note-toggle" id="invoiceNoteTogglePromptPay" style="display:none;"><input type="checkbox" id="showPromptPayNoteOnInvoice" checked /> PromptPay</label>
+                  <label class="toggle invoice-note-toggle" id="invoiceNoteToggleMmQr" style="display:none;"><input type="checkbox" id="showMmQrNoteOnInvoice" checked /> Myanmar Pay QR</label>
+                  <label class="toggle invoice-note-toggle" id="invoiceNoteToggleThaiBank" style="display:none;"><input type="checkbox" id="showThaiBankNoteOnInvoice" checked /> Thai Bank</label>
+                  <label class="toggle invoice-note-toggle" id="invoiceNoteToggleMyanmarBank" style="display:none;"><input type="checkbox" id="showMyanmarBankNoteOnInvoice" checked /> Myanmar Bank</label>
+                  <span class="invoice-display-options-divider" aria-hidden="true"></span>
                   <label class="toggle" title="Show customer portrait">
                     <input type="checkbox" id="showPortraitOnInvoice" checked />
                     လူပုံပါမည်
@@ -2582,6 +2594,7 @@
                   </div>
                 </div>
                 <div id="invBankAccounts" class="invoice-bank-accounts" style="display:none;"></div>
+                <div id="invPaymentNote" aria-live="polite"></div>
                 
                 <div id="invSystemRecord" data-html2canvas-ignore="true" style="margin-top: 15px; font-size: 11px; color: #9ca3af; text-align: center; border-top: 1px dashed #e5e7eb; padding-top: 8px;"></div>
                 <div class="invoice-footer">
@@ -2718,21 +2731,29 @@
                   <h4>PromptPay IDs <span class="settings-optional">THB</span></h4>
                   <textarea id="settingPromptPay" rows="5" placeholder="PP (KTB) = 0840179525 = AUNG AUNG\nPP (SCB) = 1101700123456 = SU SU"></textarea>
                   <small><b>ဘဏ်/Payment Type = PromptPay ID = အကောင့်ပိုင်ရှင်အမည်</b> ပုံစံရေးပါ။ Invoice QR အောက်တွင် နောက်ဆုံးအမည်ကို ပြပါမည်။</small>
+                  <label for="settingPromptPayNote" style="display:block;margin-top:8px;">PromptPay Note</label>
+                  <textarea id="settingPromptPayNote" rows="2" placeholder="PromptPay ဖြင့် ငွေလွှဲပြီးပါက Screenshot ပေးပို့ပါ။"></textarea>
                 </div>
                 <div class="settings-block">
                   <h4>Myanmar Pay QR Links <span class="settings-optional">MMK</span></h4>
                   <textarea id="settingMmQRs" rows="5" placeholder="KPay = https://drive.google.com/... | AUNG AUNG\nWave Pay = https://drive.google.com/... | SU SU"></textarea>
                   <small><b>Pay နာမည် = QR ပုံ Link | အကောင့်ပိုင်ရှင်နာမည်</b> ပုံစံရေးပါ။ <code>|</code> နောက်က နာမည်ကို Invoice QR အောက်မှာ ပြပါမည်။</small>
+                  <label for="settingMmQrNote" style="display:block;margin-top:8px;">Myanmar Pay QR Note</label>
+                  <textarea id="settingMmQrNote" rows="2" placeholder="QR ဖြင့် ငွေလွှဲပြီးပါက Screenshot ပေးပို့ပါ။"></textarea>
                 </div>
                 <div class="settings-block">
                   <h4>Thailand Bank Accounts <span class="settings-optional">THB</span></h4>
                   <textarea id="settingThaiBanks" rows="5" placeholder="Kasikornbank | AUNG AUNG | 123-4-56789-0 | kasikorn-logo.png\nKBank | SU SU | 987-6-54321-0 | https://example.com/kbank-logo.png"></textarea>
                   <small><b>Bank Name | Account Holder Name | Bank Account Number | Bank Logo URL/Path</b> ပုံစံရေးပါ။ Logo မရှိလျှင် နောက်ဆုံးအပိုင်းကို အလွတ်ထားနိုင်ပါသည်။</small>
+                  <label for="settingThaiBankNote" style="display:block;margin-top:8px;">Thailand Bank Account Note</label>
+                  <textarea id="settingThaiBankNote" rows="2" placeholder="ဘဏ်အကောင့်သို့ ငွေလွှဲပြီးပါက Screenshot ပေးပို့ပါ။"></textarea>
                 </div>
                 <div class="settings-block">
                   <h4>Myanmar Bank Accounts <span class="settings-optional">MMK</span></h4>
                   <textarea id="settingMyanmarBanks" rows="5" placeholder="KBZ Bank | AUNG AUNG | 1234567890 | kbz-logo.png\nAYA Bank | SU SU | 0987654321 | https://example.com/aya-logo.png"></textarea>
                   <small><b>Bank Name | Account Holder Name | Bank Account Number | Bank Logo URL/Path</b> ပုံစံရေးပါ။ Invoice မှာ MMK ရွေးထားလျှင် ဒီစာရင်းကို ပြပါမည်။</small>
+                  <label for="settingMyanmarBankNote" style="display:block;margin-top:8px;">Myanmar Bank Account Note</label>
+                  <textarea id="settingMyanmarBankNote" rows="2" placeholder="ဘဏ်အကောင့်သို့ ငွေလွှဲပြီးပါက Screenshot ပေးပို့ပါ။"></textarea>
                 </div>
               </div>
               <div class="settings-block settings-block-wide">
@@ -3032,7 +3053,7 @@
 လူကြီးမင်း {name} ရဲ့ {serviceType} ဝန်ဆောင်မှုသည် {expiryDate} ရက်ပိုင်းတွင် သက်တမ်းပြီးဆုံးမယ်လို့ မျှော်လင့်ပါတယ် ခင်ဗျ။ ဆက်လက်ပြီး သက်တမ်းတိုးဝန်ဆောင်မှုရယူလိုပါက ထိုင်းလမ်းညွှန်ဘက်မှ စီစဉ်ပေးပါ့မယ် ခင်ဗျ။ စီစဉ်ပေးဖို့လိုအပ်ပါက အကြောင်းပြန်ပေးနိုင်ပါတယ် ခင်ဗျ။
 
 ကျေးဇူးအထူးတင်ပါတယ် ခင်ဗျ။`;
-    let paymentSettings = { promptPayId: "", mmQRs: "", thaiBanks: "", myanmarBanks: "", invoiceFooter: "", expiryMessageTemplate: DEFAULT_EXPIRY_MESSAGE_TEMPLATE };
+    let paymentSettings = { promptPayId: "", mmQRs: "", thaiBanks: "", myanmarBanks: "", promptPayNote: "", mmQrNote: "", thaiBankNote: "", myanmarBankNote: "", invoiceFooter: "", expiryMessageTemplate: DEFAULT_EXPIRY_MESSAGE_TEMPLATE };
     let automationSettings = { noticedAutoCancelDays: null, pendingExpiryAutoCancelDays: null };
     let autoCancelPromise = null;
     let invoiceLogoDataUrl = "";
@@ -3270,6 +3291,19 @@
       }
     }
     async function syncSettlementRecords(id, data = {}) {
+      const retryWrite = async (role, payload) => {
+        let lastError = null;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            await setDoc(doc(db, "settlements", `${id}_${role}`), payload, { merge:true });
+            return;
+          } catch (e) {
+            lastError = e;
+            if (attempt < 3) await new Promise(resolve => setTimeout(resolve, attempt * 500));
+          }
+        }
+        throw lastError || new Error("Settlement mirror write failed");
+      };
       try {
         const model = normalizeAppointmentModel(data);
         const base = { appointmentId:id, invoiceId:data.invoiceId || id, customerName:data.name || "", service:data.serviceType || "", date:data.date || "", updatedBy:currentUserName, updatedAt:serverTimestamp(), modelVersion:1 };
@@ -3279,9 +3313,17 @@
         };
         for (const role of Object.keys(records)) {
           const record = records[role];
-          await setDoc(doc(db, "settlements", `${id}_${role}`), { ...base, role, active:!!record, ...(record || { person:"", direction:"", amount:0, status:"pending" }) }, { merge:true });
+          await retryWrite(role, { ...base, role, active:!!record, ...(record || { person:"", direction:"", amount:0, status:"pending" }) });
         }
-      } catch (e) { console.warn("Normalized settlement mirror unavailable", e); }
+        return { ok:true };
+      } catch (e) {
+        console.warn("Normalized settlement mirror unavailable after retries", e);
+        const invoice = data.invoiceId || id;
+        if (typeof showToast === "function") {
+          showToast(`⚠️ ${invoice} Appointment သိမ်းပြီးပါပြီ၊ Settlement sync မအောင်မြင်သေးပါ။ Settlement Tab ကို ပြန်စစ်ပါ။`, "error");
+        }
+        return { ok:false, error:e };
+      }
     }
     async function updateAppointmentWithAudit(id, patch = {}, action = "update") {
       const before = (cachedAppointments || []).find(a => a.id === id) || {};
@@ -4091,7 +4133,7 @@
         if (spSnap.exists()) { servicePricing = spSnap.data().services || {}; }
 
         const paySnap = await getDoc(doc(db, "settings", "payment"));
-        if (paySnap.exists()) { paymentSettings = paySnap.data(); }
+        if (paySnap.exists()) { paymentSettings = { ...paymentSettings, ...paySnap.data() }; }
         const autoSnap = await getDoc(doc(db, "settings", "automation"));
         if (autoSnap.exists()) { automationSettings = { ...automationSettings, ...autoSnap.data() }; }
       } catch (e) { console.error("Load settings error:", e); }
@@ -4122,6 +4164,10 @@
       if ($("settingMmQRs")) $("settingMmQRs").value = paymentSettings.mmQRs || "";
       if ($("settingThaiBanks")) $("settingThaiBanks").value = paymentSettings.thaiBanks || "";
       if ($("settingMyanmarBanks")) $("settingMyanmarBanks").value = paymentSettings.myanmarBanks || "";
+      if ($("settingPromptPayNote")) $("settingPromptPayNote").value = paymentSettings.promptPayNote || "";
+      if ($("settingMmQrNote")) $("settingMmQrNote").value = paymentSettings.mmQrNote || "";
+      if ($("settingThaiBankNote")) $("settingThaiBankNote").value = paymentSettings.thaiBankNote || "";
+      if ($("settingMyanmarBankNote")) $("settingMyanmarBankNote").value = paymentSettings.myanmarBankNote || "";
       if ($("settingInvoiceFooter")) $("settingInvoiceFooter").value = paymentSettings.invoiceFooter || "";
       if ($("settingExpiryMessageTemplate")) $("settingExpiryMessageTemplate").value = paymentSettings.expiryMessageTemplate || DEFAULT_EXPIRY_MESSAGE_TEMPLATE;
       syncPaymentTypeOptions();
@@ -4199,6 +4245,10 @@
       paymentSettings.mmQRs = $("settingMmQRs").value.trim();
       paymentSettings.thaiBanks = $("settingThaiBanks")?.value.trim() || "";
       paymentSettings.myanmarBanks = $("settingMyanmarBanks")?.value.trim() || "";
+      paymentSettings.promptPayNote = $("settingPromptPayNote")?.value.trim() || "";
+      paymentSettings.mmQrNote = $("settingMmQrNote")?.value.trim() || "";
+      paymentSettings.thaiBankNote = $("settingThaiBankNote")?.value.trim() || "";
+      paymentSettings.myanmarBankNote = $("settingMyanmarBankNote")?.value.trim() || "";
       paymentSettings.invoiceFooter = $("settingInvoiceFooter")?.value.trim() || "";
       paymentSettings.expiryMessageTemplate = $("settingExpiryMessageTemplate")?.value.trim() || DEFAULT_EXPIRY_MESSAGE_TEMPLATE;
       const parseDays = id => { const raw = String($(id)?.value ?? "").trim(); if (!raw) return null; const n = Number(raw); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null; };
@@ -8435,9 +8485,10 @@
         return { bankName: parts[0] || "", holderName: parts[1] || "", accountNumber: parts[2] || "", logo: parts.slice(3).join("|").trim() };
       }).filter(account => account.bankName && (account.holderName || account.accountNumber));
     }
-    function renderInvoiceBankAccounts(currency, selectedValue = "") {
+    function renderInvoiceBankAccounts(currency, selectedValue = "", remainingBalance = null) {
       const container = $("invBankAccounts");
       if (!container) return;
+      if (remainingBalance != null && Number(remainingBalance) <= 0) { container.innerHTML = ""; container.style.display = "none"; return; }
       const selectedKind = String(selectedValue || "").split(":")[0];
       if (selectedValue && selectedKind !== "bank") { container.innerHTML = ""; container.style.display = "none"; return; }
       const isMmk = currency === "MMK";
@@ -8449,6 +8500,41 @@
       const title = "ငွေပေးချေရန် ဘဏ်အကောင့် အချက်အလက်";
       container.innerHTML = `<div class="invoice-bank-title">${title}</div>${accounts.map(account => `<div class="invoice-bank-card">${account.logo ? `<img class="invoice-bank-logo" src="${escapeInvoiceHtml(account.logo)}" alt="${escapeInvoiceHtml(account.bankName)} logo" onerror="this.style.display='none'">` : ""}<div class="invoice-bank-details"><div class="invoice-bank-name">${escapeInvoiceHtml(account.bankName)}</div><div class="invoice-bank-holder">ဘဏ်နာမည်: ${escapeInvoiceHtml(account.holderName || "-")}</div><div class="invoice-bank-number">ဘဏ်နံပါတ်: ${escapeInvoiceHtml(account.accountNumber || "-")}</div></div></div>`).join("")}`;
       container.style.display = "flex";
+    }
+    function syncInvoicePaymentNoteToggle(currency, selectedValue = "") {
+      const toggleIds = ["invoiceNoteTogglePromptPay", "invoiceNoteToggleMmQr", "invoiceNoteToggleThaiBank", "invoiceNoteToggleMyanmarBank"];
+      toggleIds.forEach(id => { const el = $(id); if (el) el.style.display = "none"; });
+      const kind = String(selectedValue || "").split(":")[0];
+      let activeId = "";
+      if (kind === "promptpay") activeId = "invoiceNoteTogglePromptPay";
+      else if (kind === "mmqr") activeId = "invoiceNoteToggleMmQr";
+      else if (kind === "bank") activeId = currency === "MMK" ? "invoiceNoteToggleMyanmarBank" : "invoiceNoteToggleThaiBank";
+      if (activeId && $(activeId)) $(activeId).style.display = "inline-flex";
+    }
+    function renderInvoicePaymentNote(currency, selectedValue = "", remainingBalance = 0) {
+      const noteEl = $("invPaymentNote");
+      if (!noteEl) return;
+      noteEl.textContent = "";
+      noteEl.style.display = "none";
+      if (Number(remainingBalance) <= 0) return;
+      const kind = String(selectedValue || "").split(":")[0];
+      let note = "";
+      let enabled = false;
+      if (kind === "promptpay") {
+        note = paymentSettings.promptPayNote || "";
+        enabled = $("showPromptPayNoteOnInvoice")?.checked !== false;
+      } else if (kind === "mmqr") {
+        note = paymentSettings.mmQrNote || "";
+        enabled = $("showMmQrNoteOnInvoice")?.checked !== false;
+      } else if (kind === "bank") {
+        const isMmk = currency === "MMK";
+        note = isMmk ? (paymentSettings.myanmarBankNote || "") : (paymentSettings.thaiBankNote || "");
+        enabled = $(isMmk ? "showMyanmarBankNoteOnInvoice" : "showThaiBankNoteOnInvoice")?.checked !== false;
+      }
+      if (enabled && String(note).trim()) {
+        noteEl.textContent = String(note).trim();
+        noteEl.style.display = "block";
+      }
     }
     function getPaymentAccountOptions(currency) {
       const isMmk = currency === "MMK";
@@ -8631,7 +8717,10 @@
         
         const listedTotal = Number(data.price || 0); const discount = getDiscountAmount(data); const total = getPayableTotal(data); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
         const cur = data.currency || "THB";
-        renderInvoiceBankAccounts(cur, data.paymentAccount || data.bankAccount || "");
+        const invoicePaymentSelection = data.paymentAccount || data.bankAccount || "";
+        syncInvoicePaymentNoteToggle(cur, invoicePaymentSelection);
+        renderInvoiceBankAccounts(cur, invoicePaymentSelection, balance);
+        renderInvoicePaymentNote(cur, invoicePaymentSelection, balance);
         
         $("invTotalAmount").textContent = (discount > 0 ? listedTotal.toFixed(2) + " " + cur : total.toFixed(2) + " " + cur);
         const invDiscountWrapper = $("invDiscountWrapper");
@@ -8824,6 +8913,9 @@
     });
     $("showStatusOnInvoice")?.addEventListener("change", () => {
       if ($("invoiceDocId")?.value.trim()) loadInvoice();
+    });
+    ["showPromptPayNoteOnInvoice", "showMmQrNoteOnInvoice", "showThaiBankNoteOnInvoice", "showMyanmarBankNoteOnInvoice"].forEach(id => {
+      $(id)?.addEventListener("change", () => { if ($("invoiceDocId")?.value.trim()) loadInvoice(); });
     });
     
     $("invoiceLanguage")?.addEventListener("change", () => {
