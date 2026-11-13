@@ -1057,6 +1057,17 @@
       color: #334155 !important;
       line-height: 1.35 !important;
     }
+    #invoiceCard .invoice-bank-accounts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:12px;width:100%;}
+    #invoiceCard .invoice-bank-title{grid-column:1/-1;font-size:12px;font-weight:900;color:#3730a3;text-align:center;margin-bottom:1px;}
+    #invoiceCard .invoice-bank-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:14px 12px;border:1px solid #c7d2fe;border-radius:12px;background:#f8faff;text-align:center;min-width:0;}
+    #invoiceCard .invoice-bank-logo{width:58px;height:58px;flex:0 0 58px;object-fit:contain;border-radius:12px;background:#fff;border:1px solid #e2e8f0;padding:5px;}
+    #invoiceCard .invoice-bank-logo[src=""]{display:none;}
+    #invoiceCard .invoice-bank-details{min-width:0;font-size:13px;line-height:1.45;color:#334155;text-align:center;}
+    #invoiceCard .invoice-bank-name{font-size:16px;font-weight:950;color:#1e1b4b;white-space:normal;overflow-wrap:anywhere;margin-bottom:3px;}
+    #invoiceCard .invoice-bank-holder{font-size:13px;font-weight:800;overflow-wrap:anywhere;}
+    #invoiceCard .invoice-bank-number{font-size:14px;font-weight:950;letter-spacing:.04em;overflow-wrap:anywhere;margin-top:2px;}
+    #invoiceCard .invoice-bank-holder{overflow-wrap:anywhere;}
+    body.dark-mode #invoiceCard .invoice-bank-card{background:#eef2ff;border-color:#c7d2fe;}
     #invoiceCard .invoice-amounts {
       flex: 1 1 auto;
       min-width: 0;
@@ -2149,6 +2160,8 @@
                   <input type="date" id="paymentTransferDate" style="display:none;" />
                 </div>
 
+                <input type="hidden" id="bankAccount" value="" />
+
               </div>
             </div>
 
@@ -2527,7 +2540,7 @@
                 <div class="invoice-total" style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 15px;">
                   
                   <div id="qrCodeContainer" class="invoice-qr" style="display:none; text-align:center; border-right: 1px dashed #d4d4d8;">
-    <div class="invoice-qr-caption" style="width:100%; color:#4f46e5; font-size:16px; font-weight:900; line-height:1.25; margin:0 0 8px; text-align:center;">ငွေပေးချေရန် Scan ဖတ်ပါ</div>
+    <div id="invoiceQrCaption" class="invoice-qr-caption" style="width:100%; color:#4f46e5; font-size:16px; font-weight:900; line-height:1.25; margin:0 0 8px; text-align:center;">ငွေပေးချေရန် Scan ဖတ်ပါ</div>
     <div class="promptpay-qr-wrap">
       <img id="invDynamicQR" src="" style="width: 85px; height: 85px; border: 2px solid #4f46e5; border-radius: 8px; padding: 3px; object-fit: contain;" alt="PromptPay QR" />
       <img id="promptpayLogo" class="promptpay-logo" src="promptpay-logo.png" alt="PromptPay logo" onerror="this.style.display='none'" />
@@ -2565,6 +2578,7 @@
 
                   </div>
                 </div>
+                <div id="invBankAccounts" class="invoice-bank-accounts" style="display:none;"></div>
                 
                 <div id="invSystemRecord" data-html2canvas-ignore="true" style="margin-top: 15px; font-size: 11px; color: #9ca3af; text-align: center; border-top: 1px dashed #e5e7eb; padding-top: 8px;"></div>
                 <div class="invoice-footer">
@@ -2641,7 +2655,7 @@
                 <div class="settings-block">
                   <h4>Payment Type List</h4>
                   <textarea id="paymentsSetting" rows="5" placeholder="Cash\nBank Transfer\nQR Payment"></textarea>
-                  <small>ငွေပေးချေမှုအမျိုးအစားများ</small>
+                  <small>Cash / Deposit / Free လို Currency မခွဲသည့် အမျိုးအစားများသာ ထည့်ပါ။ Thai/Myanmar QR နှင့် Bank အမည်များကို အောက်က THB/MMK Settings ထဲမှာ ထည့်ပါ။</small>
                 </div>
                 <div class="settings-block">
                   <h4>Service Location List</h4>
@@ -2706,6 +2720,16 @@
                   <h4>Myanmar Pay QR Links <span class="settings-optional">MMK</span></h4>
                   <textarea id="settingMmQRs" rows="5" placeholder="KPay = https://drive.google.com/... | AUNG AUNG\nWave Pay = https://drive.google.com/... | SU SU"></textarea>
                   <small><b>Pay နာမည် = QR ပုံ Link | အကောင့်ပိုင်ရှင်နာမည်</b> ပုံစံရေးပါ။ <code>|</code> နောက်က နာမည်ကို Invoice QR အောက်မှာ ပြပါမည်။</small>
+                </div>
+                <div class="settings-block">
+                  <h4>Thailand Bank Accounts <span class="settings-optional">THB</span></h4>
+                  <textarea id="settingThaiBanks" rows="5" placeholder="Kasikornbank | AUNG AUNG | 123-4-56789-0 | kasikorn-logo.png\nKBank | SU SU | 987-6-54321-0 | https://example.com/kbank-logo.png"></textarea>
+                  <small><b>Bank Name | Account Holder Name | Bank Account Number | Bank Logo URL/Path</b> ပုံစံရေးပါ။ Logo မရှိလျှင် နောက်ဆုံးအပိုင်းကို အလွတ်ထားနိုင်ပါသည်။</small>
+                </div>
+                <div class="settings-block">
+                  <h4>Myanmar Bank Accounts <span class="settings-optional">MMK</span></h4>
+                  <textarea id="settingMyanmarBanks" rows="5" placeholder="KBZ Bank | AUNG AUNG | 1234567890 | kbz-logo.png\nAYA Bank | SU SU | 0987654321 | https://example.com/aya-logo.png"></textarea>
+                  <small><b>Bank Name | Account Holder Name | Bank Account Number | Bank Logo URL/Path</b> ပုံစံရေးပါ။ Invoice မှာ MMK ရွေးထားလျှင် ဒီစာရင်းကို ပြပါမည်။</small>
                 </div>
               </div>
               <div class="settings-block settings-block-wide">
@@ -2991,7 +3015,7 @@
 
     let servicePricing = {};
     let telegramSettings = { botToken: "", mainChatId: "", threadAppt: "", threadAgent: "", threadCustomer: "", threadCompleted: "", threadDoc: "", gasUrl: "", sheetUrl: "", ocrUrl: "", geminiApiKey: "" };
-    let paymentSettings = { promptPayId: "", mmQRs: "", invoiceFooter: "" };
+    let paymentSettings = { promptPayId: "", mmQRs: "", thaiBanks: "", myanmarBanks: "", invoiceFooter: "" };
     let automationSettings = { noticedAutoCancelDays: null, pendingExpiryAutoCancelDays: null };
     let autoCancelPromise = null;
     let invoiceLogoDataUrl = "";
@@ -3298,6 +3322,18 @@
       overlay.innerHTML = `<div style="background:var(--surface,#fff);color:var(--text,#0f172a);width:min(430px,96vw);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);"><h3 style="margin:0 0 6px;">💵 Payment / Deposit ပြင်ရန်</h3><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Invoice: ${id} · Total: ${total.toFixed(2)} ${recordCurrency}</div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Type</label><select id="dashPaymentType" style="width:100%;">${(dropdownSettings.paymentTypes || []).map(x => `<option value="${String(x).replace(/"/g,'&quot;')}">${x}</option>`).join("")}</select><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Currency</label><select id="dashPaymentCurrency" style="width:100%;"><option value="THB">THB (ထိုင်းဘတ်)</option><option value="MMK">MMK (မြန်မာကျပ်)</option></select><div id="dashExchangeRateWrap" style="display:${recordCurrency === "MMK" ? "block" : "none"};margin-top:10px;"><label style="display:block;font-weight:700;font-size:12px;margin:0 0 4px;">ပေါက်ဈေး (၁ သိန်း = ? ဘတ်)</label><input id="dashExchangeRate" type="number" min="0" step="0.01" value="${recordExchangeRate || ""}" placeholder="e.g. 780" style="width:100%;"><small id="dashMmkPreview" style="display:block;color:#4f46e5;font-weight:700;margin-top:4px;"></small></div><label style="display:block;font-weight:700;font-size:12px;margin:8px 0 4px;">Payment Status</label><select id="dashDepositStatus" style="width:100%;"><option value="unpaid">NO PAID</option><option value="partial">PARTI PAID</option><option value="paid">PAID</option><option value="credit">CREDIT</option></select><label id="dashDepositAmountLabel" style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">Deposit Amount (${recordCurrency})</label><input id="dashDepositAmount" type="number" min="0" max="${total}" step="0.01" value="${current.toFixed(2)}" style="width:100%;"><label style="display:block;font-weight:700;font-size:12px;margin:10px 0 4px;">ငွေလွှဲသည့်ရက်</label><input id="dashDepositDate" type="date" value="${a.paymentTransferDate || a.depositReceivedDate || (current > 0 ? todayISO() : "")}" style="width:100%;"><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;"><button type="button" id="dashDepositCancel" class="btn btn-outline">မလုပ်တော့</button><button type="button" id="dashDepositSave" class="btn btn-primary">သိမ်းမည်</button></div></div>`;
       document.body.appendChild(overlay);
       const paymentType = overlay.querySelector("#dashPaymentType"), paymentCurrency = overlay.querySelector("#dashPaymentCurrency"), exchangeRate = overlay.querySelector("#dashExchangeRate"), exchangeWrap = overlay.querySelector("#dashExchangeRateWrap"), mmkPreview = overlay.querySelector("#dashMmkPreview"), status = overlay.querySelector("#dashDepositStatus"), amount = overlay.querySelector("#dashDepositAmount"), date = overlay.querySelector("#dashDepositDate");
+      const syncDashboardPaymentTypes = (selectedValue = "", selectedPaymentType = "") => {
+        if (!paymentType) return;
+        const currency = paymentCurrency?.value || "THB";
+        const baseTypes = (dropdownSettings.paymentTypes || []).filter(type => !["bank transfer", "qr payment"].includes(String(type).trim().toLowerCase()) && !/(bank|qr|promptpay|kpay|wave\s*pay|kbz|aya)/i.test(String(type)));
+        const options = getPaymentAccountOptions(currency);
+        paymentType.innerHTML = "";
+        baseTypes.forEach(type => { const option = document.createElement("option"); option.value = type; option.textContent = type; option.dataset.paymentType = type; option.dataset.accountValue = ""; paymentType.appendChild(option); });
+        options.forEach(account => { const option = document.createElement("option"); option.value = account.value; option.textContent = account.label; option.dataset.paymentType = account.kind === "bank" ? "Bank Transfer" : "QR Payment"; option.dataset.accountValue = account.value; paymentType.appendChild(option); });
+        const normalized = selectedValue && !String(selectedValue).includes(":") ? `bank:${selectedValue}` : selectedValue;
+        if (normalized && options.some(account => account.value === normalized)) paymentType.value = normalized;
+        else if (selectedPaymentType && [...paymentType.options].some(option => option.value === selectedPaymentType)) paymentType.value = selectedPaymentType;
+      };
       const syncDashboardCurrencyUI = () => {
         const isMMK = paymentCurrency?.value === "MMK";
         if (exchangeWrap) exchangeWrap.style.display = isMMK ? "block" : "none";
@@ -3305,10 +3341,10 @@
         if (amountLabel) amountLabel.textContent = `Deposit Amount (${isMMK ? "MMK" : "THB"})`;
         if (mmkPreview) { const rate = Number(exchangeRate?.value || 0); const mmk = isMMK && rate > 0 ? Math.round((Number(amount?.value || 0) / rate) * 100000) : 0; mmkPreview.textContent = isMMK && rate > 0 ? `Deposit MMK ≈ ${mmk.toLocaleString()} ကျပ်` : ""; }
       };
-      if (paymentType) paymentType.value = a.paymentType || dropdownSettings.paymentTypes?.[0] || "";
       if (paymentCurrency) paymentCurrency.value = a.currency || "THB";
+      syncDashboardPaymentTypes(a.paymentAccount || a.bankAccount || "", a.paymentType || "");
       if (exchangeRate) exchangeRate.value = a.exchangeRate || "";
-      paymentCurrency?.addEventListener("change", syncDashboardCurrencyUI);
+      paymentCurrency?.addEventListener("change", () => { syncDashboardPaymentTypes(); syncDashboardCurrencyUI(); });
       exchangeRate?.addEventListener("input", syncDashboardCurrencyUI);
       amount?.addEventListener("input", syncDashboardCurrencyUI);
       syncDashboardCurrencyUI();
@@ -3323,7 +3359,10 @@
         const nextCurrency = paymentCurrency?.value || a.currency || "THB";
         const nextExchangeRate = nextCurrency === "MMK" ? Number(exchangeRate?.value || 0) : 0;
         if (nextCurrency === "MMK" && !(nextExchangeRate > 0)) return showToast("MMK အတွက် Exchange Rate ထည့်ပေးပါ", "error");
-        const patch = { paymentType: paymentType?.value || a.paymentType || "", currency: nextCurrency, exchangeRate: nextExchangeRate, depositAmount: nextAmount, balanceAmount: Math.max(total - nextAmount, 0), paymentStatus: nextStatus, depositStatus: nextStatus, paymentTransferDate: transferDate, depositReceivedDate: transferDate, depositUpdatedAt: serverTimestamp(), depositUpdatedBy: currentUserName };
+        const selectedOption = paymentType?.selectedOptions[0];
+        const selectedPaymentAccount = selectedOption?.dataset.accountValue || a.paymentAccount || a.bankAccount || null;
+        const selectedPaymentType = selectedOption?.dataset.paymentType || paymentType?.value || a.paymentType || "";
+        const patch = { paymentType: selectedPaymentType, paymentAccount: selectedPaymentAccount, bankAccount: selectedPaymentAccount, currency: nextCurrency, exchangeRate: nextExchangeRate, depositAmount: nextAmount, balanceAmount: Math.max(total - nextAmount, 0), paymentStatus: nextStatus, depositStatus: nextStatus, paymentTransferDate: transferDate, depositReceivedDate: transferDate, depositUpdatedAt: serverTimestamp(), depositUpdatedBy: currentUserName };
         try { await updateAppointmentWithAudit(id, patch, "dashboard_deposit_update"); notifyAppointmentChange(id, "payment"); Object.assign(a, patch); overlay.remove(); renderAppointmentsTable(); showInvoiceToast(a, "Deposit / Payment Status update ပြီးပါပြီ", "success"); }
         catch (e) { showToast("Deposit update မအောင်မြင်ပါ: " + e.message, "error"); }
       };
@@ -3959,7 +3998,7 @@
       if($("location")) fillSelect($("location"), dropdownSettings.locations);
       if($("serviceType")) fillSelect($("serviceType"), dropdownSettings.serviceTypes);
       if($("filterServiceType")) fillSelect($("filterServiceType"), dropdownSettings.serviceTypes);
-      if($("paymentType")) fillSelect($("paymentType"), dropdownSettings.paymentTypes);
+      if($("paymentType")) syncPaymentTypeOptions();
       if($("assignedTo")) fillSelect($("assignedTo"), dropdownSettings.staffList);
       if($("filterAssignedTo")) fillSelect($("filterAssignedTo"), dropdownSettings.staffList);
       
@@ -4064,7 +4103,10 @@
 
       if ($("settingPromptPay")) $("settingPromptPay").value = paymentSettings.promptPayId || "";
       if ($("settingMmQRs")) $("settingMmQRs").value = paymentSettings.mmQRs || "";
+      if ($("settingThaiBanks")) $("settingThaiBanks").value = paymentSettings.thaiBanks || "";
+      if ($("settingMyanmarBanks")) $("settingMyanmarBanks").value = paymentSettings.myanmarBanks || "";
       if ($("settingInvoiceFooter")) $("settingInvoiceFooter").value = paymentSettings.invoiceFooter || "";
+      syncPaymentTypeOptions();
       
       if ($("settingGasUrl")) $("settingGasUrl").value = telegramSettings.gasUrl || "";
       if ($("settingSheetUrl")) $("settingSheetUrl").value = telegramSettings.sheetUrl || "";
@@ -4137,6 +4179,8 @@
       
       paymentSettings.promptPayId = $("settingPromptPay").value.trim();
       paymentSettings.mmQRs = $("settingMmQRs").value.trim();
+      paymentSettings.thaiBanks = $("settingThaiBanks")?.value.trim() || "";
+      paymentSettings.myanmarBanks = $("settingMyanmarBanks")?.value.trim() || "";
       paymentSettings.invoiceFooter = $("settingInvoiceFooter")?.value.trim() || "";
       const parseDays = id => { const raw = String($(id)?.value ?? "").trim(); if (!raw) return null; const n = Number(raw); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null; };
       automationSettings.noticedAutoCancelDays = parseDays("autoCancelNoticedDays");
@@ -4149,6 +4193,7 @@
         await setDoc(doc(db, "settings", "servicePricing"), { services: servicePricing }, { merge: true });
         await setDoc(doc(db, "settings", "automation"), automationSettings, { merge: true });
         renderDropdowns();
+        syncEntryBankAccounts();
         syncEntrySettlementUI();
         msg.textContent = "✅ Settings များကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။"; msg.className = "message success";
         finishProgressToast("✅ Settings များ သိမ်းဆည်းပြီးပါပြီ", "success");
@@ -4206,6 +4251,7 @@
             $("exchangeRateWrapper").style.display = "none";
             $("exchangeRate").value = "";
         }
+        syncPaymentTypeOptions();
         updateDepositUI();
     });
     $("exchangeRate").addEventListener("input", updateDepositUI);
@@ -4258,7 +4304,11 @@
     $("serviceType").addEventListener("change", () => { updatePackageDropdown(); autoFillPrice(); });
     if($("servicePackage")) $("servicePackage").addEventListener("change", autoFillPrice);
 
-    $("paymentType").addEventListener("change", updateDepositUI);
+    $("paymentType").addEventListener("change", () => {
+      const selected = $("paymentType").selectedOptions[0];
+      if ($("bankAccount")) $("bankAccount").value = selected?.dataset.accountValue || "";
+      updateDepositUI();
+    });
     $("price").addEventListener("input", updateDepositUI);
     $("discountAmount")?.addEventListener("input", updateDepositUI);
     $("depositAmount").addEventListener("input", updateDepositUI);
@@ -6160,7 +6210,9 @@
         location: $("location").value,
         serviceType: $("serviceType").value, 
         servicePackage: $("servicePackage") ? $("servicePackage").value : null, 
-        paymentType: $("paymentType").value, 
+        paymentType: $("paymentType").selectedOptions[0]?.dataset.paymentType || $("paymentType").value, 
+        bankAccount: $("bankAccount")?.value || null,
+        paymentAccount: $("bankAccount")?.value || null,
         paymentStatus: $("paymentStatus")?.value || (dep >= total && total > 0 ? "paid" : dep > 0 ? "partial" : "unpaid"),
         paymentTransferDate: $("paymentTransferDate")?.value || null,
         price: listedPrice,
@@ -7691,6 +7743,7 @@
       $("exchangeRate").value = a.exchangeRate || "";
       if($("currency").value === "MMK") $("exchangeRateWrapper").style.display = "flex";
       else $("exchangeRateWrapper").style.display = "none";
+      syncEntryBankAccounts();
 
       $("paymentType").value = a.paymentType || ""; $("cost").value = a.serviceCost != null ? a.serviceCost : ""; $("price").value = a.price != null ? a.price : ""; $("discountAmount").value = a.discountAmount != null ? a.discountAmount : ""; $("depositAmount").value = "";
       if ($("paymentStatus")) $("paymentStatus").value = "unpaid";
@@ -7728,6 +7781,7 @@
       if ($("servicePackage")) { if (typeof updatePackageDropdown === "function") updatePackageDropdown(); $("servicePackage").value = ""; }
       $("paymentType").value = "";
       $("currency").value = "THB";
+      syncEntryBankAccounts();
       $("exchangeRate").value = "";
       $("cost").value = "";
       $("price").value = "";
@@ -7922,6 +7976,7 @@
       $("exchangeRate").value = a.exchangeRate || "";
       if($("currency").value === "MMK") $("exchangeRateWrapper").style.display = "flex";
       else $("exchangeRateWrapper").style.display = "none";
+      syncEntryBankAccounts(a.paymentAccount || a.bankAccount || "");
 
       $("paymentType").value = a.paymentType || ""; $("price").value = a.price != null ? a.price : ""; $("discountAmount").value = a.discountAmount != null ? a.discountAmount : ""; $("depositAmount").value = a.depositAmount != null ? a.depositAmount : "";
       if ($("paymentStatus")) $("paymentStatus").value = a.paymentStatus || (Number(a.depositAmount || 0) >= getPayableTotal(a) && getPayableTotal(a) > 0 ? "paid" : Number(a.depositAmount || 0) > 0 ? "partial" : "unpaid");
@@ -8264,6 +8319,84 @@
       return { status, color };
     }
 
+    function escapeInvoiceHtml(value) {
+      return String(value ?? "").replace(/[&<>'"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[ch]));
+    }
+    function parseBankAccounts(raw = "") {
+      return String(raw || "").split("\n").map(line => line.trim()).filter(Boolean).map(line => {
+        const parts = line.split("|").map(part => part.trim());
+        return { bankName: parts[0] || "", holderName: parts[1] || "", accountNumber: parts[2] || "", logo: parts.slice(3).join("|").trim() };
+      }).filter(account => account.bankName && (account.holderName || account.accountNumber));
+    }
+    function renderInvoiceBankAccounts(currency, selectedValue = "") {
+      const container = $("invBankAccounts");
+      if (!container) return;
+      const selectedKind = String(selectedValue || "").split(":")[0];
+      if (selectedValue && selectedKind !== "bank") { container.innerHTML = ""; container.style.display = "none"; return; }
+      const isMmk = currency === "MMK";
+      const configuredAccounts = parseBankAccounts(isMmk ? paymentSettings.myanmarBanks : paymentSettings.thaiBanks);
+      const selectedBankValue = String(selectedValue || "").startsWith("bank:") ? String(selectedValue).slice(5) : selectedValue;
+      const selectedAccounts = selectedBankValue ? configuredAccounts.filter(account => [account.bankName, account.holderName, account.accountNumber, account.logo].filter(Boolean).join(" | ") === selectedBankValue) : [];
+      const accounts = selectedAccounts.length ? selectedAccounts : configuredAccounts;
+      if (!accounts.length) { container.innerHTML = ""; container.style.display = "none"; return; }
+      const title = "ငွေပေးချေရန် ဘဏ်အကောင့် အချက်အလက်";
+      container.innerHTML = `<div class="invoice-bank-title">${title}</div>${accounts.map(account => `<div class="invoice-bank-card">${account.logo ? `<img class="invoice-bank-logo" src="${escapeInvoiceHtml(account.logo)}" alt="${escapeInvoiceHtml(account.bankName)} logo" onerror="this.style.display='none'">` : ""}<div class="invoice-bank-details"><div class="invoice-bank-name">${escapeInvoiceHtml(account.bankName)}</div><div class="invoice-bank-holder">ဘဏ်နာမည်: ${escapeInvoiceHtml(account.holderName || "-")}</div><div class="invoice-bank-number">ဘဏ်နံပါတ်: ${escapeInvoiceHtml(account.accountNumber || "-")}</div></div></div>`).join("")}`;
+      container.style.display = "grid";
+    }
+    function getPaymentAccountOptions(currency) {
+      const isMmk = currency === "MMK";
+      const options = [];
+      if (!isMmk) {
+        String(paymentSettings.promptPayId || "").split("\n").map(line => line.trim()).filter(Boolean).forEach(line => {
+          const parts = line.split("=").map(part => part.trim());
+          if (parts.length >= 2) {
+            const idAndName = parts[1].split("|").map(part => part.trim());
+            const name = (parts.slice(2).join("=").split("|")[0].trim()) || idAndName[1] || parts[0];
+            options.push({ value: `promptpay:${line}`, label: `QR · ${parts[0]} · ${name}`, kind: "promptpay", raw: line });
+          }
+        });
+      } else {
+        String(paymentSettings.mmQRs || "").split("\n").map(line => line.trim()).filter(Boolean).forEach(line => {
+          const firstEq = line.indexOf("=");
+          if (firstEq > -1) {
+            const method = line.slice(0, firstEq).trim();
+            const accountName = (line.slice(firstEq + 1).split("|").slice(1).join("|") || "").trim();
+            options.push({ value: `mmqr:${line}`, label: `QR · ${method}${accountName ? ` · ${accountName}` : ""}`, kind: "mmqr", raw: line });
+          }
+        });
+      }
+      const bankRaw = isMmk ? paymentSettings.myanmarBanks : paymentSettings.thaiBanks;
+      parseBankAccounts(bankRaw).forEach(account => {
+        const line = [account.bankName, account.holderName, account.accountNumber, account.logo].filter(Boolean).join(" | ");
+        options.push({ value: `bank:${line}`, label: `ဘဏ် · ${account.bankName} · ${account.holderName || "-"} · ${account.accountNumber || "-"}`, kind: "bank", raw: line });
+      });
+      return options;
+    }
+    function syncPaymentTypeOptions(selectedValue = "", selectedPaymentType = "") {
+      const select = $("paymentType");
+      if (!select) return;
+      const currency = $("currency")?.value || "THB";
+      const accountOptions = getPaymentAccountOptions(currency);
+      const baseTypes = (dropdownSettings.paymentTypes || []).filter(type => !["bank transfer", "qr payment"].includes(String(type).trim().toLowerCase()) && !/(bank|qr|promptpay|kpay|wave\s*pay|kbz|aya)/i.test(String(type)));
+      select.innerHTML = "";
+      const addOption = (value, label, paymentType, accountValue = "") => {
+        const option = document.createElement("option");
+        option.value = value; option.textContent = label;
+        option.dataset.paymentType = paymentType || value;
+        option.dataset.accountValue = accountValue;
+        select.appendChild(option);
+      };
+      baseTypes.forEach(type => addOption(type, type, type));
+      accountOptions.forEach(account => addOption(account.value, account.label, account.kind === "bank" ? "Bank Transfer" : "QR Payment", account.value));
+      const wanted = selectedValue || selectedPaymentType || "";
+      if (wanted && [...select.options].some(option => option.value === wanted)) select.value = wanted;
+      const selected = select.selectedOptions[0];
+      if ($("bankAccount")) $("bankAccount").value = selected?.dataset.accountValue || "";
+    }
+    function syncEntryBankAccounts(selectedValue = "") {
+      syncPaymentTypeOptions(selectedValue);
+    }
+
     async function loadInvoice() {
       if (currentRole === "guest") return;
       const id = ($("invoiceDocId").value.trim() || lastSavedDocId || "").toUpperCase();
@@ -8391,6 +8524,7 @@
         
         const listedTotal = Number(data.price || 0); const discount = getDiscountAmount(data); const total = getPayableTotal(data); const deposit = Number(data.depositAmount || 0); const balance = Math.max(total - deposit, 0);
         const cur = data.currency || "THB";
+        renderInvoiceBankAccounts(cur, data.paymentAccount || data.bankAccount || "");
         
         $("invTotalAmount").textContent = (discount > 0 ? listedTotal.toFixed(2) + " " + cur : total.toFixed(2) + " " + cur);
         const invDiscountWrapper = $("invDiscountWrapper");
@@ -8432,16 +8566,20 @@
         const qrImg = $("invDynamicQR");
         const qrAccountName = $("invQrAccountName");
         const promptPayLogo = $("promptpayLogo");
+        const invoiceQrCaption = $("invoiceQrCaption");
         const showQr = $("showQrOnInvoice") ? $("showQrOnInvoice").checked : true;
         const pType = data.paymentType || "";
+        const selectedPaymentAccount = String(data.paymentAccount || data.bankAccount || "");
+        const paymentAccountKind = selectedPaymentAccount.split(":")[0];
 
         qrContainer.style.display = "none"; 
         qrImg.src = "";
         qrImg.removeAttribute("crossOrigin"); 
         if (promptPayLogo) promptPayLogo.style.display = "none";
         if (qrAccountName) { qrAccountName.textContent = ""; qrAccountName.style.display = "none"; }
+        if (invoiceQrCaption) invoiceQrCaption.textContent = "ငွေပေးချေရန် Scan ဖတ်ပါ";
 
-        if (showQr && balance > 0) {
+        if (showQr && balance > 0 && paymentAccountKind !== "bank") {
             let targetUrl = "";
             let promptPayNumber = "";
             let mmQrAccountName = "";
@@ -8450,10 +8588,11 @@
                 const paymentName = pType.trim().toLowerCase();
                 const lines = paymentSettings.promptPayId.split("\n").map(x => x.trim()).filter(Boolean);
                 let promptPayAccountName = "PromptPay";
+                const selectedPromptPayLine = paymentAccountKind === "promptpay" ? selectedPaymentAccount.slice("promptpay:".length) : "";
                 if (paymentSettings.promptPayId.includes("=")) {
                     for (const line of lines) {
                         const parts = line.split("=").map(x => x.trim()).filter(Boolean);
-                        if (parts.length >= 2 && paymentName === parts[0].toLowerCase()) {
+                        if (parts.length >= 2 && ((selectedPromptPayLine && line === selectedPromptPayLine) || (!selectedPromptPayLine && paymentName === parts[0].toLowerCase()))) {
                             const idAndName = parts[1].split("|").map(x => x.trim());
                             promptPayNumber = idAndName[0] || "";
                             promptPayAccountName = (parts.slice(2).join("=").split("|")[0].trim()) || idAndName[1] || parts[0];
@@ -8493,9 +8632,10 @@
                 }
             } else if (cur === "MMK" && paymentSettings.mmQRs) {
                 const lines = paymentSettings.mmQRs.split("\n");
+                const selectedMmQrLine = paymentAccountKind === "mmqr" ? selectedPaymentAccount.slice("mmqr:".length) : "";
                 for (let l of lines) {
                     let firstEq = l.indexOf("=");
-                    if (firstEq > -1 && pType.trim().toLowerCase() === l.substring(0, firstEq).trim().toLowerCase()) {
+                    if (firstEq > -1 && ((selectedMmQrLine && l.trim() === selectedMmQrLine.trim()) || (!selectedMmQrLine && pType.trim().toLowerCase() === l.substring(0, firstEq).trim().toLowerCase()))) {
                         const rawSetting = l.substring(firstEq + 1).trim();
                         const linkAndName = rawSetting.split("|");
                         let rawLink = (linkAndName[0] || "").trim();
