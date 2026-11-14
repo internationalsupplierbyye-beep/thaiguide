@@ -2479,7 +2479,7 @@
               <div class="panel-title"><span>🧾 Invoice Generator</span> <span class="badge">HTML → JPEG (500×1000)</span></div>
               <div class="panel-desc">Invoice ID ဖြင့် ပြန်ရှာပြီး Invoice ထုတ်နိုင်ပါတယ်။</div>
             </div>
-            <span class="chip">Header: THAILAND GUIDE – ထိုင်းလမ်းညွှန်</span>
+            <span class="chip">Header: THAILAND GUIDE - ထိုင်းလမ်းညွှန်</span>
           </div>
 
           <div class="invoice-wrap">
@@ -2535,18 +2535,18 @@
                     <img id="invoiceLogoImage" src="logo.png" alt="Thailand Guide Logo" onerror="this.style.display='none'">
                   </div>
                   <div style="display:flex;flex-direction:column;gap:2px;">
-                    <div class="invoice-brand">THAILAND GUIDE</div>
-                    <div class="invoice-sub" id="invSubtitle">ထိုင်းလမ်းညွှန်</div>
+                    <div class="invoice-brand">THAILAND GUIDE - ထိုင်းလမ်းညွှန်</div>
+                    <div class="invoice-sub" id="invSubtitle">ထိုင်းနိုင်ငံမှာဘာပဲလိုလို ထိုင်းလမ်းညွှန်ရှိပါတယ်</div>
                   </div>
                 </div>
 
                 <div class="invoice-meta-row">
                   <div class="invoice-meta-block">
                     <div id="invRefText">Invoice No: —</div>
-                    <div id="invEntryDate">Entry: —</div>
+                    <div id="invPosText">POS: —</div>
                   </div>
                   <div class="invoice-meta-block right">
-                    <div id="invIssueDate">Issued: —</div>
+                    <div id="invEntryDate">Entry Date: —</div>
                     <div id="invStatusUpdate">Update: —</div>
                   </div>
                 </div>
@@ -2760,6 +2760,16 @@
                   <label for="settingMyanmarBankNote" style="display:block;margin-top:8px;">Myanmar Bank Account Note</label>
                   <textarea id="settingMyanmarBankNote" rows="2" placeholder="ဘဏ်အကောင့်သို့ ငွေလွှဲပြီးပါက Screenshot ပေးပို့ပါ။"></textarea>
                 </div>
+              </div>
+              <div class="settings-block settings-block-wide">
+                <h4>🧾 Invoice Subtitle</h4>
+                <input type="text" id="settingInvoiceSubtitle" placeholder="ထိုင်းနိုင်ငံမှာဘာပဲလိုလို ထိုင်းလမ်းညွှန်ရှိပါတယ်" />
+                <small>Invoice ခေါင်းစဉ်အောက်မှာ ပြမည့်စာကို ဒီနေရာကနေ ပြင်နိုင်ပါတယ်။</small>
+              </div>
+              <div class="settings-block settings-block-wide">
+                <h4>📍 Invoice POS Location</h4>
+                <input type="text" id="settingInvoicePosLocation" placeholder="Yangon" />
+                <small>Invoice မှာ POS Display Name နောက်က ပြမည့်မြို့/နေရာကို ဒီနေရာကနေ ပြင်နိုင်ပါတယ်။ ဥပမာ Yangon သို့မဟုတ် Bangkok။</small>
               </div>
               <div class="settings-block settings-block-wide">
                 <h4>🧾 Invoice Thank-you Footer</h4>
@@ -3058,7 +3068,7 @@
 လူကြီးမင်း {name} ရဲ့ {serviceType} ဝန်ဆောင်မှုသည် {expiryDate} ရက်ပိုင်းတွင် သက်တမ်းပြီးဆုံးမယ်လို့ မျှော်လင့်ပါတယ် ခင်ဗျ။ ဆက်လက်ပြီး သက်တမ်းတိုးဝန်ဆောင်မှုရယူလိုပါက ထိုင်းလမ်းညွှန်ဘက်မှ စီစဉ်ပေးပါ့မယ် ခင်ဗျ။ စီစဉ်ပေးဖို့လိုအပ်ပါက အကြောင်းပြန်ပေးနိုင်ပါတယ် ခင်ဗျ။
 
 ကျေးဇူးအထူးတင်ပါတယ် ခင်ဗျ။`;
-    let paymentSettings = { promptPayId: "", mmQRs: "", thaiBanks: "", myanmarBanks: "", promptPayNote: "", mmQrNote: "", thaiBankNote: "", myanmarBankNote: "", invoiceFooter: "", expiryMessageTemplate: DEFAULT_EXPIRY_MESSAGE_TEMPLATE };
+    let paymentSettings = { promptPayId: "", mmQRs: "", thaiBanks: "", myanmarBanks: "", promptPayNote: "", mmQrNote: "", thaiBankNote: "", myanmarBankNote: "", invoiceSubtitle: "ထိုင်းနိုင်ငံမှာဘာပဲလိုလို ထိုင်းလမ်းညွှန်ရှိပါတယ်", invoicePosLocation: "Yangon", invoiceFooter: "", expiryMessageTemplate: DEFAULT_EXPIRY_MESSAGE_TEMPLATE };
     let automationSettings = { noticedAutoCancelDays: null, pendingExpiryAutoCancelDays: null };
     let autoCancelPromise = null;
     let invoiceLogoDataUrl = "";
@@ -4190,6 +4200,8 @@
       if ($("settingMmQrNote")) $("settingMmQrNote").value = paymentSettings.mmQrNote || "";
       if ($("settingThaiBankNote")) $("settingThaiBankNote").value = paymentSettings.thaiBankNote || "";
       if ($("settingMyanmarBankNote")) $("settingMyanmarBankNote").value = paymentSettings.myanmarBankNote || "";
+      if ($("settingInvoiceSubtitle")) $("settingInvoiceSubtitle").value = paymentSettings.invoiceSubtitle || "ထိုင်းနိုင်ငံမှာဘာပဲလိုလို ထိုင်းလမ်းညွှန်ရှိပါတယ်";
+      if ($("settingInvoicePosLocation")) $("settingInvoicePosLocation").value = paymentSettings.invoicePosLocation || "Yangon";
       if ($("settingInvoiceFooter")) $("settingInvoiceFooter").value = paymentSettings.invoiceFooter || "";
       if ($("settingExpiryMessageTemplate")) $("settingExpiryMessageTemplate").value = paymentSettings.expiryMessageTemplate || DEFAULT_EXPIRY_MESSAGE_TEMPLATE;
       syncPaymentTypeOptions();
@@ -4271,6 +4283,8 @@
       paymentSettings.mmQrNote = $("settingMmQrNote")?.value.trim() || "";
       paymentSettings.thaiBankNote = $("settingThaiBankNote")?.value.trim() || "";
       paymentSettings.myanmarBankNote = $("settingMyanmarBankNote")?.value.trim() || "";
+      paymentSettings.invoiceSubtitle = $("settingInvoiceSubtitle")?.value.trim() || "ထိုင်းနိုင်ငံမှာဘာပဲလိုလို ထိုင်းလမ်းညွှန်ရှိပါတယ်";
+      paymentSettings.invoicePosLocation = $("settingInvoicePosLocation")?.value.trim() || "Yangon";
       paymentSettings.invoiceFooter = $("settingInvoiceFooter")?.value.trim() || "";
       paymentSettings.expiryMessageTemplate = $("settingExpiryMessageTemplate")?.value.trim() || DEFAULT_EXPIRY_MESSAGE_TEMPLATE;
       const parseDays = id => { const raw = String($(id)?.value ?? "").trim(); if (!raw) return null; const n = Number(raw); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null; };
@@ -8646,7 +8660,7 @@
         const footerText = paymentSettings.invoiceFooter || "ဝန်ဆောင်မှုအသုံးပြုပေးသည့်အတွက် ကျေးဇူးတင်ပါတယ်။ ဤ Invoice ကို မှတ်တမ်းအဖြစ် သိမ်းထားပါ။";
         if ($("invFooterText")) $("invFooterText").textContent = footerText;
 
-        if($("invSubtitle")) $("invSubtitle").textContent = t.subtitle;
+        if($("invSubtitle")) $("invSubtitle").textContent = paymentSettings.invoiceSubtitle || "ထိုင်းနိုင်ငံမှာဘာပဲလိုလို ထိုင်းလမ်းညွှန်ရှိပါတယ်";
         if($("lblCustomerInfo")) $("lblCustomerInfo").textContent = t.customerInfo;
         if($("lblServiceInfoText")) $("lblServiceInfoText").textContent = t.serviceDetail;
         else if($("lblServiceInfo")) $("lblServiceInfo").textContent = t.serviceDetail;
@@ -8659,11 +8673,12 @@
           return d ? `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()} ${d.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })}` : "-";
         };
         $("invRefText").textContent = `Invoice No: ${id}`;
-        $("invIssueDate").textContent = `Issued: ${formatInvoiceDateTime(createdAt)}`;
+        const posLocation = String(paymentSettings.invoicePosLocation || "Yangon").trim() || "Yangon";
+        if($("invPosText")) $("invPosText").textContent = `POS: ${currentUserName || currentUser?.displayName || currentUser?.email?.split("@")[0] || "System"} - ${posLocation}`;
         const entryDateText = formatSystemDateDisplay(data.date) || "-";
+        if($("invEntryDate")) $("invEntryDate").textContent = `Entry Date: ${entryDateText} (xx:xx)`;
         const statusUpdatedAt = timestampToDate(data.updatedAt);
         const statusUpdateText = statusUpdatedAt ? formatInvoiceDateTime(statusUpdatedAt) : formatInvoiceDateTime(createdAt);
-        $("invEntryDate").textContent = `Entry Date: ${entryDateText} xx:xx`;
         $("invStatusUpdate").textContent = `Update: ${statusUpdateText}`;
         const watermarkContent = $("invoiceWatermark")?.querySelector(".invoice-watermark-content");
         if (watermarkContent) {
