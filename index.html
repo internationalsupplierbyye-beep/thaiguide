@@ -3256,6 +3256,12 @@
       const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
       return { compact: esc(compact), title: esc(title) };
     }
+    function getSelectedPaymentAccount(option, paymentType = "") {
+      const accountValue = String(option?.dataset?.accountValue || "").trim();
+      const kind = String(option?.dataset?.paymentType || paymentType || "").trim().toLowerCase();
+      const isAccountPayment = kind === "bank transfer" || kind === "qr payment" || /^(bank|promptpay|mmqr):/i.test(accountValue);
+      return isAccountPayment && accountValue ? accountValue : null;
+    }
     function getDiscountAmount(data = {}) {
       const listed = Math.max(Number(data.price || 0), 0);
       return Math.min(Math.max(Number(data.discountAmount || 0), 0), listed);
@@ -3422,8 +3428,9 @@
         baseTypes.forEach(type => { const option = document.createElement("option"); option.value = type; option.textContent = type; option.dataset.paymentType = type; option.dataset.accountValue = ""; paymentType.appendChild(option); });
         options.forEach(account => { const option = document.createElement("option"); option.value = account.value; option.textContent = account.label; option.dataset.paymentType = account.kind === "bank" ? "Bank Transfer" : "QR Payment"; option.dataset.accountValue = account.value; paymentType.appendChild(option); });
         const normalized = selectedValue && !String(selectedValue).includes(":") ? `bank:${selectedValue}` : selectedValue;
-        if (normalized && options.some(account => account.value === normalized)) paymentType.value = normalized;
-        else if (selectedPaymentType && [...paymentType.options].some(option => option.value === selectedPaymentType)) paymentType.value = selectedPaymentType;
+        if (selectedPaymentType && [...paymentType.options].some(option => option.value === selectedPaymentType)) paymentType.value = selectedPaymentType;
+        else if (normalized && options.some(account => account.value === normalized)) paymentType.value = normalized;
+        else if ([...paymentType.options].some(option => option.value === "Cash")) paymentType.value = "Cash";
       };
       const syncDashboardCurrencyUI = () => {
         const isMMK = paymentCurrency?.value === "MMK";
@@ -3451,8 +3458,8 @@
         const nextExchangeRate = nextCurrency === "MMK" ? Number(exchangeRate?.value || 0) : 0;
         if (nextCurrency === "MMK" && !(nextExchangeRate > 0)) return showToast("MMK အတွက် Exchange Rate ထည့်ပေးပါ", "error");
         const selectedOption = paymentType?.selectedOptions[0];
-        const selectedPaymentAccount = selectedOption ? (selectedOption.dataset.accountValue || null) : (a.paymentAccount || a.bankAccount || null);
         const selectedPaymentType = selectedOption?.dataset.paymentType || paymentType?.value || a.paymentType || "";
+        const selectedPaymentAccount = getSelectedPaymentAccount(selectedOption, selectedPaymentType);
         const patch = { paymentType: selectedPaymentType, paymentAccount: selectedPaymentAccount, bankAccount: selectedPaymentAccount, currency: nextCurrency, exchangeRate: nextExchangeRate, depositAmount: nextAmount, balanceAmount: Math.max(total - nextAmount, 0), paymentStatus: nextStatus, depositStatus: nextStatus, paymentTransferDate: transferDate, depositReceivedDate: transferDate, depositUpdatedAt: serverTimestamp(), depositUpdatedBy: currentUserName };
         try { await updateAppointmentWithAudit(a.id, patch, "dashboard_deposit_update"); notifyAppointmentChange(a.id, "payment"); Object.assign(a, patch); overlay.remove(); renderAppointmentsTable(); showInvoiceToast(a, "Deposit / Payment Status update ပြီးပါပြီ", "success"); }
         catch (e) { showToast("Deposit update မအောင်မြင်ပါ: " + e.message, "error"); }
@@ -4415,7 +4422,7 @@
 
     $("paymentType").addEventListener("change", () => {
       const selected = $("paymentType").selectedOptions[0];
-      if ($("bankAccount")) $("bankAccount").value = selected?.dataset.accountValue || "";
+      if ($("bankAccount")) $("bankAccount").value = getSelectedPaymentAccount(selected, selected?.dataset.paymentType || "") || "";
       updateDepositUI();
     });
     $("price").addEventListener("input", updateDepositUI);
@@ -5916,7 +5923,7 @@
     $("customerStatus")?.addEventListener("change", () => updateEntrySettlementNotice());
     $("agentPayable")?.addEventListener("input", () => updateEntrySettlementNotice());
     $("serviceProviderSettlementAmount")?.addEventListener("input", () => updateEntrySettlementNotice());
-    $("appointmentForm")?.addEventListener("reset", () => setTimeout(() => { syncEntrySettlementUI(); syncEntryDateDisplays(); updateEntrySettlementNotice(); }, 0));
+    $("appointmentForm")?.addEventListener("reset", () => setTimeout(() => { syncPaymentTypeOptions("Cash", "Cash"); syncEntrySettlementUI(); syncEntryDateDisplays(); updateEntrySettlementNotice(); }, 0));
     $("serviceProviderName")?.addEventListener("change", () => {
       syncSettlementInputState();
       updateEntrySettlementNotice();
@@ -6321,8 +6328,8 @@
         serviceType: $("serviceType").value, 
         servicePackage: $("servicePackage") ? $("servicePackage").value : null, 
         paymentType: $("paymentType").selectedOptions[0]?.dataset.paymentType || $("paymentType").value, 
-        bankAccount: $("bankAccount")?.value || null,
-        paymentAccount: $("bankAccount")?.value || null,
+        bankAccount: getSelectedPaymentAccount($("paymentType").selectedOptions[0], $("paymentType").selectedOptions[0]?.dataset.paymentType || "") || null,
+        paymentAccount: getSelectedPaymentAccount($("paymentType").selectedOptions[0], $("paymentType").selectedOptions[0]?.dataset.paymentType || "") || null,
         paymentStatus: $("paymentStatus")?.value || (dep >= total && total > 0 ? "paid" : dep > 0 ? "partial" : "unpaid"),
         depositStatus: $("paymentStatus")?.value || (dep >= total && total > 0 ? "paid" : dep > 0 ? "partial" : "unpaid"),
         paymentTransferDate: $("paymentTransferDate")?.value || null,
@@ -8522,12 +8529,14 @@
         return { bankName: parts[0] || "", holderName: parts[1] || "", accountNumber: parts[2] || "", logo: parts.slice(3).join("|").trim() };
       }).filter(account => account.bankName && (account.holderName || account.accountNumber));
     }
-    function renderInvoiceBankAccounts(currency, selectedValue = "", remainingBalance = null) {
+    function renderInvoiceBankAccounts(currency, selectedValue = "", remainingBalance = null, paymentType = "") {
       const container = $("invBankAccounts");
       if (!container) return;
       if (remainingBalance != null && Number(remainingBalance) <= 0) { container.innerHTML = ""; container.style.display = "none"; return; }
       const selectedKind = String(selectedValue || "").split(":")[0];
-      if (selectedValue && selectedKind !== "bank") { container.innerHTML = ""; container.style.display = "none"; return; }
+      const normalizedPaymentType = String(paymentType || "").trim().toLowerCase();
+      const isBankPayment = /bank|transfer/.test(normalizedPaymentType);
+      if ((normalizedPaymentType && !isBankPayment) || (selectedValue && selectedKind !== "bank") || (!selectedValue && !isBankPayment)) { container.innerHTML = ""; container.style.display = "none"; return; }
       const isMmk = currency === "MMK";
       const configuredAccounts = parseBankAccounts(isMmk ? paymentSettings.myanmarBanks : paymentSettings.thaiBanks);
       const selectedBankValue = String(selectedValue || "").startsWith("bank:") ? String(selectedValue).slice(5) : selectedValue;
@@ -8618,10 +8627,10 @@
       };
       baseTypes.forEach(type => addOption(type, type, type));
       accountOptions.forEach(account => addOption(account.value, account.label, account.kind === "bank" ? "Bank Transfer" : "QR Payment", account.value));
-      const wanted = selectedValue || selectedPaymentType || "";
+      const wanted = selectedPaymentType && [...select.options].some(option => option.value === selectedPaymentType) ? selectedPaymentType : (selectedValue || ([...select.options].some(option => option.value === "Cash") ? "Cash" : ""));
       if (wanted && [...select.options].some(option => option.value === wanted)) select.value = wanted;
       const selected = select.selectedOptions[0];
-      if ($("bankAccount")) $("bankAccount").value = selected?.dataset.accountValue || "";
+      if ($("bankAccount")) $("bankAccount").value = getSelectedPaymentAccount(selected, selected?.dataset.paymentType || "") || "";
     }
     function syncEntryBankAccounts(selectedValue = "") {
       syncPaymentTypeOptions(selectedValue);
@@ -8757,7 +8766,7 @@
         const cur = data.currency || "THB";
         const invoicePaymentSelection = data.paymentAccount || data.bankAccount || "";
         syncInvoicePaymentNoteToggle(cur, invoicePaymentSelection);
-        renderInvoiceBankAccounts(cur, invoicePaymentSelection, balance);
+        renderInvoiceBankAccounts(cur, invoicePaymentSelection, balance, data.paymentType || "");
         renderInvoicePaymentNote(cur, invoicePaymentSelection, balance);
         
         $("invTotalAmount").textContent = (discount > 0 ? listedTotal.toFixed(2) + " " + cur : total.toFixed(2) + " " + cur);
