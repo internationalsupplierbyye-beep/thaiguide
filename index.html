@@ -153,7 +153,7 @@
     #tab-dashboard table th:nth-child(15),#tab-dashboard table td:nth-child(15){width:112px;min-width:112px;max-width:112px;white-space:normal;overflow:hidden;text-overflow:ellipsis}
     #tab-dashboard .dashboard-service-location-cell{white-space:normal !important;overflow:visible !important}
     /* Gentle readability bump: only the small Dashboard text, not existing large labels. */
-    #tab-dashboard table tr{height:29px}
+    #tab-dashboard table tr{height:26px}
     #tab-dashboard table tbody tr{box-shadow:0 1px 2px rgba(15,23,42,.08)}
     #tab-dashboard table tbody tr:hover{box-shadow:0 2px 5px rgba(15,23,42,.13)}
     #tab-dashboard table tbody td{border-bottom:1px solid #e5e7eb}
@@ -2980,6 +2980,27 @@
       </div>
     </div>
 
+    <div id="dashboardServiceLocationModal" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width:440px;width:calc(100% - 28px);">
+        <div class="modal-header">
+          <h3>🛠️ Service / Location ပြင်ရန်</h3>
+          <button class="close-btn" id="closeDashboardServiceLocationModal" type="button">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="dashboardServiceLocationInfo" style="margin-bottom:12px;padding:9px 11px;background:#eef2ff;border-radius:8px;color:#3730a3;font-size:12px;"></div>
+          <div style="display:grid;grid-template-columns:1fr;gap:10px;">
+            <div class="field"><label for="dashboardEditServiceType">Service Type</label><select id="dashboardEditServiceType"></select></div>
+            <div class="field"><label for="dashboardEditServicePackage">Service Package</label><select id="dashboardEditServicePackage"><option value="">-- None --</option></select></div>
+            <div class="field"><label for="dashboardEditLocation">Region / Location</label><select id="dashboardEditLocation"></select></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
+            <button class="btn btn-outline" type="button" id="cancelDashboardServiceLocationModal">Cancel</button>
+            <button class="btn btn-primary" type="button" id="saveDashboardServiceLocationBtn">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="docsModal" class="modal-overlay hidden">
       <div class="modal-content" style="max-width: 800px; height: 90vh;">
         <div class="modal-header">
@@ -3155,6 +3176,10 @@
     }
     function normalizeDashboardDateInput(value) {
       const raw = String(value || "").trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+        const isoDate = new Date(`${raw}T00:00:00`);
+        if (!Number.isNaN(isoDate.getTime()) && isoDate.toISOString().slice(0, 10) === raw) return raw;
+      }
       const compact = raw.match(/^(\d{2})(\d{2})(\d{4})$/);
       const m = compact ? [raw, compact[1], compact[2], compact[3]] : raw.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
       if (!m) return null;
@@ -3424,13 +3449,12 @@
         const currency = paymentCurrency?.value || "THB";
         const baseTypes = [...new Set(["Cash", ...(dropdownSettings.paymentTypes || [])])].filter(type => !["bank transfer", "qr payment"].includes(String(type).trim().toLowerCase()) && !/(bank|qr|promptpay|kpay|wave\s*pay|kbz|aya)/i.test(String(type)));
         const options = getPaymentAccountOptions(currency);
-        paymentType.innerHTML = "";
+        paymentType.innerHTML = '<option value="">-- Payment Type ရွေးပါ --</option>';
         baseTypes.forEach(type => { const option = document.createElement("option"); option.value = type; option.textContent = type; option.dataset.paymentType = type; option.dataset.accountValue = ""; paymentType.appendChild(option); });
         options.forEach(account => { const option = document.createElement("option"); option.value = account.value; option.textContent = account.label; option.dataset.paymentType = account.kind === "bank" ? "Bank Transfer" : "QR Payment"; option.dataset.accountValue = account.value; paymentType.appendChild(option); });
         const normalized = selectedValue && !String(selectedValue).includes(":") ? `bank:${selectedValue}` : selectedValue;
         if (selectedPaymentType && [...paymentType.options].some(option => option.value === selectedPaymentType)) paymentType.value = selectedPaymentType;
         else if (normalized && options.some(account => account.value === normalized)) paymentType.value = normalized;
-        else if ([...paymentType.options].some(option => option.value === "Cash")) paymentType.value = "Cash";
       };
       const syncDashboardCurrencyUI = () => {
         const isMMK = paymentCurrency?.value === "MMK";
@@ -3459,6 +3483,7 @@
         if (nextCurrency === "MMK" && !(nextExchangeRate > 0)) return showToast("MMK အတွက် Exchange Rate ထည့်ပေးပါ", "error");
         const selectedOption = paymentType?.selectedOptions[0];
         const selectedPaymentType = selectedOption?.dataset.paymentType || paymentType?.value || a.paymentType || "";
+        if (!paymentType?.value) return showToast("ငွေပေးချေမှုအမျိုးအစားကို ရွေးပေးပါ။ Cash ကို အလိုအလျောက် မရွေးတော့ပါ", "error");
         const selectedPaymentAccount = getSelectedPaymentAccount(selectedOption, selectedPaymentType);
         const patch = { paymentType: selectedPaymentType, paymentAccount: selectedPaymentAccount, bankAccount: selectedPaymentAccount, currency: nextCurrency, exchangeRate: nextExchangeRate, depositAmount: nextAmount, balanceAmount: Math.max(total - nextAmount, 0), paymentStatus: nextStatus, depositStatus: nextStatus, paymentTransferDate: transferDate, depositReceivedDate: transferDate, depositUpdatedAt: serverTimestamp(), depositUpdatedBy: currentUserName };
         try { await updateAppointmentWithAudit(a.id, patch, "dashboard_deposit_update"); notifyAppointmentChange(a.id, "payment"); Object.assign(a, patch); overlay.remove(); renderAppointmentsTable(); showInvoiceToast(a, "Deposit / Payment Status update ပြီးပါပြီ", "success"); }
@@ -6300,6 +6325,28 @@
       if (currentRole === "guest" || currentRole === "finance") return;
       messageDiv.textContent = ""; messageDiv.className = "message";
 
+      const selectedServiceType = $("serviceType")?.value || "";
+      const selectedServicePackage = $("servicePackage")?.value || "";
+      const selectedLocation = $("location")?.value || "";
+      const selectedPaymentOption = $("paymentType")?.selectedOptions?.[0];
+      const selectedPaymentValue = selectedPaymentOption?.value || "";
+      const requiredPackages = dropdownSettings.servicePackages?.[selectedServiceType] || [];
+      if (requiredPackages.length && !selectedServicePackage) {
+        showToast("ဒီ Service အတွက် Package / Region ကို ရွေးပေးပါ", "error");
+        $("servicePackage")?.focus();
+        return;
+      }
+      if (!selectedLocation) {
+        showToast("ဝန်ဆောင်မှုယူမည့် Region / Location ကို ရွေးပေးပါ", "error");
+        $("location")?.focus();
+        return;
+      }
+      if (!selectedPaymentValue) {
+        showToast("ငွေပေးချေမှုအမျိုးအစားကို ရွေးပေးပါ။ Cash ကို အလိုအလျောက် မရွေးတော့ပါ", "error");
+        $("paymentType")?.focus();
+        return;
+      }
+
       let invoiceId = $("invoiceId").value.trim().toUpperCase();
       const editedInvoiceId = editingDocId ? String((cachedAppointments.find(x => x.id === editingDocId) || {}).invoiceId || "") : "";
       if ($("autoInvoiceId").checked && !editingDocId && !invoiceId){
@@ -6324,10 +6371,10 @@
         phone: $("phone").value.trim(),
         customerStatus: $("customerStatus").value, 
         channel: $("channel").value || null, 
-        location: $("location").value,
-        serviceType: $("serviceType").value, 
+        location: selectedLocation,
+        serviceType: selectedServiceType, 
         servicePackage: $("servicePackage") ? $("servicePackage").value : null, 
-        paymentType: $("paymentType").selectedOptions[0]?.dataset.paymentType || $("paymentType").value, 
+        paymentType: selectedPaymentOption?.dataset.paymentType || selectedPaymentValue, 
         bankAccount: getSelectedPaymentAccount($("paymentType").selectedOptions[0], $("paymentType").selectedOptions[0]?.dataset.paymentType || "") || null,
         paymentAccount: getSelectedPaymentAccount($("paymentType").selectedOptions[0], $("paymentType").selectedOptions[0]?.dataset.paymentType || "") || null,
         paymentStatus: $("paymentStatus")?.value || (dep >= total && total > 0 ? "paid" : dep > 0 ? "partial" : "unpaid"),
@@ -6354,6 +6401,8 @@
         serviceProviderSettlementStatus: $("entrySettlementEnabled")?.checked && $("serviceProviderSettlementStatus") ? ($("serviceProviderSettlementStatus").value || "pending") : "pending"
       };
       Object.assign(data, completedPaymentPatch(data, data.customerStatus));
+      if (data.entrySettlementEnabled) {
+      }
       if (data.paymentStatus === "credit") data.paymentAutoCompleted = false;
 
       if (!invoiceId || !data.date || !data.name || !data.phone || !data.serviceType || !data.paymentType || !data.location || !data.customerStatus) {
@@ -6995,7 +7044,7 @@
         // Pending / Noticed records retain their settlement data, but stay out of the Settlement tab
         // until the customer moves to another status.
         if (!isSettlementEligible(a)) return;
-        const date = a.date || "";
+      const date = a.date || "";
         const service = a.serviceType || "";
         const servicePackage = a.servicePackage || "";
         const invoice = (a.invoiceId || a.id || "").toUpperCase();
@@ -7175,6 +7224,79 @@
     function closeQuickSettlementModal() { $("quickSettlementModal")?.classList.add("hidden"); }
     $("closeQuickSettlementModal")?.addEventListener("click", closeQuickSettlementModal);
     $("cancelQuickSettlementModal")?.addEventListener("click", closeQuickSettlementModal);
+
+    function fillDashboardEditOptions(select, values, currentValue) {
+      if (!select) return;
+      const options = [...new Set([...(values || []), currentValue || ""].filter(Boolean))];
+      select.innerHTML = options.map(value => `<option value="${String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")}">${String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</option>`).join("");
+      select.value = currentValue || "";
+    }
+
+    function refreshDashboardPackageOptions(serviceType, currentPackage = "") {
+      const select = $("dashboardEditServicePackage");
+      if (!select) return;
+      const packages = [...new Set([...(dropdownSettings.servicePackages?.[serviceType] || []), currentPackage].filter(Boolean))];
+      select.innerHTML = `<option value="">-- None --</option>${packages.map(value => `<option value="${String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")}">${String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</option>`).join("")}`;
+      select.value = currentPackage && packages.includes(currentPackage) ? currentPackage : "";
+      select.disabled = packages.length === 0;
+    }
+
+    function openDashboardServiceLocationModal(id) {
+      const a = (cachedAppointments || []).find(x => x.id === id);
+      const modal = $("dashboardServiceLocationModal");
+      if (!a || !modal) return;
+      fillDashboardEditOptions($("dashboardEditServiceType"), dropdownSettings.serviceTypes, a.serviceType);
+      refreshDashboardPackageOptions(a.serviceType, a.servicePackage || "");
+      fillDashboardEditOptions($("dashboardEditLocation"), dropdownSettings.locations, a.location);
+      $("dashboardServiceLocationInfo").textContent = `${(a.invoiceId || a.id || "").toUpperCase()} · ${a.name || "-"}`;
+      modal.dataset.appointmentId = id;
+      modal.classList.remove("hidden");
+      $("dashboardEditServiceType")?.focus();
+    }
+
+    function closeDashboardServiceLocationModal() { $("dashboardServiceLocationModal")?.classList.add("hidden"); }
+    $("closeDashboardServiceLocationModal")?.addEventListener("click", closeDashboardServiceLocationModal);
+    $("cancelDashboardServiceLocationModal")?.addEventListener("click", closeDashboardServiceLocationModal);
+    $("dashboardEditServiceType")?.addEventListener("change", () => refreshDashboardPackageOptions($("dashboardEditServiceType").value, ""));
+    $("saveDashboardServiceLocationBtn")?.addEventListener("click", async () => {
+      const modal = $("dashboardServiceLocationModal");
+      const id = modal?.dataset.appointmentId;
+      const current = (cachedAppointments || []).find(x => x.id === id);
+      if (!id || !current) return closeDashboardServiceLocationModal();
+      const serviceType = $("dashboardEditServiceType")?.value || "";
+      const servicePackage = $("dashboardEditServicePackage")?.value || "";
+      const location = $("dashboardEditLocation")?.value || "";
+      const requiredPackages = dropdownSettings.servicePackages?.[serviceType] || [];
+      if (requiredPackages.length && !servicePackage) {
+        showToast("ဒီ Service အတွက် Package / Region ကို ရွေးပေးပါ", "error");
+        $("dashboardEditServicePackage")?.focus();
+        return;
+      }
+      if (!location) {
+        showToast("Region / Location ကို ရွေးပေးပါ", "error");
+        $("dashboardEditLocation")?.focus();
+        return;
+      }
+      const patch = {};
+      if (serviceType !== (current.serviceType || "")) patch.serviceType = serviceType;
+      if (servicePackage !== (current.servicePackage || "")) patch.servicePackage = servicePackage || null;
+      if (location !== (current.location || "")) patch.location = location;
+      if (!Object.keys(patch).length) return closeDashboardServiceLocationModal();
+      const saveBtn = $("saveDashboardServiceLocationBtn");
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Saving..."; }
+      try {
+        await updateAppointmentWithAudit(id, patch, "dashboard_service_location_update");
+        Object.assign(current, patch);
+        notifyAppointmentChange(id, "service_location");
+        closeDashboardServiceLocationModal();
+        renderAppointmentsTable();
+        showInvoiceToast(current, "Service / Package / Region update ပြီးပါပြီ", "success");
+      } catch (error) {
+        showToast(`Service / Package / Region update မအောင်မြင်ပါ: ${error.message}`, "error");
+      } finally {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Save Changes"; }
+      }
+    });
     $("quickSourceName")?.addEventListener("change", syncQuickAgentUI);
     $("quickHandlerName")?.addEventListener("change", syncQuickHandlerUI);
     $("quickHandlerType")?.addEventListener("change", () => {
@@ -7315,6 +7437,16 @@
          const s = getCaseStatus(a).toLowerCase(); 
         const isArchive = (s === "completed" || s === "done" || s === "cancel");
         const allowInlineDateEdit = canEditDelete && !a.isDraft;
+        const canEditEntryDate = currentRole !== "guest" && !a.isDraft;
+        const entryDateHtml = canEditEntryDate
+          ? `<div class="dashboard-entry-date-editor" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;max-width:100%;height:25px !important;align-self:center;line-height:1;vertical-align:middle;">
+              <div style="font-size:10px;font-weight:400;color:inherit;white-space:nowrap;line-height:11px;text-align:center;">${a.date || "-"}</div>
+              <span class="dashboard-date-picker-wrap" style="position:relative;display:inline-flex;width:22px;height:14px;">
+                <span class="dashboard-calendar-btn" style="display:flex;align-items:center;justify-content:center;width:22px;height:14px;border:1px solid #cbd5e1;border-radius:4px;background:#fff;color:#475569;font-size:9px;line-height:1;">📅</span>
+                <input type="date" class="dashboard-date-input dashboard-entry-date-input" data-dateid="${id}" data-datefield="date" value="${a.date || ""}" title="Entry Date ပြောင်းရန်" aria-label="Entry Date ပြောင်းရန်" style="position:absolute;inset:0;width:22px;height:14px;padding:0;border:0;opacity:0;cursor:pointer;z-index:2;">
+              </span>
+            </div>`
+          : (a.date || "");
 
         let apptHtml = allowInlineDateEdit ? "" : (apptDT || "-");
         if (!allowInlineDateEdit && a.appointmentDate && s !== "completed" && s !== "cancel") {
@@ -7522,7 +7654,7 @@
             </div>
           </td>
           
-          <td>${a.date || ""}</td>
+          <td style="vertical-align:bottom !important;text-align:center;padding-bottom:0 !important;">${entryDateHtml}</td>
           <td>${inlineDateHtml}${apptHtml}${expHtml}</td>
           <td>${statusCell}</td>
           <td>${nameHtml}</td>
@@ -7532,9 +7664,9 @@
           </td>
           <td class="dashboard-service-location-cell" title="Service: ${a.serviceType || "-"} · Location: ${a.location || "-"}">
             <div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start;max-width:145px;line-height:1.1;">
-              <span class="tag" title="${a.serviceType || ""}" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;text-align:left;font-size:10px;">${a.serviceType || "-"}</span>
+              <span class="tag dashboard-service-location-edit" data-editid="${a.id}" data-editfield="serviceType" title="Service ကိုနှိပ်ပြီး ပြင်ရန်" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;text-align:left;font-size:10px;${canEditEntryDate ? "cursor:pointer;" : ""}">${a.serviceType || "-"}</span>
               ${a.servicePackage ? `<span title="${a.servicePackage}" style="font-size:9px;color:#475569;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;">${a.servicePackage}</span>` : ""}
-              <span style="font-size:9px;color:#475569;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;">📍 ${a.location || "-"}</span>
+              <span class="dashboard-service-location-edit" data-editid="${a.id}" data-editfield="location" title="Location ကိုနှိပ်ပြီး ပြင်ရန်" style="font-size:9px;color:#475569;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;${canEditEntryDate ? "cursor:pointer;" : ""}">📍 ${a.location || "-"}</span>
             </div>
           </td>
           <td class="dashboard-payment-cell"><div class="dashboard-deposit-btn" data-paymentid="${a.id}" role="button" tabindex="0" title="Payment / Deposit ပြင်ရန် · ${dashboardPaymentMeta.title}" style="display:flex;flex-direction:column;gap:2px;line-height:1.15;white-space:nowrap;cursor:pointer;"><span class="dashboard-payment-line"><span class="dashboard-payment-type">${a.paymentType || "-"}</span></span><span class="dashboard-payment-account-line" title="${dashboardPaymentMeta.title}">${dashboardPaymentMeta.compact}</span><span style="font-weight:800;color:${currentPaymentStatus === "paid" ? "#166534" : currentPaymentStatus === "partial" ? "#92400e" : "#64748b"};">${depositStatusLabel}</span></div></td>
@@ -7571,14 +7703,14 @@
         tr.querySelectorAll(".dashboard-date-input").forEach(input => input.addEventListener("change", async () => {
           const dateId = input.dataset.dateid;
           const field = input.dataset.datefield;
-          if (!dateId || !["appointmentDate", "appointmentTime", "expiryDate", "alertDays"].includes(field)) return;
+          if (!dateId || !["date", "appointmentDate", "appointmentTime", "expiryDate", "alertDays"].includes(field)) return;
           const current = cachedAppointments.find(item => item.id === dateId);
           const oldValue = current?.[field] ?? "";
           let nextValue = input.value || "";
-          if ((field === "appointmentDate" || field === "expiryDate") && nextValue) nextValue = normalizeDashboardDateInput(nextValue);
+          if ((field === "date" || field === "appointmentDate" || field === "expiryDate") && nextValue && input.type !== "date") nextValue = normalizeDashboardDateInput(nextValue);
           if (field === "appointmentTime" && nextValue) nextValue = normalizeDashboardAppointmentTime(nextValue, oldValue);
           if (field === "alertDays" && nextValue !== "") nextValue = Math.max(1, Number(nextValue));
-          if ((field === "appointmentDate" || field === "expiryDate") && input.value && !nextValue) {
+          if ((field === "date" || field === "appointmentDate" || field === "expiryDate") && input.value && !nextValue) {
             input.value = formatDashboardDateDisplay(oldValue);
             return showToast("Date ပုံစံမမှန်ပါ။ ဥပမာ 13.09.2026", "error");
           }
@@ -7594,13 +7726,18 @@
             await updateAppointmentWithAudit(dateId, { [field]: nextValue === "" ? null : nextValue }, "dashboard_date_update");
             notifyAppointmentChange(dateId, "date");
             renderAppointmentsTable();
-            const label = field === "appointmentDate" ? "APPT Date" : field === "appointmentTime" ? "APPT Time" : field === "expiryDate" ? "EXP Date" : "Alert Days";
+            const label = field === "date" ? "Entry Date" : field === "appointmentDate" ? "APPT Date" : field === "appointmentTime" ? "APPT Time" : field === "expiryDate" ? "EXP Date" : "Alert Days";
             showInvoiceToast(current || dateId, `${label} update ပြီးပါပြီ`, "success");
           } catch (error) {
-            input.value = (field === "appointmentDate" || field === "expiryDate") ? formatDashboardDateDisplay(oldValue) : (oldValue || "");
+            input.value = (field === "date" && input.type === "date") ? (oldValue || "") : ((field === "date" || field === "appointmentDate" || field === "expiryDate") ? formatDashboardDateDisplay(oldValue) : (oldValue || ""));
             showToast(`${field} update မအောင်မြင်ပါ: ${error.message}`, "error");
             input.disabled = false;
           }
+        }));
+
+        tr.querySelectorAll(".dashboard-service-location-edit").forEach(fieldEl => fieldEl.addEventListener("click", () => {
+          if (currentRole === "guest" || a.isDraft) return showToast("ဒီ record ကို Dashboard မှာ ပြင်ခွင့်မရှိပါ", "error");
+          openDashboardServiceLocationModal(id);
         }));
 
         const quickSettlementBtn = tr.querySelector(".settlement-quick-open");
@@ -8617,7 +8754,7 @@
       const currency = $("currency")?.value || "THB";
       const accountOptions = getPaymentAccountOptions(currency);
       const baseTypes = [...new Set(["Cash", ...(dropdownSettings.paymentTypes || [])])].filter(type => !["bank transfer", "qr payment"].includes(String(type).trim().toLowerCase()) && !/(bank|qr|promptpay|kpay|wave\s*pay|kbz|aya)/i.test(String(type)));
-      select.innerHTML = "";
+      select.innerHTML = '<option value="">-- Payment Type ရွေးပါ --</option>';
       const addOption = (value, label, paymentType, accountValue = "") => {
         const option = document.createElement("option");
         option.value = value; option.textContent = label;
@@ -8627,7 +8764,7 @@
       };
       baseTypes.forEach(type => addOption(type, type, type));
       accountOptions.forEach(account => addOption(account.value, account.label, account.kind === "bank" ? "Bank Transfer" : "QR Payment", account.value));
-      const wanted = selectedPaymentType && [...select.options].some(option => option.value === selectedPaymentType) ? selectedPaymentType : (selectedValue || ([...select.options].some(option => option.value === "Cash") ? "Cash" : ""));
+      const wanted = selectedPaymentType && [...select.options].some(option => option.value === selectedPaymentType) ? selectedPaymentType : (selectedValue || "");
       if (wanted && [...select.options].some(option => option.value === wanted)) select.value = wanted;
       const selected = select.selectedOptions[0];
       if ($("bankAccount")) $("bankAccount").value = getSelectedPaymentAccount(selected, selected?.dataset.paymentType || "") || "";
