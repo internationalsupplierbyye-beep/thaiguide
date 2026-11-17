@@ -7492,7 +7492,9 @@
         const depositStatusLabel = paymentStatusLabel(currentPaymentStatus);
         const dashboardPaymentMeta = getDashboardPaymentMeta(a);
         const apptDT = `${formatSystemDateDisplay(a.appointmentDate)}${a.appointmentTime ? (" " + a.appointmentTime) : ""}`;
-        const id = (a.invoiceId || a.id || "").toUpperCase();
+        // Keep the Firestore document ID separate from the displayed invoice number.
+        const id = String(a.id || "");
+        const displayId = (a.invoiceId || a.id || "").toUpperCase();
 
          const s = getCaseStatus(a).toLowerCase(); 
         const isArchive = (s === "completed" || s === "done" || s === "cancel");
@@ -7689,7 +7691,7 @@
         tr.innerHTML = `
           <td>
             <div style="font-weight:700; margin-bottom: 4px;">
-              ${id} 
+              ${displayId} 
               <span title="${creatorInfo}\nLast Edit: ${a.updatedAt?.toDate ? a.updatedAt.toDate().toLocaleString() : 'N/A'} by ${a.updatedBy || 'N/A'}" 
                     style="cursor:help; font-size:12px; margin-left:4px;">🕒</span>
             </div>
@@ -7808,7 +7810,7 @@
         if (docsBtn) {
           docsBtn.addEventListener("click", () => {
             const modal = $("docsModal");
-            $("docsModalTitle").textContent = `Documents: ${id} (${a.name})`;
+            $("docsModalTitle").textContent = `Documents: ${displayId} (${a.name})`;
             modal.classList.remove("hidden");
             
             let html = `<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:10px;margin-bottom:12px;">
@@ -8029,11 +8031,11 @@
         const delBtn = tr.querySelector("[data-delid]");
         if (delBtn) delBtn.addEventListener("click", async () => {
           if (!canDelete) return;
-          if (!confirm(`Delete this order?\n\nInvoice ID: ${id}`)) return;
+          if (!confirm(`Delete this order?\n\nInvoice ID: ${displayId}`)) return;
           $("dashboardMessage").textContent = "Deleting..."; $("dashboardMessage").className = "message";
           try {
             await deleteDoc(doc(db, "appointments", id));
-            $("dashboardMessage").textContent = "✅ Deleted: " + id; $("dashboardMessage").className = "message success";
+            $("dashboardMessage").textContent = "✅ Deleted: " + displayId; $("dashboardMessage").className = "message success";
             await loadAppointments(); 
           } catch(e) { $("dashboardMessage").textContent = "❌ Delete failed: " + e.message; $("dashboardMessage").className = "message error"; }
         });
