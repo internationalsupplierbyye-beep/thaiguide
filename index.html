@@ -6774,6 +6774,65 @@
       });
     }
 
+    // Sort the records shown in the Dashboard status/special tabs.  The
+    // dropdown used to change its value, but the rendered list never used it.
+    function sortDashboardRecords(records) {
+      const sortBy = $("completedSortSelect")?.value || "";
+      if (!sortBy || records.length < 2) return records;
+
+      const asTime = value => {
+        const date = timestampToDate(value);
+        return date ? date.getTime() : 0;
+      };
+      const dateOnlyTime = value => {
+        if (!value) return 0;
+        const text = String(value).trim();
+        // ISO dates sort reliably without browser locale differences.
+        const parsed = /^\d{4}-\d{2}-\d{2}$/.test(text)
+          ? Date.parse(`${text}T00:00:00`)
+          : Date.parse(text);
+        return Number.isFinite(parsed) ? parsed : 0;
+      };
+      const appointmentTime = record => {
+        const date = record.appointmentDate || "";
+        const time = String(record.appointmentTime || "").trim();
+        if (!date) return 0;
+        const parsed = Date.parse(`${date}${time ? `T${time}` : "T00:00:00"}`);
+        return Number.isFinite(parsed) ? parsed : dateOnlyTime(date);
+      };
+      const entryTime = record => dateOnlyTime(record.date) || asTime(record.createdAt);
+      const createdTime = record => asTime(record.createdAt) || entryTime(record);
+      const completedTime = record =>
+        asTime(record.completedAt) || asTime(record.statusChangedAt) ||
+        asTime(record.updatedAt) || createdTime(record);
+      const expiryTime = record => dateOnlyTime(record.expiryDate);
+
+      const valueFor = record => {
+        switch (sortBy) {
+          case "completedTime": return completedTime(record);
+          case "apptTime": return appointmentTime(record);
+          case "apptDate": return dateOnlyTime(record.appointmentDate);
+          case "entryDate": return entryTime(record);
+          case "visaExpiry": return expiryTime(record);
+          default: return 0;
+        }
+      };
+
+      // Newest/recent records first.  Missing dates go last rather than
+      // appearing before valid records because they compare as zero.
+      return records
+        .map((record, index) => ({ record, index, value: valueFor(record) }))
+        .sort((left, right) => {
+          const leftMissing = left.value === 0;
+          const rightMissing = right.value === 0;
+          if (leftMissing !== rightMissing) return leftMissing ? 1 : -1;
+          if (right.value !== left.value) return right.value - left.value;
+          const createdDiff = createdTime(right.record) - createdTime(left.record);
+          return createdDiff || left.index - right.index;
+        })
+        .map(item => item.record);
+    }
+
     async function loadDashboardStats() {
       if (currentRole === "guest" || dashboardStatsPromise) return dashboardStatsPromise;
       dashboardStatsPromise = (async () => {
@@ -7414,14 +7473,15 @@
          return s === viewMode.toLowerCase();
       });
 
-      lastFilteredAppointments = finalFiltered;
-      if (!finalFiltered.length) { body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`; return; }
+      const sortedFiltered = sortDashboardRecords(finalFiltered);
+      lastFilteredAppointments = sortedFiltered;
+      if (!sortedFiltered.length) { body.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:8px;">Result မရှိပါ</td></tr>`; return; }
       
       const canViewProfit = currentRole === "admin" || currentRole === "manager";
       const canEditDelete = currentRole === "admin" || currentRole === "manager";
       const canDelete = currentRole === "admin";
 
-      finalFiltered.forEach(a => {
+      sortedFiltered.forEach(a => {
         const payable = getPayableTotal(a);
         const profit = (a.serviceProfit != null) ? a.serviceProfit : ((a.price != null && a.serviceCost != null) ? (payable - a.serviceCost) : null);
         const profitText = profit != null ? Number(profit).toFixed(2) : "";
